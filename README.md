@@ -1,10 +1,13 @@
 ﻿# 🚗 SmartGaraj - Akıllı Araç ve Bakım Takip Sistemi
 
+[![Live Demo](https://img.shields.io/badge/Canlı%20Site-smartgaraj.gt.tc-blue?style=for-the-badge&logo=googlechrome&logoColor=white)](http://smartgaraj.gt.tc)
 [![PHP Version](https://img.shields.io/badge/PHP-7.4%2B%20%2F%208.x-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
 [![MySQL](https://img.shields.io/badge/MySQL-Database-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
 **SmartGaraj**, bireysel araç sahipleri ve filo/garaj yöneticileri için geliştirilmiş web tabanlı bir **araç yönetim, periyodik bakım ve yasal süreç (muayene, sigorta, kasko) takip** platformudur.
+
+🌐 **Canlı Web Sitesi:** [http://smartgaraj.gt.tc](http://smartgaraj.gt.tc)
 
 ---
 
@@ -21,12 +24,19 @@
 
 ---
 
+## 🌐 Canlı Demo / Canlı Yayın
+
+Proje şu anda aktif olarak canlı sunucuda yayındadır:
+👉 **[smartgaraj.gt.tc](http://smartgaraj.gt.tc)** adresinden doğrudan inceleyebilirsiniz.
+
+---
+
 ## 🛠️ Kullanılan Teknolojiler
 
 - **Backend:** PHP
 - **Veritabanı:** MySQL / MariaDB
 - **Frontend:** HTML5, CSS3, JavaScript
-- **Web Sunucusu:** Apache / Nginx (XAMPP / Laragon / Canlı Hosting)
+- **Web Sunucusu:** Apache / Nginx (XAMPP / Laragon / InfinityFree Hosting)
 
 ---
 
