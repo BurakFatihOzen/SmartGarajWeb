@@ -127,6 +127,7 @@ class DashboardController extends Controller
             'categoryStats' => $categoryStats,
             'healthScore' => $healthScore,
             'healthStatusLabel' => $healthStatusLabel,
+            'diagnosisReport' => $diagnosisReport ?? null,
             'upcomingAlertsCount' => $upcomingAlertsCount,
         ]);
     }

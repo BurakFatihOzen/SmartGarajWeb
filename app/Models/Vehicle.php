@@ -24,6 +24,8 @@ class Vehicle extends Model
         'yil',
         'guncel_km',
         'ruhsat_tipi',
+        'vites_turu',
+        'yakit_turu',
         'muayene_bitis',
         'sigorta_bitis',
         'kasko_bitis',

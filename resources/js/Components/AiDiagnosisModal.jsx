@@ -144,7 +144,11 @@ export default function AiDiagnosisModal({ isOpen, onClose, vehicleId, vehiclePl
                                 <div className="flex flex-wrap sm:flex-col items-start sm:items-end gap-1.5 text-xs">
                                     <span className="px-2.5 py-1 rounded-lg bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] font-bold text-slate-700 dark:text-slate-300 flex items-center space-x-1.5">
                                         <Fuel className="w-3.5 h-3.5 text-amber-500" />
-                                        <span>Motor: {data.motor_type || 'Standart'}</span>
+                                        <span>{data.fuel_type || data.motor_type || 'Benzin'}</span>
+                                    </span>
+                                    <span className="px-2.5 py-1 rounded-lg bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] font-bold text-slate-700 dark:text-slate-300 flex items-center space-x-1.5">
+                                        <Cpu className="w-3.5 h-3.5 text-purple-500" />
+                                        <span className="truncate max-w-[170px]">{data.transmission || 'Manuel'}</span>
                                     </span>
                                     <span className="px-2.5 py-1 rounded-lg bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] font-mono font-bold text-slate-700 dark:text-slate-300 flex items-center space-x-1.5">
                                         <Gauge className="w-3.5 h-3.5 text-blue-500" />

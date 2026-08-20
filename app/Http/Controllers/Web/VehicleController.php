@@ -35,6 +35,8 @@ class VehicleController extends Controller
             'yil' => 'nullable|integer|min:1900|max:2100',
             'guncel_km' => 'nullable|integer|min:0',
             'ruhsat_tipi' => 'nullable|string|max:50',
+            'vites_turu' => 'nullable|string|max:50',
+            'yakit_turu' => 'nullable|string|max:50',
             'muayene_bitis' => 'nullable|date',
             'sigorta_bitis' => 'nullable|date',
             'kasko_bitis' => 'nullable|date',
