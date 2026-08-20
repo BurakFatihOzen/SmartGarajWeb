@@ -328,26 +328,26 @@ export default function VehicleCreate() {
                     <div className="flex items-center space-x-3">
                         <Link
                             href="/vehicles"
-                            className="p-2 rounded-xl bg-white/[0.05] hover:bg-white/10 text-slate-300 transition-colors"
+                            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.05] dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 transition-colors shadow-2xs"
                         >
                             <ArrowLeft className="w-5 h-5" />
                         </Link>
                         <div>
-                            <h2 className="text-2xl font-black text-white tracking-tight">Yeni Araç Kaydı</h2>
-                            <p className="text-xs text-slate-400 mt-0.5">Garajınıza yeni bir araç tanımlayın ve takip etmeye başlayın.</p>
+                            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Yeni Araç Kaydı</h2>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Garajınıza yeni bir araç tanımlayın ve takip etmeye başlayın.</p>
                         </div>
                     </div>
                 </div>
 
                 {/* AI OCR BANNER */}
-                <div className="p-5 rounded-3xl bg-gradient-to-r from-purple-500/15 via-indigo-500/10 to-transparent border border-purple-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+                <div className="p-5 rounded-3xl bg-gradient-to-r from-purple-500/10 via-indigo-500/5 to-transparent dark:from-purple-500/15 dark:via-indigo-500/10 dark:to-transparent border border-purple-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
                     <div className="flex items-center space-x-3.5 text-center sm:text-left">
-                        <div className="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0 shadow-inner">
+                        <div className="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-500 dark:text-purple-400 flex items-center justify-center shrink-0 shadow-inner">
                             <Sparkles className="w-6 h-6" />
                         </div>
                         <div>
-                            <div className="text-sm font-extrabold text-white">Ruhsatınız Yanınızda mı?</div>
-                            <div className="text-xs text-slate-300 mt-0.5">
+                            <div className="text-sm font-extrabold text-slate-900 dark:text-white">Ruhsatınız Yanınızda mı?</div>
+                            <div className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
                                 Fotoğrafını yükleyin; plaka, marka, model, şasi ve muayene bilgileri saniyeler içinde otomatik dolsun!
                             </div>
                         </div>
@@ -363,11 +363,11 @@ export default function VehicleCreate() {
                 </div>
 
                 {/* Form Card */}
-                <div className="p-6 sm:p-8 rounded-3xl bg-[#13151b] border border-white/[0.08] shadow-2xl">
+                <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#13151b] border border-slate-200/80 dark:border-white/[0.08] shadow-xl">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         
                         {/* VEHICLE PHOTO UPLOAD DROPZONE */}
-                        <div className="p-4 rounded-2xl bg-slate-100 dark:bg-[#181b24] border border-slate-200/80 dark:border-white/10 space-y-3">
+                        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#181b24] border border-slate-200/80 dark:border-white/10 space-y-3">
                             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center space-x-2">
                                 <ImageIcon className="w-4 h-4 text-amber-500" />
                                 <span>Araç Fotoğrafı (Opsiyonel)</span>
@@ -404,7 +404,7 @@ export default function VehicleCreate() {
 
                         {/* SECTION 1: TEMEL BİLGİLER */}
                         <div>
-                            <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-4 flex items-center space-x-2">
+                            <h4 className="text-xs font-bold text-amber-500 uppercase tracking-wider mb-4 flex items-center space-x-2">
                                 <Car className="w-4 h-4" />
                                 <span>1. Temel Araç Bilgileri</span>
                             </h4>
@@ -413,8 +413,8 @@ export default function VehicleCreate() {
                                 
                                 {/* 1. PLAKA (TR Standart Mask) */}
                                 <div>
-                                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                                        Plaka <span className="text-amber-400">*</span>
+                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                                        Plaka <span className="text-amber-500">*</span>
                                     </label>
                                     <div className="relative">
                                         <input
@@ -423,19 +423,19 @@ export default function VehicleCreate() {
                                             onChange={handlePlateChange}
                                             placeholder="34 ABC 123"
                                             maxLength={11}
-                                            className="w-full uppercase font-mono font-black tracking-wider bg-[#1a1d27] border border-white/10 rounded-xl px-4 py-3 text-base text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-all"
+                                            className="w-full uppercase font-mono font-black tracking-wider bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 text-base text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-all shadow-2xs"
                                             required
                                             autoFocus
                                         />
                                     </div>
                                     <span className="text-[11px] text-slate-500 mt-1 block">Format: 01-81 İl Kodu + Harf + Rakam</span>
-                                    {errors.plaka && <p className="text-red-400 text-xs mt-1">{errors.plaka}</p>}
+                                    {errors.plaka && <p className="text-red-500 text-xs mt-1">{errors.plaka}</p>}
                                 </div>
 
                                 {/* 2. MARKA (İnteraktif Logo Dropdown) */}
                                 <div ref={brandDropdownRef} className="relative">
-                                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                                        Marka <span className="text-amber-400">*</span>
+                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                                        Marka <span className="text-amber-500">*</span>
                                     </label>
                                     
                                     {!isCustomBrand ? (
@@ -443,11 +443,11 @@ export default function VehicleCreate() {
                                             <button
                                                 type="button"
                                                 onClick={() => setIsBrandDropdownOpen(!isBrandDropdownOpen)}
-                                                className="w-full bg-[#1a1d27] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-left text-white flex items-center justify-between hover:border-amber-500/50 transition-all"
+                                                className="w-full bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-left text-slate-900 dark:text-white flex items-center justify-between hover:border-amber-500/50 transition-all shadow-2xs cursor-pointer"
                                             >
                                                 {data.marka ? (
                                                     <div className="flex items-center space-x-2.5">
-                                                        <div className="w-6 h-6 rounded-md bg-white p-0.5 flex items-center justify-center shrink-0">
+                                                        <div className="w-6 h-6 rounded-md bg-slate-100 dark:bg-white p-0.5 flex items-center justify-center shrink-0 border border-slate-200">
                                                             <img
                                                                 src={`https://www.google.com/s2/favicons?domain=${BRANDS_LIST.find(b => b.ad === data.marka)?.domain || 'auto.com'}&sz=64`}
                                                                 alt={data.marka}
@@ -455,7 +455,7 @@ export default function VehicleCreate() {
                                                                 onError={(e) => { e.target.style.display = 'none'; }}
                                                             />
                                                         </div>
-                                                        <span className="font-bold text-white">{data.marka}</span>
+                                                        <span className="font-bold text-slate-900 dark:text-white">{data.marka}</span>
                                                     </div>
                                                 ) : (
                                                     <span className="text-slate-400">Marka Seçiniz...</span>
@@ -464,9 +464,9 @@ export default function VehicleCreate() {
                                             </button>
 
                                             {isBrandDropdownOpen && (
-                                                <div className="absolute left-0 right-0 top-full mt-1 bg-[#161821] border border-white/15 rounded-2xl shadow-2xl z-50 overflow-hidden max-h-72 flex flex-col">
+                                                <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#161821] border border-slate-200 dark:border-white/15 rounded-2xl shadow-2xl z-50 overflow-hidden max-h-72 flex flex-col">
                                                     {/* Search Input */}
-                                                    <div className="p-2 border-b border-white/10 bg-[#12141c]">
+                                                    <div className="p-2 border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#12141c]">
                                                         <div className="relative">
                                                             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
                                                             <input
@@ -474,7 +474,7 @@ export default function VehicleCreate() {
                                                                 value={brandSearch}
                                                                 onChange={(e) => setBrandSearch(e.target.value)}
                                                                 placeholder="Marka ara... (Örn: Renault, Fiat, BMW)"
-                                                                className="w-full bg-[#1e212c] border border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                                                                className="w-full bg-white dark:bg-[#1e212c] border border-slate-300 dark:border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-amber-500"
                                                                 autoFocus
                                                             />
                                                         </div>
@@ -487,9 +487,9 @@ export default function VehicleCreate() {
                                                                 key={brand.ad}
                                                                 type="button"
                                                                 onClick={() => handleBrandSelect(brand)}
-                                                                className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-200 hover:bg-amber-500 hover:text-black flex items-center space-x-3 transition-colors group"
+                                                                className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-500 hover:text-black flex items-center space-x-3 transition-colors group cursor-pointer"
                                                             >
-                                                                <div className="w-6 h-6 rounded-md bg-white p-0.5 flex items-center justify-center shrink-0 shadow-sm">
+                                                                <div className="w-6 h-6 rounded-md bg-slate-100 dark:bg-white p-0.5 flex items-center justify-center shrink-0 shadow-xs border border-slate-200">
                                                                     <img
                                                                         src={`https://www.google.com/s2/favicons?domain=${brand.domain}&sz=64`}
                                                                         alt={brand.ad}
@@ -502,12 +502,12 @@ export default function VehicleCreate() {
                                                             </button>
                                                         ))}
 
-                                                        <div className="border-t border-white/10 my-1" />
+                                                        <div className="border-t border-slate-200 dark:border-white/10 my-1" />
 
                                                         <button
                                                             type="button"
                                                             onClick={() => handleBrandSelect('diger')}
-                                                            className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-amber-400 hover:bg-amber-500 hover:text-black flex items-center space-x-2 transition-colors"
+                                                            className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-black flex items-center space-x-2 transition-colors cursor-pointer"
                                                         >
                                                             <Edit3 className="w-4 h-4" />
                                                             <span>Diğer (Manuel Giriş)</span>
@@ -523,26 +523,26 @@ export default function VehicleCreate() {
                                                 value={data.marka}
                                                 onChange={(e) => setData('marka', e.target.value)}
                                                 placeholder="Marka adını yazın..."
-                                                className="w-full bg-[#1a1d27] border border-amber-500/40 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500"
+                                                className="w-full bg-white dark:bg-[#1a1d27] border border-amber-500/40 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 shadow-2xs"
                                                 required
                                                 autoFocus
                                             />
                                             <button
                                                 type="button"
                                                 onClick={() => setIsCustomBrand(false)}
-                                                className="px-3 py-2 text-xs text-slate-400 hover:text-white border border-white/10 rounded-xl bg-white/[0.03]"
+                                                className="px-3 py-2 text-xs text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white border border-slate-300 dark:border-white/10 rounded-xl bg-slate-100 dark:bg-white/[0.03] cursor-pointer"
                                             >
                                                 Listeden Seç
                                             </button>
                                         </div>
                                     )}
-                                    {errors.marka && <p className="text-red-400 text-xs mt-1">{errors.marka}</p>}
+                                    {errors.marka && <p className="text-red-500 text-xs mt-1">{errors.marka}</p>}
                                 </div>
 
                                 {/* 3. MODEL (Dinamik Liste & Manuel Giriş) */}
                                 <div ref={modelDropdownRef} className="relative">
-                                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                                        Model <span className="text-amber-400">*</span>
+                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                                        Model <span className="text-amber-500">*</span>
                                     </label>
 
                                     {!isCustomModel && availableModels.length > 0 ? (
@@ -550,33 +550,33 @@ export default function VehicleCreate() {
                                             <button
                                                 type="button"
                                                 onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
-                                                className="w-full bg-[#1a1d27] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-left text-white flex items-center justify-between hover:border-amber-500/50 transition-all"
+                                                className="w-full bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-left text-slate-900 dark:text-white flex items-center justify-between hover:border-amber-500/50 transition-all shadow-2xs cursor-pointer"
                                             >
-                                                <span className={data.model ? 'font-bold text-white' : 'text-slate-400'}>
+                                                <span className={data.model ? 'font-bold text-slate-900 dark:text-white' : 'text-slate-400'}>
                                                     {data.model || 'Model Seçiniz...'}
                                                 </span>
                                                 <ChevronDown className="w-4 h-4 text-slate-400" />
                                             </button>
 
                                             {isModelDropdownOpen && (
-                                                <div className="absolute left-0 right-0 top-full mt-1 bg-[#161821] border border-white/15 rounded-2xl shadow-2xl z-40 max-h-60 overflow-y-auto p-1.5 space-y-1">
+                                                <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#161821] border border-slate-200 dark:border-white/15 rounded-2xl shadow-2xl z-40 max-h-60 overflow-y-auto p-1.5 space-y-1">
                                                     {availableModels.map((m) => (
                                                         <button
                                                             key={m}
                                                             type="button"
                                                             onClick={() => handleModelSelect(m)}
-                                                            className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-200 hover:bg-amber-500 hover:text-black transition-colors"
+                                                            className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-500 hover:text-black transition-colors cursor-pointer"
                                                         >
                                                             {m}
                                                         </button>
                                                     ))}
 
-                                                    <div className="border-t border-white/10 my-1" />
+                                                    <div className="border-t border-slate-200 dark:border-white/10 my-1" />
 
                                                     <button
                                                         type="button"
                                                         onClick={() => handleModelSelect('diger')}
-                                                        className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-amber-400 hover:bg-amber-500 hover:text-black flex items-center space-x-2 transition-colors"
+                                                        className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-black flex items-center space-x-2 transition-colors cursor-pointer"
                                                     >
                                                         <Edit3 className="w-4 h-4" />
                                                         <span>Diğer (Manuel Model Yaz)</span>
@@ -591,26 +591,26 @@ export default function VehicleCreate() {
                                                 value={data.model}
                                                 onChange={(e) => setData('model', e.target.value)}
                                                 placeholder="Örn: Megane IV, Corolla, Civic"
-                                                className="w-full bg-[#1a1d27] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                                                className="w-full bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-amber-500 shadow-2xs"
                                                 required
                                             />
                                             {availableModels.length > 0 && (
                                                 <button
                                                     type="button"
                                                     onClick={() => setIsCustomModel(false)}
-                                                    className="px-3 py-2 text-xs text-slate-400 hover:text-white border border-white/10 rounded-xl bg-white/[0.03]"
+                                                    className="px-3 py-2 text-xs text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white border border-slate-300 dark:border-white/10 rounded-xl bg-slate-100 dark:bg-white/[0.03] cursor-pointer"
                                                 >
                                                     Listeden Seç
                                                 </button>
                                             )}
                                         </div>
                                     )}
-                                    {errors.model && <p className="text-red-400 text-xs mt-1">{errors.model}</p>}
+                                    {errors.model && <p className="text-red-500 text-xs mt-1">{errors.model}</p>}
                                 </div>
 
                                 {/* 4. MOTOR / YAKIT (Dinamik Liste & Manuel Giriş) */}
                                 <div ref={motorDropdownRef} className="relative">
-                                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                                         Motor / Paket
                                     </label>
 
@@ -619,33 +619,33 @@ export default function VehicleCreate() {
                                             <button
                                                 type="button"
                                                 onClick={() => setIsMotorDropdownOpen(!isMotorDropdownOpen)}
-                                                className="w-full bg-[#1a1d27] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-left text-white flex items-center justify-between hover:border-amber-500/50 transition-all"
+                                                className="w-full bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-left text-slate-900 dark:text-white flex items-center justify-between hover:border-amber-500/50 transition-all shadow-2xs cursor-pointer"
                                             >
-                                                <span className={data.motor ? 'font-bold text-white' : 'text-slate-400'}>
+                                                <span className={data.motor ? 'font-bold text-slate-900 dark:text-white' : 'text-slate-400'}>
                                                     {data.motor || 'Motor Seçiniz...'}
                                                 </span>
                                                 <ChevronDown className="w-4 h-4 text-slate-400" />
                                             </button>
 
                                             {isMotorDropdownOpen && (
-                                                <div className="absolute left-0 right-0 top-full mt-1 bg-[#161821] border border-white/15 rounded-2xl shadow-2xl z-30 max-h-60 overflow-y-auto p-1.5 space-y-1">
+                                                <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#161821] border border-slate-200 dark:border-white/15 rounded-2xl shadow-2xl z-30 max-h-60 overflow-y-auto p-1.5 space-y-1">
                                                     {availableMotors.map((mot) => (
                                                         <button
                                                             key={mot}
                                                             type="button"
                                                             onClick={() => handleMotorSelect(mot)}
-                                                            className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-200 hover:bg-amber-500 hover:text-black transition-colors"
+                                                            className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-500 hover:text-black transition-colors cursor-pointer"
                                                         >
                                                             {mot}
                                                         </button>
                                                     ))}
 
-                                                    <div className="border-t border-white/10 my-1" />
+                                                    <div className="border-t border-slate-200 dark:border-white/10 my-1" />
 
                                                     <button
                                                         type="button"
                                                         onClick={() => handleMotorSelect('diger')}
-                                                        className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-amber-400 hover:bg-amber-500 hover:text-black flex items-center space-x-2 transition-colors"
+                                                        className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-black flex items-center space-x-2 transition-colors cursor-pointer"
                                                     >
                                                         <Edit3 className="w-4 h-4" />
                                                         <span>Diğer (Manuel Motor Yaz)</span>
@@ -660,13 +660,13 @@ export default function VehicleCreate() {
                                                 value={data.motor}
                                                 onChange={(e) => setData('motor', e.target.value)}
                                                 placeholder="Örn: 1.5 Blue dCi (115 bg)"
-                                                className="w-full bg-[#1a1d27] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                                                className="w-full bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-amber-500 shadow-2xs"
                                             />
                                             {availableMotors.length > 0 && (
                                                 <button
                                                     type="button"
                                                     onClick={() => setIsCustomMotor(false)}
-                                                    className="px-3 py-2 text-xs text-slate-400 hover:text-white border border-white/10 rounded-xl bg-white/[0.03]"
+                                                    className="px-3 py-2 text-xs text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white border border-slate-300 dark:border-white/10 rounded-xl bg-slate-100 dark:bg-white/[0.03] cursor-pointer"
                                                 >
                                                     Listeden Seç
                                                 </button>
@@ -677,7 +677,7 @@ export default function VehicleCreate() {
 
                                 {/* 5. MODEL YILI (Kısıtlı & 4 Basamaklı) */}
                                 <div>
-                                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                                         Model Yılı
                                     </label>
                                     <input
@@ -687,17 +687,17 @@ export default function VehicleCreate() {
                                         onChange={handleYearChange}
                                         placeholder={yearLimits.placeholder}
                                         maxLength={4}
-                                        className="w-full bg-[#1a1d27] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white font-mono font-bold focus:outline-none focus:border-amber-500 transition-all"
+                                        className="w-full bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white font-mono font-bold focus:outline-none focus:border-amber-500 transition-all shadow-2xs"
                                     />
                                     <span className="text-[11px] text-slate-500 mt-1 block">
                                         Geçerli aralık: {yearLimits.min} - {yearLimits.max}
                                     </span>
-                                    {errors.yil && <p className="text-red-400 text-xs mt-1">{errors.yil}</p>}
+                                    {errors.yil && <p className="text-red-500 text-xs mt-1">{errors.yil}</p>}
                                 </div>
 
                                 {/* 6. GÜNCEL KİLOMETRE */}
                                 <div>
-                                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                                         Güncel Kilometre (KM)
                                     </label>
                                     <input
@@ -707,30 +707,30 @@ export default function VehicleCreate() {
                                         value={data.guncel_km}
                                         onChange={(e) => setData('guncel_km', e.target.value)}
                                         placeholder="Örn: 95000"
-                                        className="w-full bg-[#1a1d27] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white font-mono font-bold focus:outline-none focus:border-amber-500 transition-all"
+                                        className="w-full bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white font-mono font-bold focus:outline-none focus:border-amber-500 transition-all shadow-2xs"
                                     />
-                                    {errors.guncel_km && <p className="text-red-400 text-xs mt-1">{errors.guncel_km}</p>}
+                                    {errors.guncel_km && <p className="text-red-500 text-xs mt-1">{errors.guncel_km}</p>}
                                 </div>
 
                                 {/* 7. RUHSAT TİPİ / TAŞIT CİNSİ (TÜVTÜRK HESAPLAYICI) */}
                                 <div className="sm:col-span-2">
-                                    <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
+                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center justify-between">
                                         <span className="flex items-center space-x-1.5">
-                                            <FileCheck className="w-3.5 h-3.5 text-amber-400" />
-                                            <span>Ruhsat Tipi & Kullanım Cinsi <span className="text-amber-400">*</span></span>
+                                            <FileCheck className="w-3.5 h-3.5 text-amber-500" />
+                                            <span>Ruhsat Tipi & Kullanım Cinsi <span className="text-amber-500">*</span></span>
                                         </span>
-                                        <span className="text-[11px] text-amber-400 font-semibold">
+                                        <span className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold">
                                             💡 {RUHSAT_TIPLERI.find(r => r.id === data.ruhsat_tipi)?.desc}
                                         </span>
                                     </label>
                                     <select
                                         value={data.ruhsat_tipi}
                                         onChange={(e) => handleRuhsatChange(e.target.value)}
-                                        className="w-full bg-[#1a1d27] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500 transition-all font-semibold cursor-pointer"
+                                        className="w-full bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition-all font-semibold cursor-pointer shadow-2xs"
                                         required
                                     >
                                         {RUHSAT_TIPLERI.map((r) => (
-                                            <option key={r.id} value={r.id} className="bg-[#13151b] text-white">
+                                            <option key={r.id} value={r.id} className="bg-white dark:bg-[#13151b] text-slate-900 dark:text-white">
                                                 {r.label} — ({r.desc})
                                             </option>
                                         ))}
@@ -740,14 +740,14 @@ export default function VehicleCreate() {
                         </div>
 
                         {/* SECTION 2: YASAL SÜREÇLER & SİGORTA */}
-                        <div className="pt-4 border-t border-white/10">
+                        <div className="pt-4 border-t border-slate-200/80 dark:border-white/10">
                             <div className="flex items-center justify-between mb-4">
-                                <h4 className="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center space-x-2">
+                                <h4 className="text-xs font-bold text-blue-500 dark:text-blue-400 uppercase tracking-wider flex items-center space-x-2">
                                     <Calendar className="w-4 h-4" />
                                     <span>2. Yasal Süreç & Sigorta Bitiş Tarihleri</span>
                                 </h4>
                                 {parseInt(data.yil) >= new Date().getFullYear() && (
-                                    <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-lg flex items-center space-x-1">
+                                    <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-lg flex items-center space-x-1">
                                         <Sparkles className="w-3.5 h-3.5" />
                                         <span>Sıfır Araç: 3 Yıl TÜVTÜRK Muafiyeti Uygulandı</span>
                                     </span>
@@ -757,7 +757,7 @@ export default function VehicleCreate() {
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 {/* 8. ŞASİ NUMARASI (VIN) */}
                                 <div className="sm:col-span-2">
-                                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                                         Şasi Numarası (VIN) <span className="text-slate-500 font-normal">(17 Haneli - Opsiyonel)</span>
                                     </label>
                                     <input
@@ -766,16 +766,16 @@ export default function VehicleCreate() {
                                         onChange={(e) => setData('sasi_no', e.target.value.toUpperCase())}
                                         placeholder="Örn: WBA3A5C50DF819283"
                                         maxLength={17}
-                                        className="w-full uppercase font-mono bg-[#1a1d27] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-all tracking-wider"
+                                        className="w-full uppercase font-mono bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-all tracking-wider shadow-2xs"
                                     />
-                                    {errors.sasi_no && <p className="text-red-400 text-xs mt-1">{errors.sasi_no}</p>}
+                                    {errors.sasi_no && <p className="text-red-500 text-xs mt-1">{errors.sasi_no}</p>}
                                 </div>
                             </div>
                         </div>
 
                         {/* SECTION 2: MUAYENE & SİGORTA & KASKO */}
-                        <div className="pt-4 border-t border-white/10">
-                            <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-4 flex items-center space-x-2">
+                        <div className="pt-4 border-t border-slate-200/80 dark:border-white/10">
+                            <h4 className="text-xs font-bold text-amber-500 uppercase tracking-wider mb-4 flex items-center space-x-2">
                                 <Calendar className="w-4 h-4" />
                                 <span>2. Yasal Vadeler & Poliçeler</span>
                             </h4>
@@ -783,13 +783,13 @@ export default function VehicleCreate() {
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
                                 <div>
                                     <div className="h-7 flex items-center justify-between mb-1.5">
-                                        <label className="block text-xs font-semibold text-slate-300">TÜVTÜRK Muayene Bitiş</label>
+                                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">TÜVTÜRK Muayene Bitiş</label>
                                     </div>
                                     <input
                                         type="date"
                                         value={data.muayene_bitis}
                                         onChange={(e) => setData('muayene_bitis', e.target.value)}
-                                        className="w-full h-10 bg-[#1a1d27] border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500 transition-all"
+                                        className="w-full h-10 bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition-all shadow-2xs"
                                     />
                                     
                                     {/* Hızlı Yıl Ekleme Butonları */}
@@ -797,21 +797,21 @@ export default function VehicleCreate() {
                                         <button
                                             type="button"
                                             onClick={() => applyQuickMuayeneYears(3)}
-                                            className="px-2 py-0.5 rounded-md bg-blue-500/10 hover:bg-blue-500 hover:text-white border border-blue-500/20 text-[10px] font-bold text-blue-400 transition-all"
+                                            className="px-2 py-0.5 rounded-md bg-blue-500/10 hover:bg-blue-500 hover:text-white border border-blue-500/20 text-[10px] font-bold text-blue-500 dark:text-blue-400 transition-all cursor-pointer"
                                         >
                                             +3 Yıl (Sıfır)
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => applyQuickMuayeneYears(2)}
-                                            className="px-2 py-0.5 rounded-md bg-white/[0.04] hover:bg-white/10 border border-white/10 text-[10px] font-semibold text-slate-300 transition-all"
+                                            className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-[10px] font-semibold text-slate-700 dark:text-slate-300 transition-all cursor-pointer"
                                         >
                                             +2 Yıl
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => applyQuickMuayeneYears(1)}
-                                            className="px-2 py-0.5 rounded-md bg-white/[0.04] hover:bg-white/10 border border-white/10 text-[10px] font-semibold text-slate-300 transition-all"
+                                            className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-[10px] font-semibold text-slate-700 dark:text-slate-300 transition-all cursor-pointer"
                                         >
                                             +1 Yıl (Ticari)
                                         </button>
@@ -820,27 +820,27 @@ export default function VehicleCreate() {
 
                                 <div>
                                     <div className="h-7 flex items-center mb-1.5">
-                                        <label className="block text-xs font-semibold text-slate-300">Trafik Sigortası</label>
+                                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">Trafik Sigortası</label>
                                     </div>
                                     <input
                                         type="date"
                                         value={data.sigorta_bitis}
                                         onChange={(e) => setData('sigorta_bitis', e.target.value)}
-                                        className="w-full h-10 bg-[#1a1d27] border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-all"
+                                        className="w-full h-10 bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition-all shadow-2xs"
                                     />
                                 </div>
 
                                 <div>
                                     <div className="h-7 flex items-center justify-between mb-1.5">
-                                        <label className="block text-xs font-semibold text-slate-300">Kasko Poliçesi</label>
-                                        <div className="flex rounded-lg p-0.5 bg-[#1a1d27] border border-white/10 text-[11px] shadow-sm">
+                                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">Kasko Poliçesi</label>
+                                        <div className="flex rounded-lg p-0.5 bg-slate-100 dark:bg-[#1a1d27] border border-slate-200 dark:border-white/10 text-[11px] shadow-xs">
                                             <button
                                                 type="button"
                                                 onClick={() => handleKaskoToggle(false)}
                                                 className={`px-3 py-0.5 rounded-md font-extrabold cursor-pointer transition-all duration-150 ${
                                                     !hasKasko 
                                                         ? 'bg-rose-500 text-white shadow-md shadow-rose-500/25 scale-[1.03]' 
-                                                        : 'text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 active:scale-95'
+                                                        : 'text-slate-600 dark:text-slate-400 hover:text-rose-500 hover:bg-rose-500/15 active:scale-95'
                                                 }`}
                                             >
                                                 Yok
@@ -851,7 +851,7 @@ export default function VehicleCreate() {
                                                 className={`px-3 py-0.5 rounded-md font-extrabold cursor-pointer transition-all duration-150 ${
                                                     hasKasko 
                                                         ? 'bg-blue-500 text-white shadow-md shadow-blue-500/25 scale-[1.03]' 
-                                                        : 'text-slate-400 hover:text-blue-400 hover:bg-blue-500/15 active:scale-95'
+                                                        : 'text-slate-600 dark:text-slate-400 hover:text-blue-500 hover:bg-blue-500/15 active:scale-95'
                                                 }`}
                                             >
                                                 Var
@@ -864,12 +864,12 @@ export default function VehicleCreate() {
                                             type="date"
                                             value={data.kasko_bitis}
                                             onChange={(e) => setData('kasko_bitis', e.target.value)}
-                                            className="w-full h-10 bg-[#1a1d27] border border-blue-500/40 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-all"
+                                            className="w-full h-10 bg-white dark:bg-[#1a1d27] border border-blue-500/40 rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition-all shadow-2xs"
                                         />
                                     ) : (
-                                        <div className="w-full h-10 bg-white/[0.02] border border-dashed border-white/10 rounded-xl px-3 py-2 text-xs text-slate-500 flex items-center justify-between">
+                                        <div className="w-full h-10 bg-slate-50 dark:bg-white/[0.02] border border-dashed border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs text-slate-500 flex items-center justify-between">
                                             <span>Kasko poliçesi yok</span>
-                                            <Shield className="w-3.5 h-3.5 text-slate-600" />
+                                            <Shield className="w-3.5 h-3.5 text-slate-400 dark:text-slate-600" />
                                         </div>
                                     )}
                                 </div>
@@ -877,22 +877,22 @@ export default function VehicleCreate() {
                         </div>
 
                         {/* SECTION 3: NOTLAR */}
-                        <div className="pt-4 border-t border-white/10">
-                            <label className="block text-xs font-semibold text-slate-300 mb-1.5">Özel Notlar</label>
+                        <div className="pt-4 border-t border-slate-200/80 dark:border-white/10">
+                            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Özel Notlar</label>
                             <textarea
                                 value={data.notlar}
                                 onChange={(e) => setData('notlar', e.target.value)}
                                 rows="3"
                                 placeholder="Araçla ilgili hatırlatıcı veya özel detaylar..."
-                                className="w-full bg-[#1a1d27] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-all"
+                                className="w-full bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-all shadow-2xs"
                             />
                         </div>
 
                         {/* SUBMIT BUTTON */}
-                        <div className="pt-4 flex items-center justify-end space-x-3 border-t border-white/10">
+                        <div className="pt-4 flex items-center justify-end space-x-3 border-t border-slate-200/80 dark:border-white/10">
                             <Link
                                 href="/vehicles"
-                                className="px-5 py-2.5 rounded-xl text-slate-400 hover:text-white text-xs font-semibold transition-colors"
+                                className="px-5 py-2.5 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white text-xs font-semibold transition-colors"
                             >
                                 İptal
                             </Link>
@@ -900,7 +900,7 @@ export default function VehicleCreate() {
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="px-7 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-black font-extrabold text-xs shadow-lg shadow-amber-500/20 hover:brightness-110 active:scale-95 transition-all flex items-center space-x-2"
+                                className="px-7 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-black font-extrabold text-xs shadow-lg shadow-amber-500/20 hover:brightness-110 active:scale-95 transition-all flex items-center space-x-2 cursor-pointer"
                             >
                                 <CheckCircle2 className="w-4 h-4" />
                                 <span>{processing ? 'Kaydediliyor...' : 'Aracı Garaja Ekle'}</span>

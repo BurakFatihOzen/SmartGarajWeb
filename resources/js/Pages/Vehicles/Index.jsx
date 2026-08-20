@@ -58,12 +58,12 @@ export default function VehiclesIndex({ vehicles = [] }) {
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h2 className="text-2xl font-black text-white tracking-tight flex items-center space-x-3">
-                            <Car className="w-7 h-7 text-amber-400" />
+                        <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center space-x-3">
+                            <Car className="w-7 h-7 text-amber-500" />
                             <span>Garajımdaki Araçlar</span>
                         </h2>
-                        <p className="text-xs text-slate-400 mt-1">
-                            Sisteme kayıtlı toplam <strong className="text-white">{vehicles.length}</strong> araç yönetiliyor.
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            Sisteme kayıtlı toplam <strong className="text-slate-800 dark:text-white">{vehicles.length}</strong> araç yönetiliyor.
                         </p>
                     </div>
 
@@ -82,7 +82,7 @@ export default function VehiclesIndex({ vehicles = [] }) {
                         {vehicles.map((v) => (
                             <div
                                 key={v.id}
-                                className="p-6 rounded-3xl bg-[#13151b] border border-white/[0.08] hover:border-amber-500/30 transition-all flex flex-col justify-between space-y-5 group relative overflow-hidden shadow-xl"
+                                className="p-6 rounded-3xl bg-white dark:bg-[#13151b] border border-slate-200/80 dark:border-white/[0.08] hover:border-amber-500/40 transition-all flex flex-col justify-between space-y-5 group relative overflow-hidden shadow-lg hover:shadow-xl"
                             >
                                 <div className="space-y-4">
                                     {/* Vehicle Photo Container with Quick Upload */}
@@ -128,10 +128,10 @@ export default function VehiclesIndex({ vehicles = [] }) {
 
                                     {/* Brand & Model */}
                                     <div>
-                                        <h3 className="text-xl font-bold text-white tracking-tight group-hover:text-amber-400 transition-colors">
+                                        <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight group-hover:text-amber-500 transition-colors">
                                             {v.marka} {v.model}
                                         </h3>
-                                        <p className="text-xs text-slate-400 mt-0.5 flex items-center space-x-1.5">
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center space-x-1.5 font-medium">
                                             <span>Motor: {v.motor || 'Standart'}</span>
                                             <span>&bull;</span>
                                             <span>{v.ruhsat_tipi || 'Otomobil'}</span>
@@ -139,73 +139,73 @@ export default function VehiclesIndex({ vehicles = [] }) {
                                     </div>
 
                                     {/* Odometer */}
-                                    <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/10 flex items-center justify-between">
-                                        <div className="flex items-center space-x-2 text-slate-400 text-xs">
-                                            <Gauge className="w-4 h-4 text-amber-400" />
+                                    <div className="p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 flex items-center justify-between">
+                                        <div className="flex items-center space-x-2 text-slate-600 dark:text-slate-400 text-xs font-medium">
+                                            <Gauge className="w-4 h-4 text-amber-500" />
                                             <span>Güncel Sayaç:</span>
                                         </div>
-                                        <span className="font-mono font-bold text-white text-sm">
+                                        <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">
                                             {Number(v.guncel_km || 0).toLocaleString('tr-TR')} KM
                                         </span>
                                     </div>
 
                                     {/* Dates Mini Badges */}
                                     <div className="grid grid-cols-3 gap-1.5 text-center text-[10px]">
-                                        <div className="p-2 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                                        <div className="p-2 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/[0.06]">
                                             <span className="text-slate-500 block font-semibold uppercase">Muayene</span>
                                             {v.muayene_bitis ? (
                                                 (() => {
                                                     const d = getDaysRemaining(v.muayene_bitis);
                                                     return (
-                                                        <span className={`font-bold font-mono ${d < 0 ? 'text-red-400' : d < 30 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                                                        <span className={`font-bold font-mono ${d < 0 ? 'text-red-500 dark:text-red-400' : d < 30 ? 'text-amber-500 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                                                             {d < 0 ? 'Geçti' : `${d} Gün`}
                                                         </span>
                                                     );
                                                 })()
                                             ) : (
-                                                <span className="text-slate-600">-</span>
+                                                <span className="text-slate-400">-</span>
                                             )}
                                         </div>
 
-                                        <div className="p-2 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                                        <div className="p-2 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/[0.06]">
                                             <span className="text-slate-500 block font-semibold uppercase">Sigorta</span>
                                             {v.sigorta_bitis ? (
                                                 (() => {
                                                     const d = getDaysRemaining(v.sigorta_bitis);
                                                     return (
-                                                        <span className={`font-bold font-mono ${d < 0 ? 'text-red-400' : d < 30 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                                                        <span className={`font-bold font-mono ${d < 0 ? 'text-red-500 dark:text-red-400' : d < 30 ? 'text-amber-500 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                                                             {d < 0 ? 'Geçti' : `${d} Gün`}
                                                         </span>
                                                     );
                                                 })()
                                             ) : (
-                                                <span className="text-slate-600">-</span>
+                                                <span className="text-slate-400">-</span>
                                             )}
                                         </div>
 
-                                        <div className="p-2 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                                        <div className="p-2 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/[0.06]">
                                             <span className="text-slate-500 block font-semibold uppercase">Kasko</span>
                                             {v.kasko_bitis ? (
                                                 (() => {
                                                     const d = getDaysRemaining(v.kasko_bitis);
                                                     return (
-                                                        <span className={`font-bold font-mono ${d < 0 ? 'text-red-400' : d < 30 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                                                        <span className={`font-bold font-mono ${d < 0 ? 'text-red-500 dark:text-red-400' : d < 30 ? 'text-amber-500 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                                                             {d < 0 ? 'Geçti' : `${d} Gün`}
                                                         </span>
                                                     );
                                                 })()
                                             ) : (
-                                                <span className="text-slate-600">-</span>
+                                                <span className="text-slate-400">-</span>
                                             )}
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Bottom Actions */}
-                                <div className="flex items-center justify-between pt-4 border-t border-white/10 gap-2">
+                                <div className="flex items-center justify-between pt-4 border-t border-slate-200/80 dark:border-white/10 gap-2">
                                     <Link
                                         href={`/dashboard?arac_id=${v.id}`}
-                                        className="flex-1 py-2 px-3 rounded-xl bg-white/[0.05] hover:bg-amber-500 hover:text-black text-slate-200 text-xs font-bold text-center transition-all flex items-center justify-center space-x-1.5"
+                                        className="flex-1 py-2 px-3 rounded-xl bg-slate-100 hover:bg-amber-500 hover:text-black dark:bg-white/[0.05] dark:hover:bg-amber-500 dark:hover:text-black text-slate-700 dark:text-slate-200 text-xs font-bold text-center transition-all flex items-center justify-center space-x-1.5 shadow-2xs"
                                     >
                                         <span>Yönet</span>
                                         <ExternalLink className="w-3.5 h-3.5" />
@@ -214,7 +214,7 @@ export default function VehiclesIndex({ vehicles = [] }) {
                                     <Link
                                         href={`/maintenances/create?arac_id=${v.id}`}
                                         title="Bakım Ekle"
-                                        className="p-2 rounded-xl bg-amber-500/10 text-amber-400 hover:bg-amber-500 hover:text-black border border-amber-500/20 transition-all"
+                                        className="p-2 rounded-xl bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-black border border-amber-500/20 transition-all cursor-pointer"
                                     >
                                         <Wrench className="w-4 h-4" />
                                     </Link>
@@ -222,7 +222,7 @@ export default function VehiclesIndex({ vehicles = [] }) {
                                     <button
                                         onClick={() => handleDelete(v.id, v.plaka)}
                                         title="Aracı Sil"
-                                        className="p-2 rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all"
+                                        className="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all cursor-pointer"
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>
@@ -231,9 +231,9 @@ export default function VehiclesIndex({ vehicles = [] }) {
                         ))}
                     </div>
                 ) : (
-                    <div className="py-16 text-center rounded-3xl bg-[#13151b] border border-white/10 space-y-4">
-                        <Car className="w-12 h-12 mx-auto text-slate-600" />
-                        <h3 className="text-lg font-bold text-white">Henüz kayıtlı bir aracınız yok</h3>
+                    <div className="py-16 text-center rounded-3xl bg-white dark:bg-[#13151b] border border-slate-200/80 dark:border-white/10 space-y-4 shadow-lg">
+                        <Car className="w-12 h-12 mx-auto text-slate-400 dark:text-slate-600" />
+                        <h3 className="text-lg font-bold text-slate-800 dark:text-white">Henüz kayıtlı bir aracınız yok</h3>
                         <Link
                             href="/vehicles/create"
                             className="inline-flex items-center space-x-2 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-black font-bold text-xs shadow-lg shadow-amber-500/20"
