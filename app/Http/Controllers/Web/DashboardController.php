@@ -13,7 +13,7 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, SmartDiagnosisService $diagnosisService)
     {
         $user = Auth::user();
         $vehicles = $user->vehicles;
@@ -36,6 +36,7 @@ class DashboardController extends Controller
         $monthlyStats = [];
         $categoryStats = [];
         $healthScore = 85;
+        $healthStatusLabel = 'İyi Durumda';
         $upcomingAlertsCount = 0;
 
         if ($activeVehicle) {
@@ -50,18 +51,18 @@ class DashboardController extends Controller
             ];
 
             for ($i = 5; $i >= 0; $i--) {
-                $date = Carbon::now()->subMonths($i);
-                $yearMonth = $date->format('Y-m');
-                $monthKey = $date->format('m');
-                $monthName = $months[$monthKey] ?? $date->format('M');
+                $monthDate = Carbon::now()->subMonths($i);
+                $monthKey = $monthDate->format('m');
+                $monthLabel = $months[$monthKey] ?? $monthDate->format('M');
 
-                $monthTotal = (float) $activeVehicle->maintenances()
-                    ->whereRaw("TO_CHAR(islem_tarihi, 'YYYY-MM') = ?", [$yearMonth])
+                $monthTotal = $activeVehicle->maintenances()
+                    ->whereYear('islem_tarihi', $monthDate->year)
+                    ->whereMonth('islem_tarihi', $monthDate->month)
                     ->sum('maliyet_tl');
 
                 $monthlyStats[] = [
-                    'month' => $monthName,
-                    'total' => $monthTotal,
+                    'month' => $monthLabel,
+                    'total' => (float) $monthTotal
                 ];
             }
 
@@ -91,24 +92,10 @@ class DashboardController extends Controller
                 ];
             }
 
-            // Sağlık Skoru Hesaplama (0-100)
-            $score = 100;
-            $now = Carbon::now();
-            if ($activeVehicle->muayene_bitis && Carbon::parse($activeVehicle->muayene_bitis)->lt($now)) {
-                $score -= 20;
-            }
-            if ($activeVehicle->sigorta_bitis && Carbon::parse($activeVehicle->sigorta_bitis)->lt($now)) {
-                $score -= 15;
-            }
-            if ($maintenances->isEmpty()) {
-                $score -= 15;
-            } else {
-                $lastMaintenance = $maintenances->first();
-                if (Carbon::parse($lastMaintenance->islem_tarihi)->diffInMonths($now) > 12) {
-                    $score -= 10;
-                }
-            }
-            $healthScore = max(35, min(100, $score));
+            // AI Motor Teşhis Skoru (SmartDiagnosisService ile 1-e-1 Tam Senkronize)
+            $diagnosisReport = $diagnosisService->analyze($activeVehicle);
+            $healthScore = $diagnosisReport['health_score'] ?? 90;
+            $healthStatusLabel = $diagnosisReport['status_label'] ?? 'Mükemmel';
         }
 
         // Tüm filodaki yaklaşan veya süresi dolmuş yasal süre uyarıları (Muayene & Sigorta)
@@ -139,6 +126,7 @@ class DashboardController extends Controller
             'monthlyStats' => $monthlyStats,
             'categoryStats' => $categoryStats,
             'healthScore' => $healthScore,
+            'healthStatusLabel' => $healthStatusLabel,
             'upcomingAlertsCount' => $upcomingAlertsCount,
         ]);
     }

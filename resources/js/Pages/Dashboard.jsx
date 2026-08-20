@@ -42,6 +42,7 @@ export default function Dashboard({
     monthlyStats = [], 
     categoryStats = [],
     healthScore = 90, 
+    healthStatusLabel = 'Mükemmel',
     upcomingAlertsCount = 0 
 }) {
     const [isAiModalOpen, setIsAiModalOpen] = useState(false);
@@ -210,9 +211,10 @@ export default function Dashboard({
         if (dM !== null && dM <= 0) return { text: `${activeVehicle.plaka} aracınızın TÜVTÜRK muayene süresi doldu! Ceza yememek için randevu alın.`, type: 'danger', title: 'Muayene Uyarısı' };
         if (dM !== null && dM <= 30) return { text: `Muayene vadesine ${dM} gün kaldı. Randevunuzu erkenden planlamanızı öneririz.`, type: 'warning', title: 'Vade Yaklaşıyor' };
         if (dS !== null && dS <= 30) return { text: `Zorunlu Trafik Sigortası bitimine ${dS} gün var. Poliçe yenileme tekliflerini inceleyin.`, type: 'warning', title: 'Sigorta Vadesi' };
-        if (maintenances.length > 0) return { text: `Son işlem: "${maintenances[0].islem_turu}". Araç kondisyonu ve servis takvimi güncel.`, type: 'success', title: 'Kondisyon Mükemmel' };
+        if (healthScore < 60) return { text: `${activeVehicle.marka} ${activeVehicle.model} için kritik bakım uyarıları var! AI sağlık teşhisini inceleyin.`, type: 'danger', title: healthStatusLabel || 'Kritik Dikkat Gerektiriyor' };
+        if (maintenances.length > 0) return { text: `Son işlem: "${maintenances[0].islem_turu}". Araç kondisyonu ve servis takvimi güncel.`, type: 'success', title: healthStatusLabel || 'Kondisyon Mükemmel' };
         return { text: `${activeVehicle.marka} ${activeVehicle.model} için henüz bakım kaydı girilmedi. Fatura ve periyodik bakım ekleyin.`, type: 'info', title: 'İlk Bakımı Ekleyin' };
-    }, [activeVehicle, maintenances]);
+    }, [activeVehicle, maintenances, healthScore, healthStatusLabel]);
 
     return (
         <AppLayout title="Ana Sayfa">
@@ -303,18 +305,24 @@ export default function Dashboard({
                             <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                 Kondisyon Skoru
                             </span>
-                            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform ${
+                                healthScore >= 80 ? 'bg-emerald-500/10 text-emerald-500' : healthScore >= 60 ? 'bg-amber-500/10 text-amber-500' : 'bg-red-500/10 text-red-500'
+                            }`}>
                                 <HeartPulse className="w-5 h-5" />
                             </div>
                         </div>
                         <div className="flex items-baseline space-x-1">
-                            <span className="text-2xl sm:text-3xl font-black text-emerald-500 font-mono tracking-tight">
+                            <span className={`text-2xl sm:text-3xl font-black font-mono tracking-tight ${
+                                healthScore >= 80 ? 'text-emerald-500' : healthScore >= 60 ? 'text-amber-500' : 'text-red-500'
+                            }`}>
                                 %{healthScore}
                             </span>
                         </div>
-                        <div className="flex items-center space-x-1.5 mt-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>{healthScore >= 80 ? 'Kondisyon Mükemmel' : healthScore >= 60 ? 'İyi Durumda' : 'Bakım Gerekli'}</span>
+                        <div className={`flex items-center space-x-1.5 mt-2 text-xs font-semibold ${
+                            healthScore >= 80 ? 'text-emerald-600 dark:text-emerald-400' : healthScore >= 60 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'
+                        }`}>
+                            {healthScore >= 80 ? <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> : <AlertTriangle className="w-3.5 h-3.5 shrink-0" />}
+                            <span className="truncate">{healthStatusLabel || (healthScore >= 80 ? 'Kondisyon Mükemmel' : healthScore >= 60 ? 'Orta / Bakım Yaklaşıyor' : 'Kritik Dikkat Gerektiriyor')}</span>
                         </div>
                     </div>
 
