@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS kullanicilar (
     sifre VARCHAR(255) NOT NULL,
     telefon VARCHAR(30) DEFAULT NULL,
     rol VARCHAR(30) DEFAULT 'kullanici' CHECK (rol IN ('kullanici', 'admin', 'filo_yoneticisi', 'sofor')),
+    remember_token VARCHAR(100) DEFAULT NULL,
     kayit_tarihi TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     guncelleme_tarihi TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );

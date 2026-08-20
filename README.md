@@ -1,114 +1,58 @@
-﻿# 🚗 SmartGaraj - Akıllı Araç ve Bakım Takip Sistemi
+<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-[![Live Demo](https://img.shields.io/badge/Canlı%20Site-smartgaraj.gt.tc-blue?style=for-the-badge&logo=googlechrome&logoColor=white)](http://smartgaraj.gt.tc)
-[![PHP Version](https://img.shields.io/badge/PHP-7.4%2B%20%2F%208.x-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
-[![MySQL](https://img.shields.io/badge/MySQL-Database-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
-[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+<p align="center">
+<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+</p>
 
-**SmartGaraj**, bireysel araç sahipleri ve filo/garaj yöneticileri için geliştirilmiş web tabanlı bir **araç yönetim, periyodik bakım ve yasal süreç (muayene, sigorta, kasko) takip** platformudur.
+## About Laravel
 
-🌐 **Canlı Web Sitesi:** [http://smartgaraj.gt.tc](http://smartgaraj.gt.tc)
+Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
----
+- [Simple, fast routing engine](https://laravel.com/docs/routing).
+- [Powerful dependency injection container](https://laravel.com/docs/container).
+- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
+- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
+- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
+- [Robust background job processing](https://laravel.com/docs/queues).
+- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-## 📌 Temel Özellikler
+Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
-- 🚘 **Araç Yönetimi:** Plaka, marka, model, motor tipi, model yılı ve güncel kilometre kaydı.
-- 🛠️ **Periyodik Bakım Kayıtları:** Yapılan işlemler, değişen parçalar, kilometre ve maliyet takibi.
-- 📅 **Yasal Süreç & Hatırlatıcılar:**
-  - Muayene bitiş tarihi takibi
-  - Zorunlu Trafik Sigortası bitiş tarihi takibi
-  - Kasko poliçe bitiş tarihi takibi
-- 👤 **Kullanıcı Giriş & Oturum Sistemi:** Güvenli oturum açma (`login.php`) ve kullanıcıya özel araç listesi.
-- 📊 **Özet Dashboard:** Araç durumlarını, yaklaşan bakımları ve son işlemleri tek ekrandan görüntüleme.
+## Learning Laravel
 
----
+Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
 
-## 🌐 Canlı Demo / Canlı Yayın
+In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-Proje şu anda aktif olarak canlı sunucuda yayındadır:
-👉 **[smartgaraj.gt.tc](http://smartgaraj.gt.tc)** adresinden doğrudan inceleyebilirsiniz.
+You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
 
----
+## Agentic Development
 
-## 🛠️ Kullanılan Teknolojiler
+Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
 
-- **Backend:** PHP
-- **Veritabanı:** MySQL / MariaDB
-- **Frontend:** HTML5, CSS3, JavaScript
-- **Web Sunucusu:** Apache / Nginx (XAMPP / Laragon / InfinityFree Hosting)
-
----
-
-## 📂 Dosya & Dizin Yapısı
-
-```plaintext
-SmartGarajWeb/
-│
-├── index.php                      # Ana kontrol paneli ve gösterge tablosu
-├── login.php                      # Kullanıcı giriş ve kimlik doğrulama
-├── araclar.php                    # Kayıtlı araçların listelendiği sayfa
-├── arac_ekle.php                  # Yeni araç ekleme ve düzenleme formu
-├── bakim_ekle.php                 # Bakım ve servis kaydı oluşturma
-├── islem.php                      # Form gönderimleri ve arka plan veri işlemleri
-├── baglan.php                     # Veritabanı PDO / MySQLi bağlantı yapılandırması
-├── if0_41799298_smartgaraj.sql   # Veritabanı şema ve örnek veri dökümü
-└── README.md                      # Proje dokümantasyonu
-```
-
----
-
-## 🚀 Kurulum ve Yerel Ortamda Çalıştırma
-
-Projeyi yerel bilgisayarınızda (Localhost) çalıştırmak için aşağıdaki adımları izleyin:
-
-### 1. Gereksinimler
-- [XAMPP](https://www.apachefriends.org/), [Laragon](https://laragon.org/) veya PHP & MySQL barındıran yerel bir sunucu ortamı.
-
-### 2. Projeyi Klonlayın veya İndirin
 ```bash
-git clone https://github.com/BurakFatihOzen/SmartGarajWeb.git
-```
-Proje klasörünü yerel sunucu dizininize taşıyın (Örn: `C:\xampp\htdocs\SmartGarajWeb` veya `C:\laragon\www\SmartGarajWeb`).
+composer require laravel/boost --dev
 
-### 3. Veritabanını İçe Aktarın
-1. Tarayıcınızdan `http://localhost/phpmyadmin` adresine gidin.
-2. `smartgaraj` adında yeni bir veritabanı oluşturun (Karakter seti: `utf8mb4_turkish_ci` veya `utf8mb4_general_ci`).
-3. Proje klasöründeki `if0_41799298_smartgaraj.sql` dosyasını **İçe Aktar (Import)** sekmesinden yükleyin.
-
-### 4. Veritabanı Bağlantısını Yapılandırın
-`baglan.php` dosyasını açarak yerel veritabanı bilgilerinizi girin:
-
-```php
-<?php
-$host = "localhost";
-$dbname = "smartgaraj";
-$username = "root";
-$password = ""; // Yerel sunucunuzun şifresi (varsayılan genellikle boştur)
-
-try {
-    $db = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
-    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("Veritabanı bağlantı hatası: " . $e->getMessage());
-}
-?>
+php artisan boost:install
 ```
 
-### 5. Projeyi Başlatın
-Tarayıcınızdan aşağıdaki adrese gidin:
-```
-http://localhost/SmartGarajWeb
-```
+Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
 
----
+## Contributing
 
-## 👨‍💻 Geliştirici
+Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
 
-- **Burak Fatih Özen** - [GitHub Profili](https://github.com/BurakFatihOzen)
+## Code of Conduct
 
----
+In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
 
-## 📄 Lisans
+## Security Vulnerabilities
 
-Bu proje [MIT Lisansı](LICENSE) altında lisanslanmıştır.
+If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+
+## License
+
+The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
