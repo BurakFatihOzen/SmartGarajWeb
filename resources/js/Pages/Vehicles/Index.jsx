@@ -1,9 +1,39 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { Link, router, Head } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
-import { Car, PlusCircle, Wrench, Trash2, Calendar, Shield, Gauge, ExternalLink } from 'lucide-react';
+import { 
+    Car, 
+    PlusCircle, 
+    Wrench, 
+    Trash2, 
+    Calendar, 
+    Shield, 
+    Gauge, 
+    ExternalLink, 
+    Camera, 
+    Upload, 
+    FileText,
+    Sparkles
+} from 'lucide-react';
 
 export default function VehiclesIndex({ vehicles = [] }) {
+    const [uploadingId, setUploadingId] = useState(null);
+
+    const handlePhotoUpload = (e, vehicleId) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setUploadingId(vehicleId);
+        const formData = new FormData();
+        formData.append('fotograf', file);
+
+        router.post(`/vehicles/${vehicleId}/upload-photo`, formData, {
+            forceFormData: true,
+            preserveScroll: true,
+            onFinish: () => setUploadingId(null),
+        });
+    };
+
     const handleDelete = (id, plaka) => {
         if (confirm(`${plaka} plakalı aracı ve tüm bakım kayıtlarını silmek istediğinizden emin misiniz?`)) {
             router.delete(`/vehicles/${id}`);
@@ -52,17 +82,48 @@ export default function VehiclesIndex({ vehicles = [] }) {
                         {vehicles.map((v) => (
                             <div
                                 key={v.id}
-                                className="p-6 rounded-3xl bg-[#13151b] border border-white/[0.08] hover:border-amber-500/30 transition-all flex flex-col justify-between space-y-5 group relative overflow-hidden"
+                                className="p-6 rounded-3xl bg-[#13151b] border border-white/[0.08] hover:border-amber-500/30 transition-all flex flex-col justify-between space-y-5 group relative overflow-hidden shadow-xl"
                             >
                                 <div className="space-y-4">
-                                    {/* Top Row: Plate & Year */}
-                                    <div className="flex items-center justify-between">
-                                        <span className="badge-plate text-sm">
-                                            {v.plaka}
-                                        </span>
-                                        <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-white/[0.05] text-slate-300 border border-white/10">
-                                            {v.yil || 'Belirtilmedi'}
-                                        </span>
+                                    {/* Vehicle Photo Container with Quick Upload */}
+                                    <div className="relative h-44 rounded-2xl overflow-hidden bg-[#181b24] border border-white/10 group/photo">
+                                        {v.fotograf_url ? (
+                                            <img
+                                                src={v.fotograf_url}
+                                                alt={v.plaka}
+                                                className="w-full h-full object-cover group-hover/photo:scale-105 transition-transform duration-300"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 space-y-1">
+                                                <Car className="w-10 h-10 text-slate-600" />
+                                                <span className="text-[11px] font-semibold">Fotoğraf Eklenmemiş</span>
+                                            </div>
+                                        )}
+
+                                        {/* Upload Overlay Button */}
+                                        <label className="absolute inset-0 bg-black/60 opacity-0 group-hover/photo:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity text-white text-xs font-bold space-y-1">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) => handlePhotoUpload(e, v.id)}
+                                                className="hidden"
+                                            />
+                                            <Camera className="w-6 h-6 text-amber-400" />
+                                            <span>{uploadingId === v.id ? 'Yükleniyor...' : (v.fotograf_url ? 'Fotoğrafı Değiştir' : 'Fotoğraf Ekle')}</span>
+                                        </label>
+
+                                        {/* Quick Badge in Photo */}
+                                        <div className="absolute top-2.5 left-2.5">
+                                            <span className="badge-plate text-xs shadow-md">
+                                                {v.plaka}
+                                            </span>
+                                        </div>
+
+                                        <div className="absolute top-2.5 right-2.5">
+                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-black/70 backdrop-blur-xs text-slate-300 border border-white/10">
+                                                {v.yil || 'Model Yılı Yok'}
+                                            </span>
+                                        </div>
                                     </div>
 
                                     {/* Brand & Model */}

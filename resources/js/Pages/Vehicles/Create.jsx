@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useForm, Link, Head } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { BRANDS_LIST, CAR_CATALOG } from '@/data/carData';
+import OcrModal from '@/Components/OcrModal';
 import { 
     Car, 
     ArrowLeft, 
@@ -13,7 +14,13 @@ import {
     ChevronDown, 
     Edit3,
     Sparkles,
-    FileCheck
+    FileCheck,
+    Upload,
+    Camera,
+    X,
+    Scan,
+    Zap,
+    Image as ImageIcon
 } from 'lucide-react';
 
 export const RUHSAT_TIPLERI = [
@@ -28,6 +35,9 @@ export const RUHSAT_TIPLERI = [
 ];
 
 export default function VehicleCreate() {
+    const [isOcrOpen, setIsOcrOpen] = useState(false);
+    const [photoPreview, setPhotoPreview] = useState(null);
+
     const [brandSearch, setBrandSearch] = useState('');
     const [isBrandDropdownOpen, setIsBrandDropdownOpen] = useState(false);
     const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
@@ -64,8 +74,38 @@ export default function VehicleCreate() {
         muayene_bitis: '',
         sigorta_bitis: '',
         kasko_bitis: '',
+        sasi_no: '',
         notlar: '',
+        fotograf: null,
     });
+
+    const handlePhotoChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setData('fotograf', file);
+            setPhotoPreview(URL.createObjectURL(file));
+        }
+    };
+
+    const handleOcrExtracted = (extracted) => {
+        if (extracted.plaka) setData('plaka', extracted.plaka);
+        if (extracted.marka) {
+            setData('marka', extracted.marka);
+            setIsCustomBrand(true);
+        }
+        if (extracted.model) {
+            setData('model', extracted.model);
+            setIsCustomModel(true);
+        }
+        if (extracted.motor) {
+            setData('motor', extracted.motor);
+            setIsCustomMotor(true);
+        }
+        if (extracted.yil) setData('yil', String(extracted.yil));
+        if (extracted.sasi_no) setData('sasi_no', extracted.sasi_no);
+        if (extracted.muayene_tarihi) setData('muayene_bitis', extracted.muayene_tarihi);
+        if (extracted.ruhsat_tipi) setData('ruhsat_tipi', extracted.ruhsat_tipi);
+    };
 
     // Close dropdowns on outside click
     useEffect(() => {
@@ -299,10 +339,69 @@ export default function VehicleCreate() {
                     </div>
                 </div>
 
+                {/* AI OCR BANNER */}
+                <div className="p-5 rounded-3xl bg-gradient-to-r from-purple-500/15 via-indigo-500/10 to-transparent border border-purple-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+                    <div className="flex items-center space-x-3.5 text-center sm:text-left">
+                        <div className="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0 shadow-inner">
+                            <Sparkles className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <div className="text-sm font-extrabold text-white">Ruhsatınız Yanınızda mı?</div>
+                            <div className="text-xs text-slate-300 mt-0.5">
+                                Fotoğrafını yükleyin; plaka, marka, model, şasi ve muayene bilgileri saniyeler içinde otomatik dolsun!
+                            </div>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setIsOcrOpen(true)}
+                        className="px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-500 hover:brightness-110 text-white font-black text-xs flex items-center space-x-2 shadow-lg shadow-purple-500/25 transition-all shrink-0 cursor-pointer active:scale-95"
+                    >
+                        <Scan className="w-4 h-4" />
+                        <span>🧠 Vision AI ile Ruhsatı Tara</span>
+                    </button>
+                </div>
+
                 {/* Form Card */}
                 <div className="p-6 sm:p-8 rounded-3xl bg-[#13151b] border border-white/[0.08] shadow-2xl">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         
+                        {/* VEHICLE PHOTO UPLOAD DROPZONE */}
+                        <div className="p-4 rounded-2xl bg-[#181b24] border border-white/10 space-y-3">
+                            <label className="block text-xs font-bold text-slate-300 flex items-center space-x-2">
+                                <ImageIcon className="w-4 h-4 text-amber-400" />
+                                <span>Araç Fotoğrafı (Opsiyonel)</span>
+                            </label>
+
+                            {!photoPreview ? (
+                                <label className="border-2 border-dashed border-white/10 hover:border-amber-500/50 rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer transition-all bg-white/[0.02] hover:bg-white/[0.04] group">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handlePhotoChange}
+                                        className="hidden"
+                                    />
+                                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400 mb-2 group-hover:scale-110 transition-transform">
+                                        <Camera className="w-5 h-5" />
+                                    </div>
+                                    <span className="text-xs font-bold text-white">Aracın Fotoğrafını Yükleyin veya Çekin</span>
+                                    <span className="text-[10px] text-slate-500 mt-0.5">Garaj kartında ve PDF servis pasaportunda gösterilir</span>
+                                </label>
+                            ) : (
+                                <div className="relative rounded-xl overflow-hidden border border-white/10 max-h-48 bg-black flex items-center justify-center group">
+                                    <img src={photoPreview} alt="Araç Önizleme" className="max-h-48 w-full object-cover" />
+                                    <button
+                                        type="button"
+                                        onClick={() => { setData('fotograf', null); setPhotoPreview(null); }}
+                                        className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/70 text-white hover:bg-red-500 transition-colors"
+                                        title="Fotoğrafı Kaldır"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
                         {/* SECTION 1: TEMEL BİLGİLER */}
                         <div>
                             <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-4 flex items-center space-x-2">
@@ -656,15 +755,41 @@ export default function VehicleCreate() {
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                {/* 8. ŞASİ NUMARASI (VIN) */}
+                                <div className="sm:col-span-2">
+                                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                                        Şasi Numarası (VIN) <span className="text-slate-500 font-normal">(17 Haneli - Opsiyonel)</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={data.sasi_no}
+                                        onChange={(e) => setData('sasi_no', e.target.value.toUpperCase())}
+                                        placeholder="Örn: WBA3A5C50DF819283"
+                                        maxLength={17}
+                                        className="w-full uppercase font-mono bg-[#1a1d27] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-all tracking-wider"
+                                    />
+                                    {errors.sasi_no && <p className="text-red-400 text-xs mt-1">{errors.sasi_no}</p>}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* SECTION 2: MUAYENE & SİGORTA & KASKO */}
+                        <div className="pt-4 border-t border-white/10">
+                            <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-4 flex items-center space-x-2">
+                                <Calendar className="w-4 h-4" />
+                                <span>2. Yasal Vadeler & Poliçeler</span>
+                            </h4>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
                                 <div>
                                     <div className="h-7 flex items-center justify-between mb-1.5">
-                                        <label className="block text-xs font-semibold text-slate-300">TÜVTÜRK Muayene</label>
+                                        <label className="block text-xs font-semibold text-slate-300">TÜVTÜRK Muayene Bitiş</label>
                                     </div>
                                     <input
                                         type="date"
                                         value={data.muayene_bitis}
                                         onChange={(e) => setData('muayene_bitis', e.target.value)}
-                                        className="w-full h-10 bg-[#1a1d27] border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-all font-mono font-bold"
+                                        className="w-full h-10 bg-[#1a1d27] border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500 transition-all"
                                     />
                                     
                                     {/* Hızlı Yıl Ekleme Butonları */}
@@ -784,6 +909,14 @@ export default function VehicleCreate() {
                     </form>
                 </div>
             </div>
+
+            {/* AI Vision OCR Modal */}
+            <OcrModal
+                isOpen={isOcrOpen}
+                onClose={() => setIsOcrOpen(false)}
+                type="ruhsat"
+                onDataExtracted={handleOcrExtracted}
+            />
         </AppLayout>
     );
 }

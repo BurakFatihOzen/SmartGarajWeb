@@ -29,6 +29,8 @@ class Vehicle extends Model
         'kasko_bitis',
         'sasi_no',
         'notlar',
+        'fotograf_url',
+        'qr_token',
     ];
 
     protected $casts = [

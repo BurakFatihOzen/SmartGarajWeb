@@ -19,7 +19,11 @@ import {
     Coins, 
     TrendingUp,
     Clock,
-    Activity
+    Activity,
+    Camera,
+    QrCode,
+    Printer,
+    Upload
 } from 'lucide-react';
 
 export default function Dashboard({ 
@@ -232,56 +236,106 @@ export default function Dashboard({
                         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent blur-3xl pointer-events-none" />
 
                         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                            {/* Left: Plate & Vehicle Info */}
-                            <div className="space-y-4">
-                                <div className="flex flex-wrap items-center gap-3">
-                                    {/* Turkish Plate Badge */}
-                                    <span className="badge-plate text-sm sm:text-base">
-                                        {activeVehicle.plaka}
-                                    </span>
-                                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/[0.06] text-slate-300 border border-white/10">
-                                        {activeVehicle.yil || 'Belirtilmedi'} Model
-                                    </span>
-                                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                                        {activeVehicle.ruhsat_tipi || 'Otomobil'}
-                                    </span>
-                                </div>
+                            {/* Left: Plate, Photo & Vehicle Info */}
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+                                <label 
+                                    className="relative w-28 h-20 sm:w-36 sm:h-24 rounded-2xl overflow-hidden border border-white/10 shadow-lg shrink-0 cursor-pointer group/photo bg-[#181b24]"
+                                    title="Fotoğrafı Değiştir / Yükle"
+                                >
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files[0];
+                                            if (file && activeVehicle) {
+                                                const formData = new FormData();
+                                                formData.append('fotograf', file);
+                                                router.post(`/vehicles/${activeVehicle.id}/upload-photo`, formData, {
+                                                    forceFormData: true,
+                                                    preserveScroll: true,
+                                                });
+                                            }
+                                        }}
+                                        className="hidden"
+                                    />
+                                    {activeVehicle.fotograf_url ? (
+                                        <img
+                                            src={activeVehicle.fotograf_url}
+                                            alt={activeVehicle.plaka}
+                                            className="w-full h-full object-cover group-hover/photo:scale-105 transition-transform duration-300"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex flex-col items-center justify-center text-slate-500">
+                                            <Car className="w-8 h-8 text-slate-600 mb-1" />
+                                            <span className="text-[9px] font-bold">Fotoğraf Ekle</span>
+                                        </div>
+                                    )}
+                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/photo:opacity-100 flex flex-col items-center justify-center text-white text-[10px] font-bold transition-opacity">
+                                        <Camera className="w-5 h-5 text-amber-400 mb-0.5" />
+                                        <span>Fotoğrafı Değiştir</span>
+                                    </div>
+                                </label>
 
-                                <div>
-                                    <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                                        {activeVehicle.marka} {activeVehicle.model}
-                                    </h2>
-                                    <p className="text-sm text-slate-400 mt-1 flex items-center space-x-2">
-                                        <span>Motor: <strong className="text-slate-200">{activeVehicle.motor || 'Standart'}</strong></span>
-                                        <span>&bull;</span>
-                                        <span>Güncel KM: <strong className="text-amber-400 font-mono">{Number(activeVehicle.guncel_km || 0).toLocaleString('tr-TR')} KM</strong></span>
-                                    </p>
-                                </div>
+                                <div className="space-y-3">
+                                    <div className="flex flex-wrap items-center gap-2.5">
+                                        {/* Turkish Plate Badge */}
+                                        <span className="badge-plate text-sm sm:text-base">
+                                            {activeVehicle.plaka}
+                                        </span>
+                                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/[0.06] text-slate-300 border border-white/10">
+                                            {activeVehicle.yil || 'Belirtilmedi'} Model
+                                        </span>
+                                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                            {activeVehicle.ruhsat_tipi || 'Otomobil'}
+                                        </span>
+                                    </div>
 
-                                {/* Action Buttons */}
-                                <div className="flex flex-wrap items-center gap-3 pt-2">
-                                    <Link
-                                        href={`/maintenances/create?arac_id=${activeVehicle.id}`}
-                                        className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-black font-extrabold text-xs shadow-lg shadow-amber-500/20 hover:brightness-110 active:scale-95 transition-all flex items-center space-x-2"
-                                    >
-                                        <PlusCircle className="w-4 h-4" />
-                                        <span>Bakım / Masraf Ekle</span>
-                                    </Link>
+                                    <div>
+                                        <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                                            {activeVehicle.marka} {activeVehicle.model}
+                                        </h2>
+                                        <p className="text-xs sm:text-sm text-slate-400 mt-0.5 flex items-center space-x-2">
+                                            <span>Motor: <strong className="text-slate-200">{activeVehicle.motor || 'Standart'}</strong></span>
+                                            <span>&bull;</span>
+                                            <span>KM: <strong className="text-amber-400 font-mono">{Number(activeVehicle.guncel_km || 0).toLocaleString('tr-TR')} KM</strong></span>
+                                        </p>
+                                    </div>
 
-                                    <button
-                                        onClick={() => setIsAiModalOpen(true)}
-                                        className="btn-ai-diagnosis px-5 py-2.5 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-300 font-extrabold text-xs hover:bg-purple-600 hover:text-white active:scale-95 transition-all flex items-center space-x-2 shadow-sm"
-                                    >
-                                        <Sparkles className="w-4 h-4 text-purple-400" />
-                                        <span>✨ Akıllı Analiz Motoru</span>
-                                    </button>
+                                    {/* Action Buttons */}
+                                    <div className="flex flex-wrap items-center gap-2.5 pt-1">
+                                        <Link
+                                            href={`/maintenances/create?arac_id=${activeVehicle.id}`}
+                                            className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-black font-extrabold text-xs shadow-lg shadow-amber-500/20 hover:brightness-110 active:scale-95 transition-all flex items-center space-x-2"
+                                        >
+                                            <PlusCircle className="w-3.5 h-3.5" />
+                                            <span>Bakım Ekle</span>
+                                        </Link>
 
-                                    <Link
-                                        href="/vehicles"
-                                        className="px-4 py-2.5 rounded-xl bg-white/[0.05] border border-white/10 text-slate-300 font-semibold text-xs hover:bg-white/10 transition-all"
-                                    >
-                                        Garajı İncele
-                                    </Link>
+                                        <button
+                                            onClick={() => setIsAiModalOpen(true)}
+                                            className="btn-ai-diagnosis px-4 py-2 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-300 font-extrabold text-xs hover:bg-purple-600 hover:text-white active:scale-95 transition-all flex items-center space-x-2 shadow-sm cursor-pointer"
+                                        >
+                                            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                                            <span>AI Analiz</span>
+                                        </button>
+
+                                        <a
+                                            href={activeVehicle.qr_token ? `/verify/${activeVehicle.qr_token}` : `/vehicles/${activeVehicle.id}/print-report`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="px-3.5 py-2 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 font-bold text-xs hover:bg-blue-500 hover:text-white transition-all flex items-center space-x-1.5 shadow-sm"
+                                        >
+                                            <FileText className="w-3.5 h-3.5" />
+                                            <span>QR Pasaport</span>
+                                        </a>
+
+                                        <Link
+                                            href="/vehicles"
+                                            className="px-3.5 py-2 rounded-xl bg-white/[0.05] border border-white/10 text-slate-300 font-semibold text-xs hover:bg-white/10 transition-all"
+                                        >
+                                            Garaj
+                                        </Link>
+                                    </div>
                                 </div>
                             </div>
 

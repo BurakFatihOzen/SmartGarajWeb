@@ -38,17 +38,43 @@ class VehicleController extends Controller
             'muayene_bitis' => 'nullable|date',
             'sigorta_bitis' => 'nullable|date',
             'kasko_bitis' => 'nullable|date',
+            'sasi_no' => 'nullable|string|max:50',
             'notlar' => 'nullable|string',
+            'fotograf' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240',
         ]);
 
         $validated['kullanici_id'] = $user->id;
         $validated['plaka'] = trim(strtoupper($validated['plaka']));
         $validated['guncel_km'] = max(0, (int) ($validated['guncel_km'] ?? 0));
+        $validated['qr_token'] = bin2hex(random_bytes(16));
+
+        if ($request->hasFile('fotograf')) {
+            $path = $request->file('fotograf')->store('vehicles', 'public');
+            $validated['fotograf_url'] = '/storage/' . $path;
+        }
+
+        unset($validated['fotograf']);
 
         $vehicle = Vehicle::create($validated);
 
         return redirect()->route('dashboard', ['arac_id' => $vehicle->id])
             ->with('success', "{$vehicle->plaka} plakalı aracınız garaja başarıyla eklendi!");
+    }
+
+    public function uploadPhoto(Request $request, $id)
+    {
+        $vehicle = Auth::user()->vehicles()->findOrFail($id);
+
+        $request->validate([
+            'fotograf' => 'required|image|mimes:jpeg,png,jpg,webp|max:10240',
+        ]);
+
+        $path = $request->file('fotograf')->store('vehicles', 'public');
+        $vehicle->update([
+            'fotograf_url' => '/storage/' . $path,
+        ]);
+
+        return back()->with('success', "{$vehicle->plaka} aracınızın fotoğrafı başarıyla güncellendi!");
     }
 
     public function destroy($id)

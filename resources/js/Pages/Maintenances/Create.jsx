@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useForm, Link, Head } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { SPARE_PARTS_CATEGORIES } from '@/data/sparePartsData';
+import OcrModal from '@/Components/OcrModal';
 import { 
     Wrench, 
     ArrowLeft, 
@@ -13,7 +14,9 @@ import {
     Search, 
     Sparkles, 
     Layers,
-    AlertCircle
+    AlertCircle,
+    Scan,
+    Zap
 } from 'lucide-react';
 
 const OPERATION_CATEGORIES = [
@@ -62,6 +65,7 @@ const OPERATION_CATEGORIES = [
 export default function MaintenanceCreate({ vehicles = [], selectedVehicleId = null }) {
     const defaultCar = vehicles.find(v => v.id == selectedVehicleId) || vehicles[0] || null;
 
+    const [isOcrOpen, setIsOcrOpen] = useState(false);
     const [selectedCategoryTab, setSelectedCategoryTab] = useState(0);
     const [partBrandSearch, setPartBrandSearch] = useState('');
     const [isCustomOperation, setIsCustomOperation] = useState(false);
@@ -74,6 +78,20 @@ export default function MaintenanceCreate({ vehicles = [], selectedVehicleId = n
         maliyet_tl: '',
         aciklama: '',
     });
+
+    const handleOcrExtracted = (extracted) => {
+        if (extracted.tarih) setData('islem_tarihi', extracted.tarih);
+        if (extracted.islem_turu) setData('islem_turu', extracted.islem_turu);
+        if (extracted.islem_km) setData('islem_km', extracted.islem_km);
+        if (extracted.toplam_tutar) setData('maliyet_tl', String(extracted.toplam_tutar));
+        
+        let desc = extracted.aciklama || '';
+        if (extracted.parcalar && extracted.parcalar.length > 0) {
+            const partNames = extracted.parcalar.map(p => `${p.ad} (₺${p.fiyat || p.birim_fiyat || ''})`).join(', ');
+            desc = desc ? `${desc} | Parçalar: ${partNames}` : `Kullanılan Parçalar: ${partNames}`;
+        }
+        if (desc) setData('aciklama', desc);
+    };
 
     const activeVehicle = vehicles.find(v => v.id == data.arac_id) || defaultCar;
 
@@ -118,6 +136,12 @@ export default function MaintenanceCreate({ vehicles = [], selectedVehicleId = n
     return (
         <AppLayout title="Bakım Kaydı Ekle">
             <Head title="Bakım Kaydı Ekle - SmartGaraj" />
+            
+            <OcrModal 
+                isOpen={isOcrOpen} 
+                onClose={() => setIsOcrOpen(false)} 
+                onExtracted={handleOcrExtracted} 
+            />
 
             <div className="max-w-4xl mx-auto space-y-6">
                 {/* Header */}
@@ -134,6 +158,29 @@ export default function MaintenanceCreate({ vehicles = [], selectedVehicleId = n
                             <p className="text-xs text-slate-400 mt-0.5">Aracınıza yapılan işlemleri ve masrafları sisteme işleyin.</p>
                         </div>
                     </div>
+                </div>
+
+                {/* AI FATURA OCR BANNER */}
+                <div className="p-5 rounded-3xl bg-gradient-to-r from-purple-500/15 via-indigo-500/10 to-transparent border border-purple-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+                    <div className="flex items-center space-x-3.5 text-center sm:text-left">
+                        <div className="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0 shadow-inner">
+                            <Sparkles className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <div className="text-sm font-extrabold text-white">Servis Faturası veya Fişiniz mi Var?</div>
+                            <div className="text-xs text-slate-300 mt-0.5">
+                                Fatura fotoğrafını yükleyin; toplam maliyet, tarih, servis km ve parça listesi saniyeler içinde otomatik doldurulsun!
+                            </div>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setIsOcrOpen(true)}
+                        className="px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-500 hover:brightness-110 text-white font-black text-xs flex items-center space-x-2 shadow-lg shadow-purple-500/25 transition-all shrink-0 cursor-pointer active:scale-95"
+                    >
+                        <Scan className="w-4 h-4" />
+                        <span>🧠 Vision AI ile Faturayı Tara</span>
+                    </button>
                 </div>
 
                 {/* Main Form Card */}
