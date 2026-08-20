@@ -12,172 +12,74 @@
     --font-mono: 'JetBrains Mono', monospace;
 }
 
-/* --- THEME SYSTEM --- */
+/* ================================================================
+   SMARTGARAJ DESIGN SYSTEM v3.0 (Behance Supercharged)
+   Referenced from:
+   - Car Rent AI Assistant (Dark Neon / Glowing AI Cards / Spline Stats)
+   - Velo Transportation (Clean Segments / Donut Analytics / Activity Feed)
+   - GoDrive (Fleet Cards / Spec Badges / Table vs Grid)
+   - CarFin (Glassmorphism / Micro-Sparklines / Crisp Monospaced Numbers)
+   ================================================================ */
+
 :root {
-    --bg-page: #0b0c10;
-    --bg-header: rgba(15, 17, 23, 0.9);
-    --bg-card: #13151b;
-    --bg-card-inner: #1a1d27;
-    --bg-input: #1a1d27;
-    --border-color: rgba(255, 255, 255, 0.08);
-    --border-hover: rgba(255, 140, 0, 0.4);
-    --text-primary: #ffffff;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
+    --color-primary: #f59e0b;
+    --color-primary-hover: #d97706;
+    --color-primary-glow: rgba(245, 158, 11, 0.25);
+    color-scheme: dark;
 }
 
-html.light-mode, body.light-mode {
-    --bg-page: #f4f6f8;
-    --bg-header: rgba(255, 255, 255, 0.95);
-    --bg-card: #ffffff;
-    --bg-card-inner: #f8fafc;
-    --bg-input: #f1f5f9;
-    --border-color: #e2e8f0;
-    --border-hover: #ff8c00;
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-muted: #94a3b8;
+html.light-mode {
+    color-scheme: light;
 }
 
 body {
-    background-color: var(--bg-page);
-    color: var(--text-primary);
     transition: background-color 0.25s ease, color 0.25s ease;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-/* Light mode overrides */
-html.light-mode {
-    background-color: #f4f6f8;
-    color: #0f172a;
+/* Subtle background grid pattern */
+.bg-grid-pattern {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 24px 24px;
 }
 
-html.light-mode .text-white { color: #0f172a !important; }
-html.light-mode .text-slate-100 { color: #0f172a !important; }
-html.light-mode .text-slate-200 { color: #1e293b !important; }
-html.light-mode .text-slate-300 { color: #334155 !important; }
-html.light-mode .text-slate-400 { color: #64748b !important; }
-
-html.light-mode .bg-\[\#0b0c10\] { background-color: #f4f6f8 !important; }
-html.light-mode .bg-\[\#0f1117\],
-html.light-mode .bg-\[\#0f1117\]\/90 { background-color: rgba(255, 255, 255, 0.95) !important; }
-html.light-mode .bg-\[\#13151b\] { background-color: #ffffff !important; box-shadow: 0 4px 20px rgba(0,0,0,0.05) !important; }
-html.light-mode .bg-\[\#161821\] { background-color: #ffffff !important; box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important; }
-html.light-mode .bg-\[\#181b24\],
-html.light-mode .bg-\[\#181b24\]\/50,
-html.light-mode .bg-\[\#181b24\]\/80 { background-color: #f1f5f9 !important; }
-html.light-mode .bg-\[\#1a1d27\] { background-color: #f8fafc !important; }
-html.light-mode .bg-\[\#1c202b\] { background-color: #f1f5f9 !important; }
-html.light-mode .bg-\[\#1e212c\] { background-color: #f1f5f9 !important; }
-html.light-mode .bg-\[\#12141c\] { background-color: #f8fafc !important; }
-html.light-mode .bg-\[\#1a1a20\] { background-color: #f8fafc !important; }
-
-/* Hero vehicle card light mode */
-html.light-mode .hero-vehicle-card {
-    background: #ffffff !important;
-    background-image: none !important;
-    border-color: #e2e8f0 !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+html.light-mode .bg-grid-pattern {
+    background-image: radial-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+    background-size: 24px 24px;
 }
 
-html.light-mode .hero-vehicle-card h2 {
-    color: #0f172a !important;
-}
-
-/* AI Diagnosis button light mode contrast */
-html.light-mode .btn-ai-diagnosis {
-    background-color: #f3e8ff !important;
-    border-color: #d8b4fe !important;
-    color: #6b21a8 !important;
-}
-html.light-mode .btn-ai-diagnosis:hover {
-    background-color: #7c3aed !important;
-    border-color: #7c3aed !important;
-    color: #ffffff !important;
-}
-html.light-mode .btn-ai-diagnosis svg {
-    color: #7e22ce !important;
-}
-html.light-mode .btn-ai-diagnosis:hover svg {
-    color: #ffffff !important;
-}
-
-html.light-mode .bg-white\/\[0\.02\],
-html.light-mode .bg-white\/\[0\.03\],
-html.light-mode .bg-white\/\[0\.04\],
-html.light-mode .bg-white\/\[0\.05\],
-html.light-mode .bg-white\/\[0\.06\] { background-color: #f1f5f9 !important; }
-
-html.light-mode .border-white\/10,
-html.light-mode .border-white\/15,
-html.light-mode .border-white\/20,
-html.light-mode .border-white\/\[0\.08\],
-html.light-mode .border-white\/\[0\.06\] { border-color: #e2e8f0 !important; }
-
-html.light-mode .divide-white\/\[0\.06\] > :not([hidden]) ~ :not([hidden]) { border-color: #e2e8f0 !important; }
-
-html.light-mode input,
-html.light-mode select,
-html.light-mode textarea {
-    background-color: #f8fafc !important;
-    border-color: #cbd5e1 !important;
-    color: #0f172a !important;
-}
-
-html.light-mode input::placeholder,
-html.light-mode textarea::placeholder {
-    color: #94a3b8 !important;
-}
-
-/* Custom Scrollbars */
+/* --- Scrollbar styling --- */
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
 }
 ::-webkit-scrollbar-track {
-    background: #0b0c10;
+    background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: #222634;
+    background: rgba(148, 163, 184, 0.2);
     border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #383e54;
+    background: rgba(148, 163, 184, 0.4);
 }
 
-/* Custom Glass & Glow Utilities */
-.glass-card {
-    background: rgba(19, 21, 27, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-.glow-orange {
-    box-shadow: 0 0 25px rgba(255, 140, 0, 0.25);
-}
-
-.glow-blue {
-    box-shadow: 0 0 25px rgba(59, 130, 246, 0.25);
-}
-
-.glow-emerald {
-    box-shadow: 0 0 25px rgba(16, 185, 129, 0.25);
-}
-
-/* Plaka Stili (TR Standart Plaka) */
+/* --- TR Plate Badge --- */
 .badge-plate {
     display: inline-flex;
     align-items: center;
     background: #ffffff;
-    color: #111827;
+    color: #0f172a;
     font-family: 'JetBrains Mono', monospace;
     font-weight: 800;
     letter-spacing: 0.5px;
     border-radius: 6px;
     border: 2px solid #0f172a;
-    padding: 2px 10px 2px 4px;
+    padding: 2px 8px 2px 4px;
     position: relative;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    user-select: none;
 }
 
 .badge-plate::before {
@@ -190,4 +92,63 @@ html.light-mode textarea::placeholder {
     border-radius: 3px;
     margin-right: 6px;
     letter-spacing: 0;
+}
+
+/* --- Glow and Glass Utility Classes --- */
+.glow-amber {
+    box-shadow: 0 0 35px -5px rgba(245, 158, 11, 0.35);
+}
+
+.glow-blue {
+    box-shadow: 0 0 35px -5px rgba(59, 130, 246, 0.35);
+}
+
+.glow-emerald {
+    box-shadow: 0 0 35px -5px rgba(16, 185, 129, 0.35);
+}
+
+.glow-purple {
+    box-shadow: 0 0 35px -5px rgba(168, 85, 247, 0.35);
+}
+
+/* Glass panel */
+.glass-panel {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+/* Shimmer animation for AI status */
+@keyframes ai-pulse {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 0.9; transform: scale(1.08); }
+}
+
+.animate-ai-pulse {
+    animation: ai-pulse 3s infinite ease-in-out;
+}
+
+/* ApexCharts tooltips override */
+.apexcharts-tooltip {
+    border-radius: 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
+    background: #0f1015 !important;
+    color: #ffffff !important;
+}
+
+html.light-mode .apexcharts-tooltip {
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+}
+
+.apexcharts-tooltip-title {
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    font-weight: 700 !important;
+}
+
+html.light-mode .apexcharts-tooltip-title {
+    border-bottom: 1px solid #f1f5f9 !important;
 }

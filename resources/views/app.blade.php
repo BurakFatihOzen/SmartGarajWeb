@@ -10,14 +10,29 @@
     <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <script>
+        (function() {
+            try {
+                const stored = localStorage.getItem('theme');
+                if (stored === 'light') {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.classList.add('light-mode');
+                } else {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.classList.remove('light-mode');
+                }
+            } catch (e) {}
+        })();
+    </script>
 
     @viteReactRefresh
     @vite(['resources/js/app.jsx', 'resources/css/app.css'])
     @inertiaHead
 </head>
-<body class="bg-[#0b0c10] text-[#f1f5f9] antialiased min-h-screen selection:bg-amber-500 selection:text-black">
+<body class="bg-slate-50 dark:bg-[#090a0f] text-slate-900 dark:text-slate-100 antialiased min-h-screen selection:bg-amber-500 selection:text-black font-sans">
     @inertia
 </body>
 </html>

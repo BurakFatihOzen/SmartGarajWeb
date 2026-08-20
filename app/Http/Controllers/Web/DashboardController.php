@@ -111,14 +111,22 @@ class DashboardController extends Controller
             $healthScore = max(35, min(100, $score));
         }
 
-        // Tüm filodaki yaklaşan yasal süre uyarıları (30 gün içinde)
+        // Tüm filodaki yaklaşan veya süresi dolmuş yasal süre uyarıları (Muayene & Sigorta)
         foreach ($vehicles as $v) {
-            $now = Carbon::now();
-            if ($v->muayene_bitis && Carbon::parse($v->muayene_bitis)->diffInDays($now, false) <= 30) {
-                $upcomingAlertsCount++;
+            $now = Carbon::now()->startOfDay();
+            if ($v->muayene_bitis) {
+                $mDate = Carbon::parse($v->muayene_bitis)->startOfDay();
+                $diffDays = $now->diffInDays($mDate, false); // Pozitif: Gelecek gün, Negatif: Geçmiş gün
+                if ($diffDays <= 30) {
+                    $upcomingAlertsCount++;
+                }
             }
-            if ($v->sigorta_bitis && Carbon::parse($v->sigorta_bitis)->diffInDays($now, false) <= 30) {
-                $upcomingAlertsCount++;
+            if ($v->sigorta_bitis) {
+                $sDate = Carbon::parse($v->sigorta_bitis)->startOfDay();
+                $diffDays = $now->diffInDays($sDate, false);
+                if ($diffDays <= 30) {
+                    $upcomingAlertsCount++;
+                }
             }
         }
 

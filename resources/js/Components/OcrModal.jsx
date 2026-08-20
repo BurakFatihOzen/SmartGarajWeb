@@ -78,155 +78,129 @@ export default function OcrModal({ isOpen, onClose, type = 'ruhsat', onDataExtra
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
-            <div className="w-full max-w-xl rounded-3xl bg-[#13151b] border border-white/10 p-6 sm:p-8 shadow-2xl space-y-6 relative max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="w-full max-w-xl rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200 dark:border-white/10 p-5 sm:p-7 shadow-2xl space-y-5 relative max-h-[90vh] overflow-y-auto">
                 {/* Close Button */}
                 <button
                     onClick={onClose}
-                    className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-all cursor-pointer"
+                    className="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all cursor-pointer"
                 >
                     <X className="w-5 h-5" />
                 </button>
 
                 {/* Header */}
-                <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-purple-500/25 shrink-0">
-                        <Scan className="w-6 h-6" />
+                <div className="flex items-center space-x-3 pr-8">
+                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-purple-500/25 shrink-0">
+                        <Scan className="w-5 h-5" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-black text-white flex items-center gap-2">
-                            <span>{type === 'ruhsat' ? 'AI Ruhsat Tarayıcı' : 'AI Fatura & İş Emri Tarayıcı'}</span>
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 font-extrabold border border-purple-500/30">
+                        <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                            <span>{type === 'ruhsat' ? 'AI Ruhsat Tarayıcı' : 'AI Fatura Tarayıcı'}</span>
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 font-extrabold border border-purple-500/20">
                                 Vision AI
                             </span>
                         </h3>
-                        <p className="text-xs text-slate-400 mt-0.5">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                             {type === 'ruhsat' 
-                                ? 'Araç ruhsatının fotoğrafını yükleyin, plaka, şasi ve muayene otomatik dolsun.' 
-                                : 'Servis faturasını yükleyin, parça kalemleri ve maliyet tek tıkla işlensin.'}
+                                ? 'Ruhsat görselini yükleyin, araç bilgileri otomatik form alanlarına aktarılsın.'
+                                : 'Servis faturası veya fiş görselini yükleyin, harcama kalemleri ve tutar aktarılsın.'}
                         </p>
                     </div>
                 </div>
 
-                {/* Upload Zone */}
+                {/* Upload & Preview Area */}
                 {!preview ? (
-                    <label className="border-2 border-dashed border-white/10 hover:border-purple-500/50 rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all bg-[#181b24]/50 hover:bg-[#181b24] group">
+                    <label className="border-2 border-dashed border-slate-300 dark:border-white/10 hover:border-purple-500/50 rounded-2xl p-6 sm:p-8 flex flex-col items-center justify-center cursor-pointer transition-all bg-slate-50 dark:bg-white/[0.02] hover:bg-purple-50/20 group">
                         <input
                             type="file"
                             accept="image/*"
                             onChange={handleFileChange}
                             className="hidden"
                         />
-                        <div className="w-14 h-14 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400 mb-3 group-hover:scale-110 transition-transform">
-                            <Upload className="w-7 h-7" />
+                        <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform">
+                            <Upload className="w-6 h-6" />
                         </div>
-                        <span className="text-sm font-bold text-white">Fotoğraf Seçin veya Sürükleyin</span>
-                        <span className="text-xs text-slate-400 mt-1">PNG, JPG, WEBP (Maks 10MB)</span>
+                        <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                            Belge Görselini Yükleyin veya Sürükleyin
+                        </span>
+                        <span className="text-[11px] text-slate-400 mt-1">
+                            Fotoğrafın net ve yazıların okunur olduğundan emin olun
+                        </span>
                     </label>
                 ) : (
                     <div className="space-y-4">
-                        <div className="relative rounded-2xl overflow-hidden border border-white/10 max-h-56 bg-slate-950 flex items-center justify-center">
-                            <img src={preview} alt="Önizleme" className="max-h-56 object-contain" />
-                            {loading && (
-                                <div className="absolute inset-0 bg-black/70 backdrop-blur-xs flex flex-col items-center justify-center text-purple-300 space-y-2">
-                                    <Loader2 className="w-8 h-8 animate-spin text-purple-400" />
-                                    <span className="text-xs font-bold animate-pulse">Vision AI Belgeyi Okuyor...</span>
-                                </div>
-                            )}
+                        <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 max-h-52 bg-slate-950 flex items-center justify-center">
+                            <img src={preview} alt="Belge Önizleme" className="max-h-52 w-full object-contain" />
+                            <button
+                                onClick={() => { setFile(null); setPreview(null); setResult(null); }}
+                                className="absolute top-2.5 right-2.5 p-1.5 rounded-xl bg-slate-950/70 text-white hover:bg-red-500 transition-colors shadow-md"
+                                title="Görseli Değiştir"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
                         </div>
 
                         {!result && (
-                            <div className="flex gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => { setFile(null); setPreview(null); }}
-                                    className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold text-slate-300 transition-all cursor-pointer"
-                                >
-                                    Farklı Görsel Seç
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleScan}
-                                    disabled={loading}
-                                    className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 hover:brightness-110 text-white font-extrabold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-purple-500/25 transition-all cursor-pointer"
-                                >
-                                    <Sparkles className="w-4 h-4" />
-                                    <span>{loading ? 'Taranıyor...' : '🧠 AI ile Analiz Et'}</span>
-                                </button>
-                            </div>
+                            <button
+                                onClick={handleScan}
+                                disabled={loading}
+                                className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs shadow-lg shadow-purple-600/25 flex items-center justify-center space-x-2 transition-all cursor-pointer disabled:opacity-50"
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        <span>Vision AI Belgeyi Okuyor...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Sparkles className="w-4 h-4" />
+                                        <span>Yapay Zeka ile Analiz Et</span>
+                                    </>
+                                )}
+                            </button>
                         )}
                     </div>
                 )}
 
-                {/* Error */}
+                {/* Error Box */}
                 {error && (
-                    <div className="p-3.5 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center space-x-2">
+                    <div className="p-3.5 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-xs font-semibold flex items-center space-x-2.5">
                         <AlertCircle className="w-4 h-4 shrink-0" />
                         <span>{error}</span>
                     </div>
                 )}
 
-                {/* Result Preview */}
+                {/* Extracted Data Result */}
                 {result && result.data && (
-                    <div className="space-y-4 p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30">
-                        <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-purple-400 flex items-center gap-1.5">
-                                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                                Bilgiler Başarıyla Ayıklandı ({result.engine})
-                            </span>
+                    <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 space-y-3">
+                        <div className="flex items-center space-x-2 text-emerald-700 dark:text-emerald-400 font-extrabold text-xs">
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span>Bilgiler Başarıyla Ayıklandı!</span>
                         </div>
 
                         <div className="grid grid-cols-2 gap-2 text-xs">
                             {type === 'ruhsat' ? (
                                 <>
-                                    <div className="p-2.5 rounded-xl bg-[#181b24] border border-white/5">
-                                        <div className="text-[10px] text-slate-400 font-semibold uppercase">Plaka</div>
-                                        <div className="font-bold font-mono text-amber-400 text-sm mt-0.5">{result.data.plaka || '-'}</div>
-                                    </div>
-                                    <div className="p-2.5 rounded-xl bg-[#181b24] border border-white/5">
-                                        <div className="text-[10px] text-slate-400 font-semibold uppercase">Marka / Model</div>
-                                        <div className="font-bold text-white text-sm mt-0.5">{result.data.marka} {result.data.model}</div>
-                                    </div>
-                                    <div className="p-2.5 rounded-xl bg-[#181b24] border border-white/5">
-                                        <div className="text-[10px] text-slate-400 font-semibold uppercase">Model Yılı / Motor</div>
-                                        <div className="font-bold text-white text-sm mt-0.5">{result.data.yil || '-'} {result.data.motor ? `(${result.data.motor})` : ''}</div>
-                                    </div>
-                                    <div className="p-2.5 rounded-xl bg-[#181b24] border border-white/5">
-                                        <div className="text-[10px] text-slate-400 font-semibold uppercase">Muayene Tarihi</div>
-                                        <div className="font-bold text-emerald-400 text-sm mt-0.5">{result.data.muayene_tarihi || '-'}</div>
-                                    </div>
-                                    {result.data.sasi_no && (
-                                        <div className="p-2.5 rounded-xl bg-[#181b24] border border-white/5 col-span-2">
-                                            <div className="text-[10px] text-slate-400 font-semibold uppercase">Şasi Numarası (VIN)</div>
-                                            <div className="font-bold font-mono text-white text-xs mt-0.5">{result.data.sasi_no}</div>
-                                        </div>
-                                    )}
+                                    {result.data.plaka && <div><span className="text-slate-400">Plaka:</span> <strong className="text-slate-800 dark:text-white font-mono">{result.data.plaka}</strong></div>}
+                                    {result.data.marka && <div><span className="text-slate-400">Marka:</span> <strong className="text-slate-800 dark:text-white">{result.data.marka}</strong></div>}
+                                    {result.data.model && <div><span className="text-slate-400">Model:</span> <strong className="text-slate-800 dark:text-white">{result.data.model}</strong></div>}
+                                    {result.data.yil && <div><span className="text-slate-400">Model Yılı:</span> <strong className="text-slate-800 dark:text-white">{result.data.yil}</strong></div>}
                                 </>
                             ) : (
                                 <>
-                                    <div className="p-2.5 rounded-xl bg-[#181b24] border border-white/5">
-                                        <div className="text-[10px] text-slate-400 font-semibold uppercase">Servis / İşlem</div>
-                                        <div className="font-bold text-white text-sm mt-0.5">{result.data.islem_turu}</div>
-                                    </div>
-                                    <div className="p-2.5 rounded-xl bg-[#181b24] border border-white/5">
-                                        <div className="text-[10px] text-slate-400 font-semibold uppercase">Toplam Tutar</div>
-                                        <div className="font-bold font-mono text-emerald-400 text-sm mt-0.5">₺{Number(result.data.toplam_tutar || 0).toLocaleString('tr-TR')}</div>
-                                    </div>
-                                    <div className="p-2.5 rounded-xl bg-[#181b24] border border-white/5 col-span-2">
-                                        <div className="text-[10px] text-slate-400 font-semibold uppercase">Parça Listesi</div>
-                                        <div className="font-bold text-white text-xs mt-0.5">{result.data.parcalar?.length || 0} Adet Kalem Ayrıştırıldı</div>
-                                    </div>
+                                    {result.data.islem_turu && <div className="col-span-2"><span className="text-slate-400">İşlem:</span> <strong className="text-slate-800 dark:text-white">{result.data.islem_turu}</strong></div>}
+                                    {result.data.toplam_tutar && <div><span className="text-slate-400">Tutar:</span> <strong className="text-amber-500 font-black">{result.data.toplam_tutar} ₺</strong></div>}
+                                    {result.data.tarih && <div><span className="text-slate-400">Tarih:</span> <strong className="text-slate-800 dark:text-white font-mono">{result.data.tarih}</strong></div>}
                                 </>
                             )}
                         </div>
 
                         <button
-                            type="button"
                             onClick={handleApply}
-                            className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-black text-xs flex items-center justify-center space-x-2 shadow-lg shadow-emerald-500/25 hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+                            className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md transition-all flex items-center justify-center space-x-1.5 cursor-pointer"
                         >
-                            <Zap className="w-4 h-4" />
-                            <span>✓ Formu Bu Bilgilerle Otomatik Doldur</span>
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span>Bilgileri Forma Aktar</span>
                         </button>
                     </div>
                 )}

@@ -20,18 +20,23 @@ import {
     X,
     Scan,
     Zap,
-    Image as ImageIcon
+    Image as ImageIcon,
+    FileText,
+    Fuel,
+    Info,
+    Check,
+    HelpCircle
 } from 'lucide-react';
 
 export const RUHSAT_TIPLERI = [
-    { id: 'Otomobil (Hususi)', label: 'Otomobil (Hususi / Şahsi)', desc: 'İlk 3 yıl muaf, sonra 2 yılda bir', cycleYears: 2, newCarFreeYears: 3 },
-    { id: 'Kamyonet (Panelvan / Doblo / Transit)', label: 'Kamyonet (Panelvan / Doblo / Caddy / Transit)', desc: 'Her 1 yılda bir muayene', cycleYears: 1, newCarFreeYears: 1 },
-    { id: 'Motosiklet / Scooter', label: 'Motosiklet / Scooter (Hususi)', desc: 'İlk 3 yıl muaf, sonra 2 yılda bir', cycleYears: 2, newCarFreeYears: 3 },
-    { id: 'Ticari Taksi / Dolmuş', label: 'Ticari Taksi / Dolmuş', desc: 'Her 1 yılda bir muayene', cycleYears: 1, newCarFreeYears: 1 },
-    { id: 'Kamyon / Çekici / Tır', label: 'Kamyon / Çekici / Tır', desc: 'Her 1 yılda bir muayene', cycleYears: 1, newCarFreeYears: 1 },
-    { id: 'Otobüs / Minibüs / Servis', label: 'Otobüs / Minibüs / Servis', desc: 'Her 1 yılda bir muayene', cycleYears: 1, newCarFreeYears: 1 },
-    { id: 'Traktör (Tarımsal)', label: 'Traktör (Tarımsal Amaçlı)', desc: 'İlk 3 yıl muaf, sonra 3 yılda bir', cycleYears: 3, newCarFreeYears: 3 },
-    { id: 'Karavan / Özel Amaçlı', label: 'Karavan / Özel Amaçlı Taşıt', desc: 'Ruhsata göre 1 veya 2 yılda bir', cycleYears: 1, newCarFreeYears: 1 },
+    { id: 'Otomobil (Hususi)', label: 'Otomobil (Hususi)', desc: 'İlk 3 yıl muaf, sonra 2 yılda bir', cycleYears: 2, newCarFreeYears: 3 },
+    { id: 'Kamyonet (Panelvan / Doblo / Transit)', label: 'Kamyonet (Ticari / Panelvan)', desc: 'Her 1 yılda bir muayene', cycleYears: 1, newCarFreeYears: 1 },
+    { id: 'Motosiklet / Scooter', label: 'Motosiklet / Scooter', desc: 'İlk 3 yıl muaf, sonra 2 yılda bir', cycleYears: 2, newCarFreeYears: 3 },
+    { id: 'Ticari Taksi / Dolmuş', label: 'Ticari Taksi', desc: 'Her 1 yılda bir muayene', cycleYears: 1, newCarFreeYears: 1 },
+    { id: 'Kamyon / Çekici / Tır', label: 'Kamyon / Çekici', desc: 'Her 1 yılda bir muayene', cycleYears: 1, newCarFreeYears: 1 },
+    { id: 'Otobüs / Minibüs / Servis', label: 'Otobüs / Minibüs', desc: 'Her 1 yılda bir muayene', cycleYears: 1, newCarFreeYears: 1 },
+    { id: 'Traktör (Tarımsal)', label: 'Traktör', desc: 'İlk 3 yıl muaf, sonra 3 yılda bir', cycleYears: 3, newCarFreeYears: 3 },
+    { id: 'Karavan / Özel Amaçlı', label: 'Karavan / Özel', desc: 'Ruhsata göre 1 veya 2 yılda bir', cycleYears: 1, newCarFreeYears: 1 },
 ];
 
 export default function VehicleCreate() {
@@ -124,160 +129,116 @@ export default function VehicleCreate() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // --- TÜRKİYE PLAKA FORMATLAYICI (KURŞUNGEÇİRMEZ V3) ---
+    // Format TR License plate
     const handlePlateChange = (e) => {
         let val = e.target.value.toLocaleUpperCase('tr-TR').replace(/[^A-Z0-9]/g, '');
-
         let city = "";
         let letters = "";
         let numbers = "";
 
-        // 1. İL KODU (01 - 81)
         let cityMatch = val.match(/^\d{1,2}/);
         if (cityMatch) {
             city = cityMatch[0];
-            if (city.length === 1 && parseInt(city) > 8) {
-                city = "";
-            }
+            if (city.length === 1 && parseInt(city) > 8) city = "";
             if (city.length === 2) {
                 let num = parseInt(city, 10);
-                if (num > 81 || num === 0) {
-                    city = city.substring(0, 1);
-                }
+                if (num > 81 || num === 0) city = city.substring(0, 1);
             }
             val = val.substring(city.length);
         } else {
             val = "";
         }
 
-        // 2. ORTA HARF GRUBU (1 ila 3 Harf)
-        if (city.length === 2 && val.length > 0) {
-            let letterMatch = val.match(/^[A-Z]{1,3}/);
-            if (letterMatch) {
-                letters = letterMatch[0];
+        if (city.length === 2) {
+            let lettersMatch = val.match(/^[A-Z]{1,3}/);
+            if (lettersMatch) {
+                letters = lettersMatch[0];
                 val = val.substring(letters.length);
-            } else {
-                val = "";
             }
-        } else if (city.length < 2) {
-            val = "";
         }
 
-        // 3. SON RAKAM GRUBU
-        if (letters.length > 0 && val.length > 0) {
-            let numberMatch = val.match(/^\d+/);
-            if (numberMatch) {
-                numbers = numberMatch[0];
-                let maxNumbers = (letters.length === 3) ? 3 : 4;
-                if (numbers.length > maxNumbers) {
-                    numbers = numbers.substring(0, maxNumbers);
-                }
+        if (letters.length > 0) {
+            let numMatch = val.match(/^\d{1,5}/);
+            if (numMatch) {
+                numbers = numMatch[0];
             }
         }
 
         let formatted = city;
-        if (letters.length > 0) formatted += " " + letters;
-        if (numbers.length > 0) formatted += " " + numbers;
+        if (letters) formatted += " " + letters;
+        if (numbers) formatted += " " + numbers;
 
         setData('plaka', formatted);
     };
 
-    // --- MARKA SEÇİMİ ---
-    const handleBrandSelect = (brand) => {
+    const handleSelectBrand = (brand) => {
+        setData(prev => ({
+            ...prev,
+            marka: brand.ad,
+            model: '',
+            motor: '',
+        }));
+        setIsCustomBrand(false);
+        setIsCustomModel(false);
+        setIsCustomMotor(false);
         setIsBrandDropdownOpen(false);
-        setBrandSearch('');
 
-        if (brand === 'diger') {
-            setIsCustomBrand(true);
-            setIsCustomModel(true);
-            setIsCustomMotor(true);
-            setData(prev => ({ ...prev, marka: '', model: '', motor: '' }));
-            setAvailableModels([]);
-            setAvailableMotors([]);
-            setYearLimits({ min: 1950, max: new Date().getFullYear() + 1, placeholder: 'Örn: 2020' });
+        const catalog = CAR_CATALOG[brand.ad];
+        if (catalog && catalog.models) {
+            setAvailableModels(catalog.models);
         } else {
-            setIsCustomBrand(false);
-            setIsCustomModel(false);
-            setIsCustomMotor(false);
-            setData(prev => ({ ...prev, marka: brand.ad, model: '', motor: '' }));
-            
-            const models = CAR_CATALOG[brand.ad] ? Object.keys(CAR_CATALOG[brand.ad]) : [];
-            setAvailableModels(models);
-            setAvailableMotors([]);
-            setYearLimits({ min: 1950, max: new Date().getFullYear() + 1, placeholder: 'Örn: 2020' });
+            setAvailableModels([]);
         }
+        setAvailableMotors([]);
     };
 
-    // --- MODEL SEÇİMİ & AKILLI YIL AYARI ---
-    const handleModelSelect = (model) => {
+    const handleSelectModel = (modelObj) => {
+        setData(prev => ({
+            ...prev,
+            model: modelObj.name,
+            motor: '',
+        }));
+        setIsCustomModel(false);
+        setIsCustomMotor(false);
         setIsModelDropdownOpen(false);
 
-        if (model === 'diger') {
-            setIsCustomModel(true);
-            setIsCustomMotor(true);
-            setData(prev => ({ ...prev, model: '', motor: '' }));
+        if (modelObj.motors) {
+            setAvailableMotors(modelObj.motors);
+        } else {
             setAvailableMotors([]);
-            setYearLimits({ min: 1950, max: new Date().getFullYear() + 1, placeholder: 'Örn: 2020' });
-        } else {
-            setIsCustomModel(false);
-            setIsCustomMotor(false);
-            setData(prev => ({ ...prev, model: model, motor: '' }));
+        }
 
-            // Akıllı Yıl Tespiti (Örn: "Megane IV (2016-2022)" -> min: 2016, max: 2022)
-            const currentYear = new Date().getFullYear();
-            const match = model.match(/\((\d{4})(?:-(\d{4})?)?\)/);
-            if (match) {
-                const startY = parseInt(match[1], 10);
-                const endY = match[2] ? parseInt(match[2], 10) : currentYear;
-                setYearLimits({
-                    min: startY,
-                    max: endY,
-                    placeholder: `${startY} - ${endY} arası`
-                });
-                setData(prev => ({ ...prev, yil: '' }));
-            } else {
-                setYearLimits({ min: 1950, max: currentYear + 1, placeholder: 'Örn: 2020' });
-            }
-
-            // Motorları Getir
-            const motors = (CAR_CATALOG[data.marka] && CAR_CATALOG[data.marka][model])
-                ? CAR_CATALOG[data.marka][model]
-                : [];
-            setAvailableMotors(motors);
+        if (modelObj.years) {
+            setYearLimits({
+                min: modelObj.years[0],
+                max: modelObj.years[1],
+                placeholder: `${modelObj.years[0]} - ${modelObj.years[1]}`
+            });
         }
     };
 
-    // --- MOTOR SEÇİMİ ---
-    const handleMotorSelect = (motor) => {
+    const handleSelectMotor = (motorName) => {
+        setData('motor', motorName);
+        setIsCustomMotor(false);
         setIsMotorDropdownOpen(false);
-        if (motor === 'diger') {
-            setIsCustomMotor(true);
-            setData(prev => ({ ...prev, motor: '' }));
-        } else {
-            setIsCustomMotor(false);
-            setData(prev => ({ ...prev, motor: motor }));
-        }
     };
 
-    // --- AKILLI TÜVTÜRK MUAYENE HESAPLAYICI ---
+    // Calculate smart TÜVTÜRK inspection deadline
     const calculateSmartMuayene = (yearStr, licenseType) => {
         const yearNum = parseInt(yearStr, 10);
         const currentYear = new Date().getFullYear();
         const ruhsat = RUHSAT_TIPLERI.find(r => r.id === licenseType) || RUHSAT_TIPLERI[0];
-
         const today = new Date();
         const mm = String(today.getMonth() + 1).padStart(2, '0');
         const dd = String(today.getDate()).padStart(2, '0');
 
         if (yearNum && yearNum >= currentYear) {
-            // Sıfır km araç kuralı (Örn: 2026 model otomobilde 3 yıl muafiyet -> 2029)
             const targetYear = yearNum + ruhsat.newCarFreeYears;
             return `${targetYear}-${mm}-${dd}`;
         }
         return '';
     };
 
-    // --- MODEL YILI GİRİŞ KONTROLÜ ---
     const handleYearChange = (e) => {
         let val = e.target.value.replace(/[^0-9]/g, '').slice(0, 4);
         setData(prev => {
@@ -320,603 +281,586 @@ export default function VehicleCreate() {
 
     return (
         <AppLayout title="Yeni Araç Ekle">
-            <Head title="Yeni Araç Ekle - SmartGaraj" />
+            <Head title="Yeni Araç Ekle — SmartGaraj" />
+            
+            <OcrModal 
+                isOpen={isOcrOpen} 
+                onClose={() => setIsOcrOpen(false)} 
+                type="ruhsat"
+                onDataExtracted={handleOcrExtracted} 
+                onExtracted={handleOcrExtracted} 
+            />
 
-            <div className="max-w-3xl mx-auto space-y-6">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
+            <div className="space-y-6">
+                
+                {/* ═══════════════════════════════════════════════════════════════
+                    PAGE HEADER & BREADCRUMB
+                ═══════════════════════════════════════════════════════════════ */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center space-x-3.5">
                         <Link
                             href="/vehicles"
-                            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.05] dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 transition-colors shadow-2xs"
+                            className="p-2.5 rounded-2xl bg-white dark:bg-[#11131c] border border-slate-200 dark:border-white/[0.08] text-slate-600 dark:text-slate-300 hover:text-amber-500 transition-all shadow-sm"
                         >
                             <ArrowLeft className="w-5 h-5" />
                         </Link>
                         <div>
-                            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Yeni Araç Kaydı</h2>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Garajınıza yeni bir araç tanımlayın ve takip etmeye başlayın.</p>
+                            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                                Yeni Araç Tanımla
+                            </h2>
+                            <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 mt-0.5">
+                                Garajınıza yeni bir taşıt ekleyerek AI muayene, sigorta ve bakım asistanını başlatın.
+                            </p>
                         </div>
                     </div>
+
+                    <button
+                        type="button"
+                        onClick={() => setIsOcrOpen(true)}
+                        className="inline-flex items-center justify-center space-x-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs shadow-lg shadow-purple-600/25 hover:shadow-purple-600/40 hover:-translate-y-0.5 active:scale-95 transition-all cursor-pointer border border-purple-400/30 shrink-0"
+                    >
+                        <Sparkles className="w-4 h-4 text-purple-200" />
+                        <span>🧠 Vision AI ile Ruhsat Tara</span>
+                    </button>
                 </div>
 
-                {/* AI OCR BANNER */}
-                <div className="p-5 rounded-3xl bg-gradient-to-r from-purple-500/10 via-indigo-500/5 to-transparent dark:from-purple-500/15 dark:via-indigo-500/10 dark:to-transparent border border-purple-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
-                    <div className="flex items-center space-x-3.5 text-center sm:text-left">
-                        <div className="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-500 dark:text-purple-400 flex items-center justify-center shrink-0 shadow-inner">
-                            <Sparkles className="w-6 h-6" />
+                {/* ═══════════════════════════════════════════════════════════════
+                    AI VISION OCR PROMPT BANNER
+                ═══════════════════════════════════════════════════════════════ */}
+                <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-purple-500/10 via-indigo-500/5 to-transparent dark:from-purple-500/15 dark:via-indigo-500/10 dark:to-transparent border border-purple-500/30 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
+                    <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 shadow-inner">
+                            <Scan className="w-6 h-6" />
                         </div>
                         <div>
-                            <div className="text-sm font-extrabold text-slate-900 dark:text-white">Ruhsatınız Yanınızda mı?</div>
-                            <div className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
-                                Fotoğrafını yükleyin; plaka, marka, model, şasi ve muayene bilgileri saniyeler içinde otomatik dolsun!
+                            <div className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                                <span>Ruhsatınız Yanınızda mı?</span>
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-600 dark:text-purple-300">
+                                    Otomatik Doldurma
+                                </span>
                             </div>
+                            <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
+                                Ruhsat fotoğrafını yükleyin; plaka, marka, model, şasi numarası ve muayene bilgileri otomatik doldurulsun.
+                            </p>
                         </div>
                     </div>
                     <button
                         type="button"
                         onClick={() => setIsOcrOpen(true)}
-                        className="px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-500 hover:brightness-110 text-white font-black text-xs flex items-center space-x-2 shadow-lg shadow-purple-500/25 transition-all shrink-0 cursor-pointer active:scale-95"
+                        className="w-full md:w-auto px-5 py-2.5 rounded-xl bg-purple-600 text-white font-extrabold text-xs hover:bg-purple-500 transition-all shrink-0 cursor-pointer shadow-md"
                     >
-                        <Scan className="w-4 h-4" />
-                        <span>🧠 Vision AI ile Ruhsatı Tara</span>
+                        Taramayı Başlat
                     </button>
                 </div>
 
-                {/* Form Card */}
-                <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#13151b] border border-slate-200/80 dark:border-white/[0.08] shadow-xl">
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                {/* ═══════════════════════════════════════════════════════════════
+                    MAIN 2-COLUMN FULL-WIDTH GRID (Form on Left, Live Card on Right)
+                ═══════════════════════════════════════════════════════════════ */}
+                <form onSubmit={handleSubmit}>
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                         
-                        {/* VEHICLE PHOTO UPLOAD DROPZONE */}
-                        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#181b24] border border-slate-200/80 dark:border-white/10 space-y-3">
-                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center space-x-2">
-                                <ImageIcon className="w-4 h-4 text-amber-500" />
-                                <span>Araç Fotoğrafı (Opsiyonel)</span>
-                            </label>
-
-                            {!photoPreview ? (
-                                <label className="border-2 border-dashed border-slate-300 dark:border-white/10 hover:border-amber-500/50 rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer transition-all bg-white dark:bg-white/[0.02] hover:bg-slate-50 dark:hover:bg-white/[0.04] group shadow-2xs">
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handlePhotoChange}
-                                        className="hidden"
-                                    />
-                                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500 mb-2 group-hover:scale-110 transition-transform">
-                                        <Camera className="w-5 h-5" />
+                        {/* LEFT FORM AREA (7 Columns on Large Screens) */}
+                        <div className="lg:col-span-7 xl:col-span-8 space-y-6">
+                            
+                            {/* SECTION 1: PHOTO & BASIC INFO */}
+                            <div className="p-6 sm:p-7 rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200/80 dark:border-white/[0.06] shadow-sm space-y-6">
+                                <div className="flex items-center space-x-2.5 pb-4 border-b border-slate-100 dark:border-white/[0.04]">
+                                    <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-black text-xs">
+                                        1
                                     </div>
-                                    <span className="text-xs font-bold text-slate-800 dark:text-white">Aracın Fotoğrafını Yükleyin veya Çekin</span>
-                                    <span className="text-[10px] text-slate-500 mt-0.5">Garaj kartında ve PDF servis pasaportunda gösterilir</span>
-                                </label>
-                            ) : (
-                                <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 max-h-48 bg-slate-900 flex items-center justify-center group">
-                                    <img src={photoPreview} alt="Araç Önizleme" className="max-h-48 w-full object-cover" />
-                                    <button
-                                        type="button"
-                                        onClick={() => { setData('fotograf', null); setPhotoPreview(null); }}
-                                        className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/70 text-white hover:bg-red-500 transition-colors"
-                                        title="Fotoğrafı Kaldır"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
+                                    <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                                        Temel Araç Bilgileri
+                                    </h3>
                                 </div>
-                            )}
-                        </div>
 
-                        {/* SECTION 1: TEMEL BİLGİLER */}
-                        <div>
-                            <h4 className="text-xs font-bold text-amber-500 uppercase tracking-wider mb-4 flex items-center space-x-2">
-                                <Car className="w-4 h-4" />
-                                <span>1. Temel Araç Bilgileri</span>
-                            </h4>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                
-                                {/* 1. PLAKA (TR Standart Mask) */}
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                                        Plaka <span className="text-amber-500">*</span>
+                                {/* Photo Dropzone */}
+                                <div className="space-y-2">
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                        Araç Görseli (Opsiyonel)
                                     </label>
-                                    <div className="relative">
+                                    {!photoPreview ? (
+                                        <label className="border-2 border-dashed border-slate-200 dark:border-white/10 hover:border-amber-500/50 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all bg-slate-50/50 dark:bg-white/[0.02] hover:bg-amber-50/20 group">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handlePhotoChange}
+                                                className="hidden"
+                                            />
+                                            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                                                <Camera className="w-6 h-6" />
+                                            </div>
+                                            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                                                Fotoğraf Seçin veya Sürükleyin
+                                            </span>
+                                            <span className="text-[10px] text-slate-400 mt-0.5">
+                                                PNG, JPG, WEBP formatları desteklenir
+                                            </span>
+                                        </label>
+                                    ) : (
+                                        <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 max-h-56 bg-slate-900 flex items-center justify-center group">
+                                            <img src={photoPreview} alt="Araç Önizleme" className="max-h-56 w-full object-cover" />
+                                            <button
+                                                type="button"
+                                                onClick={() => { setData('fotograf', null); setPhotoPreview(null); }}
+                                                className="absolute top-3 right-3 p-2 rounded-xl bg-slate-950/70 text-white hover:bg-red-500 transition-colors shadow-lg cursor-pointer"
+                                                title="Fotoğrafı Kaldır"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {/* Plaka Input */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                            Plaka <span className="text-amber-500">*</span>
+                                        </label>
                                         <input
                                             type="text"
                                             value={data.plaka}
                                             onChange={handlePlateChange}
                                             placeholder="34 ABC 123"
                                             maxLength={11}
-                                            className="w-full uppercase font-mono font-black tracking-wider bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 text-base text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-all shadow-2xs"
+                                            className="w-full uppercase font-mono font-black tracking-wider bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-base text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-sm"
                                             required
                                             autoFocus
                                         />
+                                        <span className="text-[10px] font-semibold text-slate-400 mt-1 block">Örnek: 06 ABC 1234</span>
+                                        {errors.plaka && <p className="text-red-500 text-xs mt-1">{errors.plaka}</p>}
                                     </div>
-                                    <span className="text-[11px] text-slate-500 mt-1 block">Format: 01-81 İl Kodu + Harf + Rakam</span>
-                                    {errors.plaka && <p className="text-red-500 text-xs mt-1">{errors.plaka}</p>}
-                                </div>
 
-                                {/* 2. MARKA (İnteraktif Logo Dropdown) */}
-                                <div ref={brandDropdownRef} className="relative">
-                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                                        Marka <span className="text-amber-500">*</span>
-                                    </label>
-                                    
-                                    {!isCustomBrand ? (
-                                        <>
-                                            <button
-                                                type="button"
-                                                onClick={() => setIsBrandDropdownOpen(!isBrandDropdownOpen)}
-                                                className="w-full bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-left text-slate-900 dark:text-white flex items-center justify-between hover:border-amber-500/50 transition-all shadow-2xs cursor-pointer"
-                                            >
-                                                {data.marka ? (
-                                                    <div className="flex items-center space-x-2.5">
-                                                        <div className="w-6 h-6 rounded-md bg-slate-100 dark:bg-white p-0.5 flex items-center justify-center shrink-0 border border-slate-200">
-                                                            <img
-                                                                src={`https://www.google.com/s2/favicons?domain=${BRANDS_LIST.find(b => b.ad === data.marka)?.domain || 'auto.com'}&sz=64`}
-                                                                alt={data.marka}
-                                                                className="w-full h-full object-contain"
-                                                                onError={(e) => { e.target.style.display = 'none'; }}
-                                                            />
-                                                        </div>
-                                                        <span className="font-bold text-slate-900 dark:text-white">{data.marka}</span>
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-slate-400">Marka Seçiniz...</span>
-                                                )}
-                                                <ChevronDown className="w-4 h-4 text-slate-400" />
-                                            </button>
+                                    {/* Marka Dropdown */}
+                                    <div ref={brandDropdownRef} className="relative">
+                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                            Marka <span className="text-amber-500">*</span>
+                                        </label>
+                                        
+                                        {!isCustomBrand ? (
+                                            <>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsBrandDropdownOpen(!isBrandDropdownOpen)}
+                                                    className="w-full bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-sm text-left text-slate-900 dark:text-white flex items-center justify-between hover:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-sm cursor-pointer"
+                                                >
+                                                    <span className={data.marka ? "font-bold" : "text-slate-400"}>
+                                                        {data.marka || 'Marka Seçin...'}
+                                                    </span>
+                                                    <ChevronDown className="w-4 h-4 text-slate-400" />
+                                                </button>
 
-                                            {isBrandDropdownOpen && (
-                                                <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#161821] border border-slate-200 dark:border-white/15 rounded-2xl shadow-2xl z-50 overflow-hidden max-h-72 flex flex-col">
-                                                    {/* Search Input */}
-                                                    <div className="p-2 border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#12141c]">
+                                                {isBrandDropdownOpen && (
+                                                    <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl bg-white dark:bg-[#161824] border border-slate-200 dark:border-white/10 shadow-2xl p-3 space-y-2 max-h-72 flex flex-col">
                                                         <div className="relative">
-                                                            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
+                                                            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                                                             <input
                                                                 type="text"
                                                                 value={brandSearch}
                                                                 onChange={(e) => setBrandSearch(e.target.value)}
-                                                                placeholder="Marka ara... (Örn: Renault, Fiat, BMW)"
-                                                                className="w-full bg-white dark:bg-[#1e212c] border border-slate-300 dark:border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                                                                placeholder="Marka filtrele..."
+                                                                className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-50 dark:bg-[#1f2232] border border-slate-200 dark:border-white/10 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
                                                                 autoFocus
                                                             />
                                                         </div>
+                                                        <div className="overflow-y-auto flex-1 space-y-1">
+                                                            {filteredBrands.map((b) => (
+                                                                <button
+                                                                    key={b.ad}
+                                                                    type="button"
+                                                                    onClick={() => handleSelectBrand(b)}
+                                                                    className="w-full px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-amber-500/10 hover:text-amber-500 transition-colors flex items-center justify-between cursor-pointer"
+                                                                >
+                                                                    <span>{b.ad}</span>
+                                                                    {data.marka === b.ad && <Check className="w-3.5 h-3.5 text-amber-500" />}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => { setIsCustomBrand(true); setIsBrandDropdownOpen(false); }}
+                                                            className="text-left text-[11px] font-bold text-amber-500 hover:underline pt-2 border-t border-slate-100 dark:border-white/5"
+                                                        >
+                                                            + Listede yok, manuel yaz
+                                                        </button>
                                                     </div>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    value={data.marka}
+                                                    onChange={(e) => setData('marka', e.target.value)}
+                                                    placeholder="Markayı yazın (Örn: Togg, Audi)"
+                                                    className="w-full bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                                    required
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsCustomBrand(false)}
+                                                    className="absolute right-3 top-3 text-[11px] font-bold text-amber-500 hover:underline"
+                                                >
+                                                    Listeye Dön
+                                                </button>
+                                            </div>
+                                        )}
+                                        {errors.marka && <p className="text-red-500 text-xs mt-1">{errors.marka}</p>}
+                                    </div>
 
-                                                    {/* Brands List with Logos */}
-                                                    <div className="overflow-y-auto p-1.5 space-y-1">
-                                                        {filteredBrands.map((brand) => (
+                                    {/* Model Selection */}
+                                    <div ref={modelDropdownRef} className="relative">
+                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                            Model <span className="text-amber-500">*</span>
+                                        </label>
+                                        
+                                        {!isCustomModel && availableModels.length > 0 ? (
+                                            <>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
+                                                    className="w-full bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-sm text-left text-slate-900 dark:text-white flex items-center justify-between hover:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-sm cursor-pointer"
+                                                >
+                                                    <span className={data.model ? "font-bold" : "text-slate-400"}>
+                                                        {data.model || 'Model Seçin...'}
+                                                    </span>
+                                                    <ChevronDown className="w-4 h-4 text-slate-400" />
+                                                </button>
+
+                                                {isModelDropdownOpen && (
+                                                    <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl bg-white dark:bg-[#161824] border border-slate-200 dark:border-white/10 shadow-2xl p-3 space-y-1 max-h-60 overflow-y-auto">
+                                                        {availableModels.map((m) => (
                                                             <button
-                                                                key={brand.ad}
+                                                                key={m.name}
                                                                 type="button"
-                                                                onClick={() => handleBrandSelect(brand)}
-                                                                className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-500 hover:text-black flex items-center space-x-3 transition-colors group cursor-pointer"
+                                                                onClick={() => handleSelectModel(m)}
+                                                                className="w-full px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-amber-500/10 hover:text-amber-500 transition-colors flex items-center justify-between cursor-pointer"
                                                             >
-                                                                <div className="w-6 h-6 rounded-md bg-slate-100 dark:bg-white p-0.5 flex items-center justify-center shrink-0 shadow-xs border border-slate-200">
-                                                                    <img
-                                                                        src={`https://www.google.com/s2/favicons?domain=${brand.domain}&sz=64`}
-                                                                        alt={brand.ad}
-                                                                        className="w-full h-full object-contain"
-                                                                        loading="lazy"
-                                                                        onError={(e) => { e.target.style.display = 'none'; }}
-                                                                    />
-                                                                </div>
-                                                                <span className="group-hover:font-bold">{brand.ad}</span>
+                                                                <span>{m.name}</span>
+                                                                {data.model === m.name && <Check className="w-3.5 h-3.5 text-amber-500" />}
                                                             </button>
                                                         ))}
-
-                                                        <div className="border-t border-slate-200 dark:border-white/10 my-1" />
-
                                                         <button
                                                             type="button"
-                                                            onClick={() => handleBrandSelect('diger')}
-                                                            className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-black flex items-center space-x-2 transition-colors cursor-pointer"
+                                                            onClick={() => { setIsCustomModel(true); setIsModelDropdownOpen(false); }}
+                                                            className="text-left text-[11px] font-bold text-amber-500 hover:underline pt-2 border-t border-slate-100 dark:border-white/5 block w-full"
                                                         >
-                                                            <Edit3 className="w-4 h-4" />
-                                                            <span>Diğer (Manuel Giriş)</span>
+                                                            + Özel Model Yaz
                                                         </button>
                                                     </div>
-                                                </div>
-                                            )}
-                                        </>
-                                    ) : (
-                                        <div className="flex space-x-2">
-                                            <input
-                                                type="text"
-                                                value={data.marka}
-                                                onChange={(e) => setData('marka', e.target.value)}
-                                                placeholder="Marka adını yazın..."
-                                                className="w-full bg-white dark:bg-[#1a1d27] border border-amber-500/40 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 shadow-2xs"
-                                                required
-                                                autoFocus
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => setIsCustomBrand(false)}
-                                                className="px-3 py-2 text-xs text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white border border-slate-300 dark:border-white/10 rounded-xl bg-slate-100 dark:bg-white/[0.03] cursor-pointer"
-                                            >
-                                                Listeden Seç
-                                            </button>
-                                        </div>
-                                    )}
-                                    {errors.marka && <p className="text-red-500 text-xs mt-1">{errors.marka}</p>}
-                                </div>
-
-                                {/* 3. MODEL (Dinamik Liste & Manuel Giriş) */}
-                                <div ref={modelDropdownRef} className="relative">
-                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                                        Model <span className="text-amber-500">*</span>
-                                    </label>
-
-                                    {!isCustomModel && availableModels.length > 0 ? (
-                                        <>
-                                            <button
-                                                type="button"
-                                                onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
-                                                className="w-full bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-left text-slate-900 dark:text-white flex items-center justify-between hover:border-amber-500/50 transition-all shadow-2xs cursor-pointer"
-                                            >
-                                                <span className={data.model ? 'font-bold text-slate-900 dark:text-white' : 'text-slate-400'}>
-                                                    {data.model || 'Model Seçiniz...'}
-                                                </span>
-                                                <ChevronDown className="w-4 h-4 text-slate-400" />
-                                            </button>
-
-                                            {isModelDropdownOpen && (
-                                                <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#161821] border border-slate-200 dark:border-white/15 rounded-2xl shadow-2xl z-40 max-h-60 overflow-y-auto p-1.5 space-y-1">
-                                                    {availableModels.map((m) => (
-                                                        <button
-                                                            key={m}
-                                                            type="button"
-                                                            onClick={() => handleModelSelect(m)}
-                                                            className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-500 hover:text-black transition-colors cursor-pointer"
-                                                        >
-                                                            {m}
-                                                        </button>
-                                                    ))}
-
-                                                    <div className="border-t border-slate-200 dark:border-white/10 my-1" />
-
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleModelSelect('diger')}
-                                                        className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-black flex items-center space-x-2 transition-colors cursor-pointer"
-                                                    >
-                                                        <Edit3 className="w-4 h-4" />
-                                                        <span>Diğer (Manuel Model Yaz)</span>
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </>
-                                    ) : (
-                                        <div className="flex space-x-2">
+                                                )}
+                                            </>
+                                        ) : (
                                             <input
                                                 type="text"
                                                 value={data.model}
                                                 onChange={(e) => setData('model', e.target.value)}
-                                                placeholder="Örn: Megane IV, Corolla, Civic"
-                                                className="w-full bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-amber-500 shadow-2xs"
+                                                placeholder="Model (Örn: Megane IV, Corolla, Passat)"
+                                                className="w-full bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
                                                 required
                                             />
-                                            {availableModels.length > 0 && (
+                                        )}
+                                        {errors.model && <p className="text-red-500 text-xs mt-1">{errors.model}</p>}
+                                    </div>
+
+                                    {/* Motor / Yakıt Paketi */}
+                                    <div ref={motorDropdownRef} className="relative">
+                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                            Motor & Paket
+                                        </label>
+                                        
+                                        {!isCustomMotor && availableMotors.length > 0 ? (
+                                            <>
                                                 <button
                                                     type="button"
-                                                    onClick={() => setIsCustomModel(false)}
-                                                    className="px-3 py-2 text-xs text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white border border-slate-300 dark:border-white/10 rounded-xl bg-slate-100 dark:bg-white/[0.03] cursor-pointer"
+                                                    onClick={() => setIsMotorDropdownOpen(!isMotorDropdownOpen)}
+                                                    className="w-full bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-sm text-left text-slate-900 dark:text-white flex items-center justify-between hover:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-sm cursor-pointer"
                                                 >
-                                                    Listeden Seç
+                                                    <span className={data.motor ? "font-bold" : "text-slate-400"}>
+                                                        {data.motor || 'Motor / Paket Seçin...'}
+                                                    </span>
+                                                    <ChevronDown className="w-4 h-4 text-slate-400" />
                                                 </button>
-                                            )}
-                                        </div>
-                                    )}
-                                    {errors.model && <p className="text-red-500 text-xs mt-1">{errors.model}</p>}
-                                </div>
 
-                                {/* 4. MOTOR / YAKIT (Dinamik Liste & Manuel Giriş) */}
-                                <div ref={motorDropdownRef} className="relative">
-                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                                        Motor / Paket
-                                    </label>
-
-                                    {!isCustomMotor && availableMotors.length > 0 ? (
-                                        <>
-                                            <button
-                                                type="button"
-                                                onClick={() => setIsMotorDropdownOpen(!isMotorDropdownOpen)}
-                                                className="w-full bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-left text-slate-900 dark:text-white flex items-center justify-between hover:border-amber-500/50 transition-all shadow-2xs cursor-pointer"
-                                            >
-                                                <span className={data.motor ? 'font-bold text-slate-900 dark:text-white' : 'text-slate-400'}>
-                                                    {data.motor || 'Motor Seçiniz...'}
-                                                </span>
-                                                <ChevronDown className="w-4 h-4 text-slate-400" />
-                                            </button>
-
-                                            {isMotorDropdownOpen && (
-                                                <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#161821] border border-slate-200 dark:border-white/15 rounded-2xl shadow-2xl z-30 max-h-60 overflow-y-auto p-1.5 space-y-1">
-                                                    {availableMotors.map((mot) => (
+                                                {isMotorDropdownOpen && (
+                                                    <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl bg-white dark:bg-[#161824] border border-slate-200 dark:border-white/10 shadow-2xl p-3 space-y-1 max-h-60 overflow-y-auto">
+                                                        {availableMotors.map((motor) => (
+                                                            <button
+                                                                key={motor}
+                                                                type="button"
+                                                                onClick={() => handleSelectMotor(motor)}
+                                                                className="w-full px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-amber-500/10 hover:text-amber-500 transition-colors flex items-center justify-between cursor-pointer"
+                                                            >
+                                                                <span>{motor}</span>
+                                                                {data.motor === motor && <Check className="w-3.5 h-3.5 text-amber-500" />}
+                                                            </button>
+                                                        ))}
                                                         <button
-                                                            key={mot}
                                                             type="button"
-                                                            onClick={() => handleMotorSelect(mot)}
-                                                            className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-500 hover:text-black transition-colors cursor-pointer"
+                                                            onClick={() => { setIsCustomMotor(true); setIsMotorDropdownOpen(false); }}
+                                                            className="text-left text-[11px] font-bold text-amber-500 hover:underline pt-2 border-t border-slate-100 dark:border-white/5 block w-full"
                                                         >
-                                                            {mot}
+                                                            + Manuel Motor Bilgisi Yaz
                                                         </button>
-                                                    ))}
-
-                                                    <div className="border-t border-slate-200 dark:border-white/10 my-1" />
-
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleMotorSelect('diger')}
-                                                        className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-black flex items-center space-x-2 transition-colors cursor-pointer"
-                                                    >
-                                                        <Edit3 className="w-4 h-4" />
-                                                        <span>Diğer (Manuel Motor Yaz)</span>
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </>
-                                    ) : (
-                                        <div className="flex space-x-2">
+                                                    </div>
+                                                )}
+                                            </>
+                                        ) : (
                                             <input
                                                 type="text"
                                                 value={data.motor}
                                                 onChange={(e) => setData('motor', e.target.value)}
-                                                placeholder="Örn: 1.5 Blue dCi (115 bg)"
-                                                className="w-full bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-amber-500 shadow-2xs"
+                                                placeholder="Örn: 1.5 Blue dCi (115 HP) / 1.6 TDI"
+                                                className="w-full bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
                                             />
-                                            {availableMotors.length > 0 && (
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* SECTION 2: RUHSAT & MUAYENE & KM */}
+                            <div className="p-6 sm:p-7 rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200/80 dark:border-white/[0.06] shadow-sm space-y-6">
+                                <div className="flex items-center space-x-2.5 pb-4 border-b border-slate-100 dark:border-white/[0.04]">
+                                    <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-black text-xs">
+                                        2
+                                    </div>
+                                    <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                                        Ruhsat Cinsi & Muayene Takvimi
+                                    </h3>
+                                </div>
+
+                                {/* Ruhsat Tipi Seçim Hapları */}
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
+                                        Ruhsat Tipi (TÜVTÜRK Periyodunu Belirler)
+                                    </label>
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                        {RUHSAT_TIPLERI.slice(0, 4).map((r) => (
+                                            <button
+                                                key={r.id}
+                                                type="button"
+                                                onClick={() => handleRuhsatChange(r.id)}
+                                                className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                                                    data.ruhsat_tipi === r.id
+                                                        ? 'bg-amber-500/10 border-amber-500 text-slate-900 dark:text-white shadow-sm ring-1 ring-amber-500'
+                                                        : 'bg-slate-50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.06] text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                                                }`}
+                                            >
+                                                <div className="text-xs font-extrabold truncate">{r.label}</div>
+                                                <div className="text-[10px] text-slate-400 mt-0.5">{r.cycleYears} Yılda Bir</div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    {/* Model Yılı */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                            Model Yılı
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={data.yil}
+                                            onChange={handleYearChange}
+                                            placeholder={yearLimits.placeholder}
+                                            maxLength={4}
+                                            className="w-full font-mono font-bold bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                        />
+                                    </div>
+
+                                    {/* Güncel KM */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                            Güncel Kilometre (KM)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={data.guncel_km}
+                                            onChange={(e) => setData('guncel_km', e.target.value)}
+                                            placeholder="Örn: 125000"
+                                            className="w-full font-mono font-bold bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                        />
+                                    </div>
+
+                                    {/* Muayene Bitiş Tarihi */}
+                                    <div>
+                                        <div className="flex items-center justify-between mb-1.5">
+                                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                Muayene Bitiş
+                                            </label>
+                                            <div className="flex items-center space-x-1">
                                                 <button
                                                     type="button"
-                                                    onClick={() => setIsCustomMotor(false)}
-                                                    className="px-3 py-2 text-xs text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white border border-slate-300 dark:border-white/10 rounded-xl bg-slate-100 dark:bg-white/[0.03] cursor-pointer"
+                                                    onClick={() => applyQuickMuayeneYears(1)}
+                                                    className="text-[10px] font-bold text-amber-500 hover:underline cursor-pointer"
                                                 >
-                                                    Listeden Seç
+                                                    +1Y
                                                 </button>
-                                            )}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => applyQuickMuayeneYears(2)}
+                                                    className="text-[10px] font-bold text-amber-500 hover:underline cursor-pointer"
+                                                >
+                                                    +2Y
+                                                </button>
+                                            </div>
                                         </div>
-                                    )}
-                                </div>
-
-                                {/* 5. MODEL YILI (Kısıtlı & 4 Basamaklı) */}
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                                        Model Yılı
-                                    </label>
-                                    <input
-                                        type="text"
-                                        inputMode="numeric"
-                                        value={data.yil}
-                                        onChange={handleYearChange}
-                                        placeholder={yearLimits.placeholder}
-                                        maxLength={4}
-                                        className="w-full bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white font-mono font-bold focus:outline-none focus:border-amber-500 transition-all shadow-2xs"
-                                    />
-                                    <span className="text-[11px] text-slate-500 mt-1 block">
-                                        Geçerli aralık: {yearLimits.min} - {yearLimits.max}
-                                    </span>
-                                    {errors.yil && <p className="text-red-500 text-xs mt-1">{errors.yil}</p>}
-                                </div>
-
-                                {/* 6. GÜNCEL KİLOMETRE */}
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                                        Güncel Kilometre (KM)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        max="2000000"
-                                        value={data.guncel_km}
-                                        onChange={(e) => setData('guncel_km', e.target.value)}
-                                        placeholder="Örn: 95000"
-                                        className="w-full bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white font-mono font-bold focus:outline-none focus:border-amber-500 transition-all shadow-2xs"
-                                    />
-                                    {errors.guncel_km && <p className="text-red-500 text-xs mt-1">{errors.guncel_km}</p>}
-                                </div>
-
-                                {/* 7. RUHSAT TİPİ / TAŞIT CİNSİ (TÜVTÜRK HESAPLAYICI) */}
-                                <div className="sm:col-span-2">
-                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center justify-between">
-                                        <span className="flex items-center space-x-1.5">
-                                            <FileCheck className="w-3.5 h-3.5 text-amber-500" />
-                                            <span>Ruhsat Tipi & Kullanım Cinsi <span className="text-amber-500">*</span></span>
-                                        </span>
-                                        <span className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold">
-                                            💡 {RUHSAT_TIPLERI.find(r => r.id === data.ruhsat_tipi)?.desc}
-                                        </span>
-                                    </label>
-                                    <select
-                                        value={data.ruhsat_tipi}
-                                        onChange={(e) => handleRuhsatChange(e.target.value)}
-                                        className="w-full bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition-all font-semibold cursor-pointer shadow-2xs"
-                                        required
-                                    >
-                                        {RUHSAT_TIPLERI.map((r) => (
-                                            <option key={r.id} value={r.id} className="bg-white dark:bg-[#13151b] text-slate-900 dark:text-white">
-                                                {r.label} — ({r.desc})
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* SECTION 2: YASAL SÜREÇLER & SİGORTA */}
-                        <div className="pt-4 border-t border-slate-200/80 dark:border-white/10">
-                            <div className="flex items-center justify-between mb-4">
-                                <h4 className="text-xs font-bold text-blue-500 dark:text-blue-400 uppercase tracking-wider flex items-center space-x-2">
-                                    <Calendar className="w-4 h-4" />
-                                    <span>2. Yasal Süreç & Sigorta Bitiş Tarihleri</span>
-                                </h4>
-                                {parseInt(data.yil) >= new Date().getFullYear() && (
-                                    <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-lg flex items-center space-x-1">
-                                        <Sparkles className="w-3.5 h-3.5" />
-                                        <span>Sıfır Araç: 3 Yıl TÜVTÜRK Muafiyeti Uygulandı</span>
-                                    </span>
-                                )}
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                {/* 8. ŞASİ NUMARASI (VIN) */}
-                                <div className="sm:col-span-2">
-                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                                        Şasi Numarası (VIN) <span className="text-slate-500 font-normal">(17 Haneli - Opsiyonel)</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={data.sasi_no}
-                                        onChange={(e) => setData('sasi_no', e.target.value.toUpperCase())}
-                                        placeholder="Örn: WBA3A5C50DF819283"
-                                        maxLength={17}
-                                        className="w-full uppercase font-mono bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-all tracking-wider shadow-2xs"
-                                    />
-                                    {errors.sasi_no && <p className="text-red-500 text-xs mt-1">{errors.sasi_no}</p>}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* SECTION 2: MUAYENE & SİGORTA & KASKO */}
-                        <div className="pt-4 border-t border-slate-200/80 dark:border-white/10">
-                            <h4 className="text-xs font-bold text-amber-500 uppercase tracking-wider mb-4 flex items-center space-x-2">
-                                <Calendar className="w-4 h-4" />
-                                <span>2. Yasal Vadeler & Poliçeler</span>
-                            </h4>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
-                                <div>
-                                    <div className="h-7 flex items-center justify-between mb-1.5">
-                                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">TÜVTÜRK Muayene Bitiş</label>
-                                    </div>
-                                    <input
-                                        type="date"
-                                        value={data.muayene_bitis}
-                                        onChange={(e) => setData('muayene_bitis', e.target.value)}
-                                        className="w-full h-10 bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition-all shadow-2xs"
-                                    />
-                                    
-                                    {/* Hızlı Yıl Ekleme Butonları */}
-                                    <div className="mt-2 flex flex-wrap gap-1">
-                                        <button
-                                            type="button"
-                                            onClick={() => applyQuickMuayeneYears(3)}
-                                            className="px-2 py-0.5 rounded-md bg-blue-500/10 hover:bg-blue-500 hover:text-white border border-blue-500/20 text-[10px] font-bold text-blue-500 dark:text-blue-400 transition-all cursor-pointer"
-                                        >
-                                            +3 Yıl (Sıfır)
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => applyQuickMuayeneYears(2)}
-                                            className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-[10px] font-semibold text-slate-700 dark:text-slate-300 transition-all cursor-pointer"
-                                        >
-                                            +2 Yıl
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => applyQuickMuayeneYears(1)}
-                                            className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-[10px] font-semibold text-slate-700 dark:text-slate-300 transition-all cursor-pointer"
-                                        >
-                                            +1 Yıl (Ticari)
-                                        </button>
+                                        <input
+                                            type="date"
+                                            value={data.muayene_bitis}
+                                            onChange={(e) => setData('muayene_bitis', e.target.value)}
+                                            className="w-full font-mono font-bold bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                        />
                                     </div>
                                 </div>
+                            </div>
 
-                                <div>
-                                    <div className="h-7 flex items-center mb-1.5">
-                                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">Trafik Sigortası</label>
+                            {/* SECTION 3: POLİÇELER & ŞASİ (VIN) */}
+                            <div className="p-6 sm:p-7 rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200/80 dark:border-white/[0.06] shadow-sm space-y-6">
+                                <div className="flex items-center space-x-2.5 pb-4 border-b border-slate-100 dark:border-white/[0.04]">
+                                    <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-black text-xs">
+                                        3
                                     </div>
-                                    <input
-                                        type="date"
-                                        value={data.sigorta_bitis}
-                                        onChange={(e) => setData('sigorta_bitis', e.target.value)}
-                                        className="w-full h-10 bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition-all shadow-2xs"
-                                    />
+                                    <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                                        Poliçeler & Kimlik Numarası
+                                    </h3>
                                 </div>
 
-                                <div>
-                                    <div className="h-7 flex items-center justify-between mb-1.5">
-                                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">Kasko Poliçesi</label>
-                                        <div className="flex rounded-lg p-0.5 bg-slate-100 dark:bg-[#1a1d27] border border-slate-200 dark:border-white/10 text-[11px] shadow-xs">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {/* Trafik Sigortası Bitiş */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                            Zorunlu Trafik Sigortası Bitiş
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={data.sigorta_bitis}
+                                            onChange={(e) => setData('sigorta_bitis', e.target.value)}
+                                            className="w-full font-mono font-bold bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                        />
+                                    </div>
+
+                                    {/* Kasko Poliçesi Toggle & Date */}
+                                    <div>
+                                        <div className="flex items-center justify-between mb-1.5">
+                                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                Kasko Poliçesi Bitiş
+                                            </label>
                                             <button
                                                 type="button"
-                                                onClick={() => handleKaskoToggle(false)}
-                                                className={`px-3 py-0.5 rounded-md font-extrabold cursor-pointer transition-all duration-150 ${
-                                                    !hasKasko 
-                                                        ? 'bg-rose-500 text-white shadow-md shadow-rose-500/25 scale-[1.03]' 
-                                                        : 'text-slate-600 dark:text-slate-400 hover:text-rose-500 hover:bg-rose-500/15 active:scale-95'
-                                                }`}
-                                            >
-                                                Yok
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => handleKaskoToggle(true)}
-                                                className={`px-3 py-0.5 rounded-md font-extrabold cursor-pointer transition-all duration-150 ${
+                                                onClick={() => handleKaskoToggle(!hasKasko)}
+                                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full transition-all cursor-pointer ${
                                                     hasKasko 
-                                                        ? 'bg-blue-500 text-white shadow-md shadow-blue-500/25 scale-[1.03]' 
-                                                        : 'text-slate-600 dark:text-slate-400 hover:text-blue-500 hover:bg-blue-500/15 active:scale-95'
+                                                        ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' 
+                                                        : 'bg-slate-100 dark:bg-white/5 text-slate-400'
                                                 }`}
                                             >
-                                                Var
+                                                {hasKasko ? 'Kasko Var' : 'Kasko Yok'}
                                             </button>
                                         </div>
-                                    </div>
-
-                                    {hasKasko ? (
                                         <input
                                             type="date"
                                             value={data.kasko_bitis}
                                             onChange={(e) => setData('kasko_bitis', e.target.value)}
-                                            className="w-full h-10 bg-white dark:bg-[#1a1d27] border border-blue-500/40 rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition-all shadow-2xs"
+                                            disabled={!hasKasko}
+                                            className="w-full font-mono font-bold bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:opacity-40 disabled:cursor-not-allowed"
                                         />
-                                    ) : (
-                                        <div className="w-full h-10 bg-slate-50 dark:bg-white/[0.02] border border-dashed border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs text-slate-500 flex items-center justify-between">
-                                            <span>Kasko poliçesi yok</span>
-                                            <Shield className="w-3.5 h-3.5 text-slate-400 dark:text-slate-600" />
-                                        </div>
-                                    )}
+                                    </div>
+
+                                    {/* Şasi Numarası VIN */}
+                                    <div className="sm:col-span-2">
+                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                            Şasi Numarası (VIN - 17 Hane)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={data.sasi_no}
+                                            onChange={(e) => setData('sasi_no', e.target.value.toUpperCase())}
+                                            placeholder="Örn: VF1RFB00862XXXXXX"
+                                            maxLength={17}
+                                            className="w-full font-mono uppercase bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* SECTION 3: NOTLAR */}
-                        <div className="pt-4 border-t border-slate-200/80 dark:border-white/10">
-                            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Özel Notlar</label>
-                            <textarea
-                                value={data.notlar}
-                                onChange={(e) => setData('notlar', e.target.value)}
-                                rows="3"
-                                placeholder="Araçla ilgili hatırlatıcı veya özel detaylar..."
-                                className="w-full bg-white dark:bg-[#1a1d27] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-all shadow-2xs"
-                            />
+                        {/* RIGHT COLUMN: LIVE PREVIEW & ACTIONS (5 Columns on Large Screens) */}
+                        <div className="lg:col-span-5 xl:col-span-4 space-y-6 lg:sticky lg:top-24">
+                            
+                            {/* Live Vehicle Card Preview (GoDrive style) */}
+                            <div className="p-6 rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200/80 dark:border-white/[0.06] shadow-sm space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                                        Canlı Garaj Kartı Önizleme
+                                    </span>
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                </div>
+
+                                {/* Preview Image / Plate */}
+                                <div className="relative h-44 rounded-2xl bg-slate-100 dark:bg-[#161824] border border-slate-200 dark:border-white/[0.06] overflow-hidden flex items-center justify-center">
+                                    {photoPreview ? (
+                                        <img src={photoPreview} alt="" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="text-center text-slate-400">
+                                            <Car className="w-12 h-12 mx-auto mb-1 opacity-40" />
+                                            <span className="text-[11px] font-bold">Fotoğraf Eklenmedi</span>
+                                        </div>
+                                    )}
+                                    <div className="absolute bottom-3 left-3">
+                                        <div className="badge-plate text-xs shadow-md">
+                                            {data.plaka || '34 PLK 001'}
+                                        </div>
+                                    </div>
+                                    <div className="absolute top-3 right-3">
+                                        <span className="px-2.5 py-1 rounded-xl text-[10px] font-extrabold bg-slate-950/70 backdrop-blur-sm text-white">
+                                            {data.yil || new Date().getFullYear()}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h4 className="text-lg font-black text-slate-900 dark:text-white truncate">
+                                        {data.marka || 'Marka'} {data.model || 'Model Belirtilmedi'}
+                                    </h4>
+                                    <p className="text-xs text-slate-500 font-semibold truncate mt-0.5">
+                                        {data.motor || 'Standart Motor'} &bull; {data.ruhsat_tipi}
+                                    </p>
+                                </div>
+
+                                <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.04] flex items-center justify-between text-xs">
+                                    <span className="font-semibold text-slate-500">Kayıtlı Sayaç:</span>
+                                    <span className="font-mono font-black text-slate-900 dark:text-white">
+                                        {data.guncel_km ? `${Number(data.guncel_km).toLocaleString('tr-TR')} KM` : '0 KM'}
+                                    </span>
+                                </div>
+
+                                {/* Form Submit Actions */}
+                                <div className="space-y-2.5 pt-2">
+                                    <button
+                                        type="submit"
+                                        disabled={processing}
+                                        className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black text-sm tracking-wide shadow-xl shadow-amber-500/25 hover:shadow-amber-500/40 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
+                                    >
+                                        <CheckCircle2 className="w-5 h-5 stroke-[2.5]" />
+                                        <span>{processing ? 'Garaja Kaydediliyor...' : 'Aracı Garajıma Kaydet'}</span>
+                                    </button>
+
+                                    <Link
+                                        href="/vehicles"
+                                        className="w-full py-3 rounded-2xl bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/[0.08] text-slate-600 dark:text-slate-400 font-bold text-xs flex items-center justify-center transition-all text-center"
+                                    >
+                                        Vazgeç ve Garaja Dön
+                                    </Link>
+                                </div>
+                            </div>
                         </div>
 
-                        {/* SUBMIT BUTTON */}
-                        <div className="pt-4 flex items-center justify-end space-x-3 border-t border-slate-200/80 dark:border-white/10">
-                            <Link
-                                href="/vehicles"
-                                className="px-5 py-2.5 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white text-xs font-semibold transition-colors"
-                            >
-                                İptal
-                            </Link>
+                    </div>
+                </form>
 
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                className="px-7 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-black font-extrabold text-xs shadow-lg shadow-amber-500/20 hover:brightness-110 active:scale-95 transition-all flex items-center space-x-2 cursor-pointer"
-                            >
-                                <CheckCircle2 className="w-4 h-4" />
-                                <span>{processing ? 'Kaydediliyor...' : 'Aracı Garaja Ekle'}</span>
-                            </button>
-                        </div>
-                    </form>
-                </div>
             </div>
-
-            {/* AI Vision OCR Modal */}
-            <OcrModal
-                isOpen={isOcrOpen}
-                onClose={() => setIsOcrOpen(false)}
-                type="ruhsat"
-                onDataExtracted={handleOcrExtracted}
-            />
         </AppLayout>
     );
 }
