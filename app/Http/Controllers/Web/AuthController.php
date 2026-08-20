@@ -159,24 +159,36 @@ class AuthController extends Controller
         $resetUrl = route('password.reset', ['token' => $token, 'email' => $email]);
 
         try {
-            $apiKey = config('services.resend.key') ?: env('RESEND_API_KEY');
+            $brevoKey = env('BREVO_API_KEY');
 
-            if (!empty($apiKey)) {
-                $htmlContent = view('emails.password-reset', [
-                    'resetUrl' => $resetUrl,
-                    'userName' => $user->ad_soyad,
-                ])->render();
+            $htmlContent = view('emails.password-reset', [
+                'resetUrl' => $resetUrl,
+                'userName' => $user->ad_soyad,
+            ])->render();
 
-                $response = \Illuminate\Support\Facades\Http::withToken($apiKey)->post('https://api.resend.com/emails', [
-                    'from' => 'SmartGaraj <onboarding@resend.dev>',
-                    'to' => [$email],
-                    'subject' => '🛠️ SmartGaraj - Şifre Sıfırlama Talebi',
-                    'html' => $htmlContent,
+            if (!empty($brevoKey)) {
+                $response = \Illuminate\Support\Facades\Http::withHeaders([
+                    'api-key' => $brevoKey,
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                ])->post('https://api.brevo.com/v3/smtp/email', [
+                    'sender' => [
+                        'name' => 'SmartGaraj',
+                        'email' => 'brkfatih2016@gmail.com',
+                    ],
+                    'to' => [
+                        [
+                            'email' => $email,
+                            'name' => $user->ad_soyad,
+                        ],
+                    ],
+                    'subject' => '🛠️ SmartGaraj - Şifre Sıfırlama Talebiniz',
+                    'htmlContent' => $htmlContent,
                 ]);
 
                 if (!$response->successful()) {
                     $err = $response->json('message') ?? $response->body();
-                    \Illuminate\Support\Facades\Log::error('Resend API error: ' . $err);
+                    \Illuminate\Support\Facades\Log::error('Brevo API error: ' . $err);
                     return back()->withErrors(['email' => 'E-posta servisi hatası: ' . $err]);
                 }
             } else {

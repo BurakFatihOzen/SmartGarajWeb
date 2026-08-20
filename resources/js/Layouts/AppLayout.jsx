@@ -227,12 +227,12 @@ export default function AppLayout({ children, title }) {
             )}
 
             {/* Main Content Area */}
-            <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+            <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-6">
                 {children}
             </main>
 
             {/* Footer */}
-            <footer className="border-t border-white/[0.06] bg-[#0c0d12] py-6 text-center text-xs text-slate-500 mt-auto">
+            <footer className="border-t border-white/[0.06] bg-[#0c0d12] py-6 pb-24 md:pb-6 text-center text-xs text-slate-500 mt-auto">
                 <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
                     <div>
                         SmartGaraj &copy; {new Date().getFullYear()} &bull; Kurumsal Araç & Bakım Yönetim Portalı
@@ -243,6 +243,57 @@ export default function AppLayout({ children, title }) {
                     </div>
                 </div>
             </footer>
+
+            {/* Mobile Bottom Navigation Bar (App-Like) */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#13151b]/95 backdrop-blur-xl border-t border-white/10 px-2 py-2 flex items-center justify-around shadow-2xl">
+                <Link
+                    href="/dashboard"
+                    className={`flex flex-col items-center space-y-0.5 px-3 py-1 rounded-xl transition-all ${
+                        usePage().url === '/dashboard' || usePage().url === '/' ? 'text-amber-400 font-bold scale-105' : 'text-slate-400 hover:text-white'
+                    }`}
+                >
+                    <LayoutDashboard className="w-5 h-5" />
+                    <span className="text-[10px]">Panel</span>
+                </Link>
+
+                <Link
+                    href="/vehicles"
+                    className={`flex flex-col items-center space-y-0.5 px-3 py-1 rounded-xl transition-all ${
+                        usePage().url.startsWith('/vehicles') && usePage().url !== '/vehicles/create' ? 'text-blue-400 font-bold scale-105' : 'text-slate-400 hover:text-white'
+                    }`}
+                >
+                    <Car className="w-5 h-5" />
+                    <span className="text-[10px]">Garajım</span>
+                </Link>
+
+                <Link
+                    href="/vehicles/create"
+                    className={`flex flex-col items-center space-y-0.5 px-3 py-1 rounded-xl transition-all ${
+                        usePage().url === '/vehicles/create' ? 'text-emerald-400 font-bold scale-105' : 'text-slate-400 hover:text-white'
+                    }`}
+                >
+                    <PlusCircle className="w-5 h-5" />
+                    <span className="text-[10px]">Araç Ekle</span>
+                </Link>
+
+                <Link
+                    href="/maintenances/create"
+                    className={`flex flex-col items-center space-y-0.5 px-3 py-1 rounded-xl transition-all ${
+                        usePage().url.startsWith('/maintenances') ? 'text-amber-400 font-bold scale-105' : 'text-slate-400 hover:text-white'
+                    }`}
+                >
+                    <Wrench className="w-5 h-5" />
+                    <span className="text-[10px]">Bakım Ekle</span>
+                </Link>
+
+                <button
+                    onClick={() => setIsProfileOpen(true)}
+                    className="flex flex-col items-center space-y-0.5 px-3 py-1 rounded-xl text-slate-400 hover:text-amber-400 transition-all cursor-pointer"
+                >
+                    <User className="w-5 h-5" />
+                    <span className="text-[10px]">Profil</span>
+                </button>
+            </div>
 
             {/* Profile Modal */}
             <ProfileModal
