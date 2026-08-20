@@ -86,7 +86,7 @@ export default function VehiclesIndex({ vehicles = [] }) {
                             >
                                 <div className="space-y-4">
                                     {/* Vehicle Photo Container with Quick Upload */}
-                                    <div className="relative h-44 rounded-2xl overflow-hidden bg-[#181b24] border border-white/10 group/photo">
+                                    <div className="relative h-44 rounded-2xl overflow-hidden bg-slate-100 dark:bg-[#181b24] border border-slate-200/80 dark:border-white/10 group/photo">
                                         {v.fotograf_url ? (
                                             <img
                                                 src={v.fotograf_url}
@@ -94,8 +94,8 @@ export default function VehiclesIndex({ vehicles = [] }) {
                                                 className="w-full h-full object-cover group-hover/photo:scale-105 transition-transform duration-300"
                                             />
                                         ) : (
-                                            <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 space-y-1">
-                                                <Car className="w-10 h-10 text-slate-600" />
+                                            <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 space-y-1">
+                                                <Car className="w-10 h-10 text-slate-400 dark:text-slate-600" />
                                                 <span className="text-[11px] font-semibold">Fotoğraf Eklenmemiş</span>
                                             </div>
                                         )}
@@ -120,7 +120,7 @@ export default function VehiclesIndex({ vehicles = [] }) {
                                         </div>
 
                                         <div className="absolute top-2.5 right-2.5">
-                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-black/70 backdrop-blur-xs text-slate-300 border border-white/10">
+                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/90 dark:bg-black/70 backdrop-blur-xs text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10 shadow-xs">
                                                 {v.yil || 'Model Yılı Yok'}
                                             </span>
                                         </div>

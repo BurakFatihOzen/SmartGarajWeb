@@ -63,11 +63,11 @@ Tarih YYYY-MM-DD formatında olmalı. Tutarlar sadece sayı olmalı (TL işareti
     private function callVisionAi($imagePath, $prompt, $type)
     {
         $apiKey = env('GEMINI_API_KEY') ?: env('GOOGLE_AI_KEY');
-        $imageData = file_get_contents($imagePath);
-        $base64 = base64_encode($imageData);
-        $mimeType = mime_content_type($imagePath) ?: 'image/jpeg';
 
-        if (!empty($apiKey)) {
+        if (!empty($apiKey) && file_exists($imagePath)) {
+            $imageData = file_get_contents($imagePath);
+            $base64 = base64_encode($imageData);
+            $mimeType = mime_content_type($imagePath) ?: 'image/jpeg';
             try {
                 $response = Http::withHeaders([
                     'Content-Type' => 'application/json',

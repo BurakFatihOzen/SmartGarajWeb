@@ -60,6 +60,9 @@ html.light-mode .bg-\[\#0f1117\],
 html.light-mode .bg-\[\#0f1117\]\/90 { background-color: rgba(255, 255, 255, 0.95) !important; }
 html.light-mode .bg-\[\#13151b\] { background-color: #ffffff !important; box-shadow: 0 4px 20px rgba(0,0,0,0.05) !important; }
 html.light-mode .bg-\[\#161821\] { background-color: #ffffff !important; box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important; }
+html.light-mode .bg-\[\#181b24\],
+html.light-mode .bg-\[\#181b24\]\/50,
+html.light-mode .bg-\[\#181b24\]\/80 { background-color: #f1f5f9 !important; }
 html.light-mode .bg-\[\#1a1d27\] { background-color: #f8fafc !important; }
 html.light-mode .bg-\[\#1c202b\] { background-color: #f1f5f9 !important; }
 html.light-mode .bg-\[\#1e212c\] { background-color: #f1f5f9 !important; }

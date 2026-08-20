@@ -367,28 +367,28 @@ export default function VehicleCreate() {
                     <form onSubmit={handleSubmit} className="space-y-6">
                         
                         {/* VEHICLE PHOTO UPLOAD DROPZONE */}
-                        <div className="p-4 rounded-2xl bg-[#181b24] border border-white/10 space-y-3">
-                            <label className="block text-xs font-bold text-slate-300 flex items-center space-x-2">
-                                <ImageIcon className="w-4 h-4 text-amber-400" />
+                        <div className="p-4 rounded-2xl bg-slate-100 dark:bg-[#181b24] border border-slate-200/80 dark:border-white/10 space-y-3">
+                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center space-x-2">
+                                <ImageIcon className="w-4 h-4 text-amber-500" />
                                 <span>Araç Fotoğrafı (Opsiyonel)</span>
                             </label>
 
                             {!photoPreview ? (
-                                <label className="border-2 border-dashed border-white/10 hover:border-amber-500/50 rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer transition-all bg-white/[0.02] hover:bg-white/[0.04] group">
+                                <label className="border-2 border-dashed border-slate-300 dark:border-white/10 hover:border-amber-500/50 rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer transition-all bg-white dark:bg-white/[0.02] hover:bg-slate-50 dark:hover:bg-white/[0.04] group shadow-2xs">
                                     <input
                                         type="file"
                                         accept="image/*"
                                         onChange={handlePhotoChange}
                                         className="hidden"
                                     />
-                                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400 mb-2 group-hover:scale-110 transition-transform">
+                                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500 mb-2 group-hover:scale-110 transition-transform">
                                         <Camera className="w-5 h-5" />
                                     </div>
-                                    <span className="text-xs font-bold text-white">Aracın Fotoğrafını Yükleyin veya Çekin</span>
+                                    <span className="text-xs font-bold text-slate-800 dark:text-white">Aracın Fotoğrafını Yükleyin veya Çekin</span>
                                     <span className="text-[10px] text-slate-500 mt-0.5">Garaj kartında ve PDF servis pasaportunda gösterilir</span>
                                 </label>
                             ) : (
-                                <div className="relative rounded-xl overflow-hidden border border-white/10 max-h-48 bg-black flex items-center justify-center group">
+                                <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 max-h-48 bg-slate-900 flex items-center justify-center group">
                                     <img src={photoPreview} alt="Araç Önizleme" className="max-h-48 w-full object-cover" />
                                     <button
                                         type="button"

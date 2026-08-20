@@ -140,6 +140,8 @@ export default function MaintenanceCreate({ vehicles = [], selectedVehicleId = n
             <OcrModal 
                 isOpen={isOcrOpen} 
                 onClose={() => setIsOcrOpen(false)} 
+                type="fatura"
+                onDataExtracted={handleOcrExtracted} 
                 onExtracted={handleOcrExtracted} 
             />
 

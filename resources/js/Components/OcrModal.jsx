@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { 
     Sparkles, 
     Upload, 
@@ -7,12 +8,12 @@ import {
     CheckCircle2, 
     AlertCircle, 
     X, 
-    Loader2,
-    Zap,
-    Scan
+    Loader2, 
+    Zap, 
+    Scan 
 } from 'lucide-react';
 
-export default function OcrModal({ isOpen, onClose, type = 'ruhsat', onDataExtracted }) {
+export default function OcrModal({ isOpen, onClose, type = 'ruhsat', onDataExtracted, onExtracted }) {
     const [file, setFile] = useState(null);
     const [preview, setPreview] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -46,23 +47,20 @@ export default function OcrModal({ isOpen, onClose, type = 'ruhsat', onDataExtra
         const endpoint = type === 'ruhsat' ? '/api/ocr/ruhsat' : '/api/ocr/fatura';
 
         try {
-            const res = await fetch(endpoint, {
-                method: 'POST',
-                body: formData,
+            const res = await axios.post(endpoint, formData, {
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-                    'Accept': 'application/json'
+                    'Content-Type': 'multipart/form-data',
                 }
             });
 
-            const data = await res.json();
-            if (data.success && data.data) {
-                setResult(data);
+            if (res.data && res.data.success && res.data.data) {
+                setResult(res.data);
             } else {
-                setError(data.message || 'Belge analiz edilemedi.');
+                setError(res.data?.message || 'Belge analiz edilemedi.');
             }
         } catch (err) {
-            setError('Tarama sırasında bağlantı hatası oluştu: ' + err.message);
+            const msg = err.response?.data?.message || err.message || 'Tarama sırasında bağlantı hatası oluştu.';
+            setError(msg);
         } finally {
             setLoading(false);
         }
@@ -70,31 +68,35 @@ export default function OcrModal({ isOpen, onClose, type = 'ruhsat', onDataExtra
 
     const handleApply = () => {
         if (result && result.data) {
-            onDataExtracted(result.data);
+            if (typeof onDataExtracted === 'function') {
+                onDataExtracted(result.data);
+            } else if (typeof onExtracted === 'function') {
+                onExtracted(result.data);
+            }
             onClose();
         }
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
             <div className="w-full max-w-xl rounded-3xl bg-[#13151b] border border-white/10 p-6 sm:p-8 shadow-2xl space-y-6 relative max-h-[90vh] overflow-y-auto">
                 {/* Close Button */}
                 <button
                     onClick={onClose}
-                    className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all"
+                    className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-all cursor-pointer"
                 >
                     <X className="w-5 h-5" />
                 </button>
 
                 {/* Header */}
                 <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-purple-500/25">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-purple-500/25 shrink-0">
                         <Scan className="w-6 h-6" />
                     </div>
                     <div>
                         <h3 className="text-lg font-black text-white flex items-center gap-2">
                             <span>{type === 'ruhsat' ? 'AI Ruhsat Tarayıcı' : 'AI Fatura & İş Emri Tarayıcı'}</span>
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-extrabold border border-purple-500/30">
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 font-extrabold border border-purple-500/30">
                                 Vision AI
                             </span>
                         </h3>
@@ -123,10 +125,10 @@ export default function OcrModal({ isOpen, onClose, type = 'ruhsat', onDataExtra
                     </label>
                 ) : (
                     <div className="space-y-4">
-                        <div className="relative rounded-2xl overflow-hidden border border-white/10 max-h-56 bg-black flex items-center justify-center">
+                        <div className="relative rounded-2xl overflow-hidden border border-white/10 max-h-56 bg-slate-950 flex items-center justify-center">
                             <img src={preview} alt="Önizleme" className="max-h-56 object-contain" />
                             {loading && (
-                                <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex flex-col items-center justify-center text-purple-300 space-y-2">
+                                <div className="absolute inset-0 bg-black/70 backdrop-blur-xs flex flex-col items-center justify-center text-purple-300 space-y-2">
                                     <Loader2 className="w-8 h-8 animate-spin text-purple-400" />
                                     <span className="text-xs font-bold animate-pulse">Vision AI Belgeyi Okuyor...</span>
                                 </div>
@@ -138,7 +140,7 @@ export default function OcrModal({ isOpen, onClose, type = 'ruhsat', onDataExtra
                                 <button
                                     type="button"
                                     onClick={() => { setFile(null); setPreview(null); }}
-                                    className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold text-slate-300 transition-all"
+                                    className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold text-slate-300 transition-all cursor-pointer"
                                 >
                                     Farklı Görsel Seç
                                 </button>
@@ -146,7 +148,7 @@ export default function OcrModal({ isOpen, onClose, type = 'ruhsat', onDataExtra
                                     type="button"
                                     onClick={handleScan}
                                     disabled={loading}
-                                    className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 hover:brightness-110 text-white font-extrabold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-purple-500/25 transition-all"
+                                    className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 hover:brightness-110 text-white font-extrabold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-purple-500/25 transition-all cursor-pointer"
                                 >
                                     <Sparkles className="w-4 h-4" />
                                     <span>{loading ? 'Taranıyor...' : '🧠 AI ile Analiz Et'}</span>
@@ -168,7 +170,7 @@ export default function OcrModal({ isOpen, onClose, type = 'ruhsat', onDataExtra
                 {result && result.data && (
                     <div className="space-y-4 p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30">
                         <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-purple-300 flex items-center gap-1.5">
+                            <span className="text-xs font-bold text-purple-400 flex items-center gap-1.5">
                                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                                 Bilgiler Başarıyla Ayıklandı ({result.engine})
                             </span>
@@ -177,36 +179,42 @@ export default function OcrModal({ isOpen, onClose, type = 'ruhsat', onDataExtra
                         <div className="grid grid-cols-2 gap-2 text-xs">
                             {type === 'ruhsat' ? (
                                 <>
-                                    <div className="p-2 rounded-lg bg-[#181b24]">
-                                        <div className="text-[10px] text-slate-400">Plaka</div>
-                                        <div className="font-bold text-amber-400">{result.data.plaka || '-'}</div>
+                                    <div className="p-2.5 rounded-xl bg-[#181b24] border border-white/5">
+                                        <div className="text-[10px] text-slate-400 font-semibold uppercase">Plaka</div>
+                                        <div className="font-bold font-mono text-amber-400 text-sm mt-0.5">{result.data.plaka || '-'}</div>
                                     </div>
-                                    <div className="p-2 rounded-lg bg-[#181b24]">
-                                        <div className="text-[10px] text-slate-400">Marka / Model</div>
-                                        <div className="font-bold text-white">{result.data.marka} {result.data.model}</div>
+                                    <div className="p-2.5 rounded-xl bg-[#181b24] border border-white/5">
+                                        <div className="text-[10px] text-slate-400 font-semibold uppercase">Marka / Model</div>
+                                        <div className="font-bold text-white text-sm mt-0.5">{result.data.marka} {result.data.model}</div>
                                     </div>
-                                    <div className="p-2 rounded-lg bg-[#181b24]">
-                                        <div className="text-[10px] text-slate-400">Model Yılı</div>
-                                        <div className="font-bold text-white">{result.data.yil || '-'}</div>
+                                    <div className="p-2.5 rounded-xl bg-[#181b24] border border-white/5">
+                                        <div className="text-[10px] text-slate-400 font-semibold uppercase">Model Yılı / Motor</div>
+                                        <div className="font-bold text-white text-sm mt-0.5">{result.data.yil || '-'} {result.data.motor ? `(${result.data.motor})` : ''}</div>
                                     </div>
-                                    <div className="p-2 rounded-lg bg-[#181b24]">
-                                        <div className="text-[10px] text-slate-400">Muayene Tarihi</div>
-                                        <div className="font-bold text-emerald-400">{result.data.muayene_tarihi || '-'}</div>
+                                    <div className="p-2.5 rounded-xl bg-[#181b24] border border-white/5">
+                                        <div className="text-[10px] text-slate-400 font-semibold uppercase">Muayene Tarihi</div>
+                                        <div className="font-bold text-emerald-400 text-sm mt-0.5">{result.data.muayene_tarihi || '-'}</div>
                                     </div>
+                                    {result.data.sasi_no && (
+                                        <div className="p-2.5 rounded-xl bg-[#181b24] border border-white/5 col-span-2">
+                                            <div className="text-[10px] text-slate-400 font-semibold uppercase">Şasi Numarası (VIN)</div>
+                                            <div className="font-bold font-mono text-white text-xs mt-0.5">{result.data.sasi_no}</div>
+                                        </div>
+                                    )}
                                 </>
                             ) : (
                                 <>
-                                    <div className="p-2 rounded-lg bg-[#181b24]">
-                                        <div className="text-[10px] text-slate-400">Servis / İşlem</div>
-                                        <div className="font-bold text-white">{result.data.islem_turu}</div>
+                                    <div className="p-2.5 rounded-xl bg-[#181b24] border border-white/5">
+                                        <div className="text-[10px] text-slate-400 font-semibold uppercase">Servis / İşlem</div>
+                                        <div className="font-bold text-white text-sm mt-0.5">{result.data.islem_turu}</div>
                                     </div>
-                                    <div className="p-2 rounded-lg bg-[#181b24]">
-                                        <div className="text-[10px] text-slate-400">Toplam Tutar</div>
-                                        <div className="font-bold text-emerald-400">₺{result.data.toplam_tutar}</div>
+                                    <div className="p-2.5 rounded-xl bg-[#181b24] border border-white/5">
+                                        <div className="text-[10px] text-slate-400 font-semibold uppercase">Toplam Tutar</div>
+                                        <div className="font-bold font-mono text-emerald-400 text-sm mt-0.5">₺{Number(result.data.toplam_tutar || 0).toLocaleString('tr-TR')}</div>
                                     </div>
-                                    <div className="p-2 rounded-lg bg-[#181b24] col-span-2">
-                                        <div className="text-[10px] text-slate-400">Parça Sayısı</div>
-                                        <div className="font-bold text-white">{result.data.parcalar?.length || 0} Adet Kalem Bulundu</div>
+                                    <div className="p-2.5 rounded-xl bg-[#181b24] border border-white/5 col-span-2">
+                                        <div className="text-[10px] text-slate-400 font-semibold uppercase">Parça Listesi</div>
+                                        <div className="font-bold text-white text-xs mt-0.5">{result.data.parcalar?.length || 0} Adet Kalem Ayrıştırıldı</div>
                                     </div>
                                 </>
                             )}
@@ -215,7 +223,7 @@ export default function OcrModal({ isOpen, onClose, type = 'ruhsat', onDataExtra
                         <button
                             type="button"
                             onClick={handleApply}
-                            className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-black text-xs flex items-center justify-center space-x-2 shadow-lg shadow-emerald-500/25 hover:brightness-110 active:scale-95 transition-all"
+                            className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-black text-xs flex items-center justify-center space-x-2 shadow-lg shadow-emerald-500/25 hover:brightness-110 active:scale-95 transition-all cursor-pointer"
                         >
                             <Zap className="w-4 h-4" />
                             <span>✓ Formu Bu Bilgilerle Otomatik Doldur</span>
