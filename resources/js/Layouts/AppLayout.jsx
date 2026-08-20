@@ -20,7 +20,10 @@ import {
     FileText,
     Bell,
     Layers,
-    Search
+    Search,
+    Clock,
+    Activity,
+    QrCode
 } from 'lucide-react';
 import ProfileModal from '@/Components/ProfileModal';
 
@@ -34,6 +37,7 @@ export default function AppLayout({ children, title }) {
     const [isDark, setIsDark] = useState(true);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [headerSearch, setHeaderSearch] = useState('');
 
     // Initialize theme
     useEffect(() => {
@@ -85,7 +89,7 @@ export default function AppLayout({ children, title }) {
         { 
             href: '/dashboard', 
             label: 'Ana Sayfa', 
-            desc: 'Genel bakış & AI özet',
+            desc: 'Genel bakış & AI analiz',
             icon: Home, 
             active: isPanelActive,
             gradient: 'from-amber-500 to-orange-500',
@@ -103,7 +107,7 @@ export default function AppLayout({ children, title }) {
         { 
             href: '/vehicles/create', 
             label: 'Yeni Araç Ekle', 
-            desc: 'Ruhsat tarama & OCR',
+            desc: 'Ruhsat ile hızlı kayıt',
             icon: PlusCircle, 
             active: isAddVehicleActive,
             gradient: 'from-emerald-500 to-teal-600',
@@ -112,7 +116,7 @@ export default function AppLayout({ children, title }) {
         { 
             href: '/maintenances/create', 
             label: 'Bakım Kaydı İşle', 
-            desc: 'Fatura & servis girişi',
+            desc: 'Servis ve masraf girişi',
             icon: Wrench, 
             active: isMaintenanceActive,
             gradient: 'from-purple-500 to-pink-600',
@@ -305,7 +309,9 @@ export default function AppLayout({ children, title }) {
                 sidebarCollapsed ? 'md:ml-[78px]' : 'md:ml-[268px]'
             }`}>
                 
-                {/* Top Header Bar */}
+                {/* ═══════════════════════════════════════════════════════════════
+                    TOP HEADER BAR (Clean, non-repetitive, high-utility)
+                ═══════════════════════════════════════════════════════════════ */}
                 <header className="sticky top-0 z-30 h-[68px] sm:h-[76px] bg-white/80 dark:bg-[#090a0f]/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/[0.06] flex items-center justify-between px-4 sm:px-6 md:px-8">
                     {/* Left: Mobile Toggle & Page Title */}
                     <div className="flex items-center space-x-3 sm:space-x-3.5 min-w-0">
@@ -326,44 +332,22 @@ export default function AppLayout({ children, title }) {
                         </div>
                     </div>
 
-                    {/* Right: Quick actions, Theme & Profile */}
-                    <div className="flex items-center space-x-2 sm:space-x-2.5 shrink-0">
-                        {/* Theme switcher */}
-                        <button
-                            onClick={toggleTheme}
-                            className="p-2 sm:p-2.5 rounded-xl border border-slate-200 dark:border-white/[0.08] text-slate-600 dark:text-slate-300 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-all cursor-pointer"
-                            title={isDark ? 'Açık Temaya Geç' : 'Koyu Temaya Geç'}
-                        >
-                            {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
-                        </button>
+                    {/* Right: Informative AI Status & Direct Digital Passport Link */}
+                    <div className="flex items-center space-x-3 shrink-0">
+                        {/* Live Status Badge */}
+                        <div className="hidden sm:flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold shadow-2xs">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span>Sistem Çevrimiçi</span>
+                        </div>
 
-                        {/* Direct Add Vehicle button */}
+                        {/* Garajım Quick Link */}
                         <Link
-                            href="/vehicles/create"
-                            className="hidden lg:inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-white/[0.05] hover:bg-slate-200 dark:hover:bg-white/[0.1] border border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-200 text-xs font-bold transition-all"
+                            href="/vehicles"
+                            className="hidden md:inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-white/[0.05] hover:bg-slate-200 dark:hover:bg-white/[0.1] border border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-200 text-xs font-bold transition-all"
                         >
-                            <Car className="w-3.5 h-3.5 text-blue-500" />
-                            <span>Araç Ekle</span>
+                            <Car className="w-3.5 h-3.5 text-amber-500" />
+                            <span>Garaj Filosu</span>
                         </Link>
-
-                        {/* Direct Add Maintenance CTA */}
-                        <Link
-                            href="/maintenances/create"
-                            className="inline-flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-extrabold text-xs shadow-lg shadow-amber-500/20 hover:shadow-amber-500/35 hover:-translate-y-0.5 active:scale-95 transition-all"
-                        >
-                            <PlusCircle className="w-4 h-4 stroke-[2.5]" />
-                            <span className="hidden xs:inline sm:inline">Bakım İşle</span>
-                            <span className="xs:hidden sm:hidden">Bakım</span>
-                        </Link>
-
-                        {/* Avatar */}
-                        <button
-                            onClick={() => setIsProfileOpen(true)}
-                            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center text-xs font-black text-slate-950 uppercase shadow-md hover:ring-2 hover:ring-amber-500 transition-all cursor-pointer shrink-0"
-                            title="Hesap Ayarları"
-                        >
-                            {user?.ad_soyad?.charAt(0) || 'U'}
-                        </button>
                     </div>
                 </header>
 

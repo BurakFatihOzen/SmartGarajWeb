@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Link, router, Head } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import AiDiagnosisModal from '@/Components/AiDiagnosisModal';
@@ -47,8 +47,22 @@ export default function Dashboard({
     const [isAiModalOpen, setIsAiModalOpen] = useState(false);
     const [selectedOperationFilter, setSelectedOperationFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
+    const [isVehicleDropdownOpen, setIsVehicleDropdownOpen] = useState(false);
+    const [vehicleFilterQuery, setVehicleFilterQuery] = useState('');
+    const vehicleDropdownRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (vehicleDropdownRef.current && !vehicleDropdownRef.current.contains(event.target)) {
+                setIsVehicleDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const handleVehicleChange = (vehicleId) => {
+        setIsVehicleDropdownOpen(false);
         router.get('/dashboard', { arac_id: vehicleId }, { preserveState: true, preserveScroll: true });
     };
 
@@ -366,23 +380,104 @@ export default function Dashboard({
                                 </span>
                             </div>
 
-                            {/* Dropdown Vehicle Selector */}
-                            <div className="flex items-center space-x-2 w-full sm:w-auto">
-                                <span className="text-xs font-bold text-slate-400 dark:text-slate-500 hidden sm:inline">Araç Değiştir:</span>
-                                <div className="relative flex-1 sm:flex-none">
-                                    <select
-                                        value={activeVehicle.id}
-                                        onChange={(e) => handleVehicleChange(e.target.value)}
-                                        className="w-full sm:w-auto appearance-none pl-3.5 pr-9 py-2 rounded-xl bg-white dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer shadow-sm"
+                            {/* Custom Vehicle Selector Dropdown */}
+                            <div className="relative w-full sm:w-auto" ref={vehicleDropdownRef}>
+                                <div className="flex items-center space-x-2 w-full sm:w-auto">
+                                    <span className="text-xs font-bold text-slate-400 dark:text-slate-500 hidden sm:inline">Araç Değiştir:</span>
+                                    
+                                    {/* Trigger Button */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsVehicleDropdownOpen(!isVehicleDropdownOpen)}
+                                        className="w-full sm:w-auto flex items-center justify-between space-x-3 px-3.5 py-2 rounded-2xl bg-white dark:bg-[#1a1d29] hover:bg-slate-50 dark:hover:bg-[#202433] border border-slate-200 dark:border-white/[0.08] text-xs font-bold text-slate-900 dark:text-white shadow-sm transition-all cursor-pointer group"
                                     >
-                                        {vehicles.map((v) => (
-                                            <option key={v.id} value={v.id}>
-                                                {v.marka} {v.model} ({v.plaka})
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-2.5 pointer-events-none" />
+                                        <div className="flex items-center space-x-2 truncate">
+                                            <span className="badge-plate text-[10px] px-1.5 py-0.5 rounded shrink-0">
+                                                {activeVehicle.plaka}
+                                            </span>
+                                            <span className="truncate">{activeVehicle.marka} {activeVehicle.model}</span>
+                                        </div>
+                                        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 ${isVehicleDropdownOpen ? 'rotate-180 text-amber-500' : ''}`} />
+                                    </button>
                                 </div>
+
+                                {/* Floating Dropdown Menu */}
+                                {isVehicleDropdownOpen && (
+                                    <div className="absolute right-0 top-full mt-2 w-full sm:w-80 rounded-2xl bg-white dark:bg-[#161824] border border-slate-200 dark:border-white/10 shadow-2xl p-2.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+                                        {/* Search Filter Input */}
+                                        <div className="relative mb-2">
+                                            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+                                            <input
+                                                type="text"
+                                                value={vehicleFilterQuery}
+                                                onChange={(e) => setVehicleFilterQuery(e.target.value)}
+                                                placeholder="Plaka veya model ara..."
+                                                className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                                autoFocus
+                                            />
+                                        </div>
+
+                                        {/* Scrollable Vehicle List */}
+                                        <div className="space-y-1 max-h-64 overflow-y-auto pr-1">
+                                            {vehicles
+                                                .filter(v => 
+                                                    (v.marka + ' ' + v.model + ' ' + v.plaka)
+                                                        .toLowerCase()
+                                                        .includes(vehicleFilterQuery.toLowerCase())
+                                                )
+                                                .map((v) => {
+                                                    const isSelected = v.id === activeVehicle.id;
+                                                    return (
+                                                        <button
+                                                            key={v.id}
+                                                            type="button"
+                                                            onClick={() => handleVehicleChange(v.id)}
+                                                            className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-all cursor-pointer ${
+                                                                isSelected
+                                                                    ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 font-black'
+                                                                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.04] font-medium'
+                                                            }`}
+                                                        >
+                                                            <div className="flex items-center space-x-2.5 min-w-0">
+                                                                <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/[0.04] flex items-center justify-center shrink-0">
+                                                                    <Car className="w-4 h-4 text-amber-500" />
+                                                                </div>
+                                                                <div className="min-w-0">
+                                                                    <div className="text-xs truncate font-bold text-slate-900 dark:text-white">
+                                                                        {v.marka} {v.model}
+                                                                    </div>
+                                                                    <div className="flex items-center space-x-1.5 mt-0.5">
+                                                                        <span className="badge-plate text-[9px] px-1 py-0.5 rounded font-mono font-bold">
+                                                                            {v.plaka}
+                                                                        </span>
+                                                                        {v.yil && (
+                                                                            <span className="text-[10px] text-slate-400">
+                                                                                • {v.yil}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            {isSelected && (
+                                                                <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0 ml-2" />
+                                                            )}
+                                                        </button>
+                                                    );
+                                                })}
+                                        </div>
+
+                                        {/* Footer Add Vehicle Link */}
+                                        <div className="pt-2 mt-2 border-t border-slate-100 dark:border-white/[0.06]">
+                                            <Link
+                                                href="/vehicles/create"
+                                                className="w-full py-2 px-3 rounded-xl bg-slate-50 dark:bg-white/[0.04] hover:bg-amber-500 hover:text-slate-950 dark:hover:bg-amber-500 dark:hover:text-slate-950 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all flex items-center justify-center space-x-1.5"
+                                            >
+                                                <PlusCircle className="w-3.5 h-3.5" />
+                                                <span>+ Yeni Araç Ekle</span>
+                                            </Link>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
