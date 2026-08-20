@@ -34,12 +34,15 @@ class DashboardController extends Controller
         $maintenances = collect();
         $totalSpent = 0;
         $monthlyStats = [];
+        $categoryStats = [];
+        $healthScore = 85;
+        $upcomingAlertsCount = 0;
 
         if ($activeVehicle) {
             $maintenances = $activeVehicle->maintenances()->orderBy('islem_tarihi', 'desc')->get();
             $totalSpent = (float) $activeVehicle->maintenances()->sum('maliyet_tl');
 
-            // Son 6 ayın harcama dağılımı (ApexCharts için)
+            // Son 6 ayın harcama dağılımı (ApexCharts Trend için)
             $months = [
                 '01' => 'Ocak', '02' => 'Şubat', '03' => 'Mart', '04' => 'Nisan',
                 '05' => 'Mayıs', '06' => 'Haziran', '07' => 'Temmuz', '08' => 'Ağustos',
@@ -61,6 +64,62 @@ class DashboardController extends Controller
                     'total' => $monthTotal,
                 ];
             }
+
+            // Kategori bazlı harcama dağılımı (Donut Grafik için)
+            $catSummary = [];
+            foreach ($maintenances as $m) {
+                $type = $m->islem_turu ?: 'Genel Bakım';
+                if (stripos($type, 'yağ') !== false || stripos($type, 'filtre') !== false || stripos($type, 'periyodik') !== false) {
+                    $group = 'Periyodik Sıvı & Filtre';
+                } elseif (stripos($type, 'fren') !== false || stripos($type, 'balata') !== false || stripos($type, 'disk') !== false) {
+                    $group = 'Fren & Yürüyen Aksam';
+                } elseif (stripos($type, 'triger') !== false || stripos($type, 'debriyaj') !== false || stripos($type, 'ağır') !== false) {
+                    $group = 'Ağır Bakım & Motor';
+                } elseif (stripos($type, 'muayene') !== false || stripos($type, 'sigorta') !== false) {
+                    $group = 'Yasal Vadeler & Harç';
+                } else {
+                    $group = 'Diğer Onarımlar';
+                }
+                $catSummary[$group] = ($catSummary[$group] ?? 0) + (float) $m->maliyet_tl;
+            }
+
+            foreach ($catSummary as $catName => $amount) {
+                $categoryStats[] = [
+                    'category' => $catName,
+                    'amount' => round($amount, 2),
+                    'percentage' => $totalSpent > 0 ? round(($amount / $totalSpent) * 100, 1) : 0
+                ];
+            }
+
+            // Sağlık Skoru Hesaplama (0-100)
+            $score = 100;
+            $now = Carbon::now();
+            if ($activeVehicle->muayene_bitis && Carbon::parse($activeVehicle->muayene_bitis)->lt($now)) {
+                $score -= 20;
+            }
+            if ($activeVehicle->sigorta_bitis && Carbon::parse($activeVehicle->sigorta_bitis)->lt($now)) {
+                $score -= 15;
+            }
+            if ($maintenances->isEmpty()) {
+                $score -= 15;
+            } else {
+                $lastMaintenance = $maintenances->first();
+                if (Carbon::parse($lastMaintenance->islem_tarihi)->diffInMonths($now) > 12) {
+                    $score -= 10;
+                }
+            }
+            $healthScore = max(35, min(100, $score));
+        }
+
+        // Tüm filodaki yaklaşan yasal süre uyarıları (30 gün içinde)
+        foreach ($vehicles as $v) {
+            $now = Carbon::now();
+            if ($v->muayene_bitis && Carbon::parse($v->muayene_bitis)->diffInDays($now, false) <= 30) {
+                $upcomingAlertsCount++;
+            }
+            if ($v->sigorta_bitis && Carbon::parse($v->sigorta_bitis)->diffInDays($now, false) <= 30) {
+                $upcomingAlertsCount++;
+            }
         }
 
         return Inertia::render('Dashboard', [
@@ -70,6 +129,9 @@ class DashboardController extends Controller
             'totalSpent' => $totalSpent,
             'allVehiclesCount' => $allVehiclesCount,
             'monthlyStats' => $monthlyStats,
+            'categoryStats' => $categoryStats,
+            'healthScore' => $healthScore,
+            'upcomingAlertsCount' => $upcomingAlertsCount,
         ]);
     }
 
