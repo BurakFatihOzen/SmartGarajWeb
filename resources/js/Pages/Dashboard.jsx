@@ -245,12 +245,25 @@ export default function Dashboard({
                             </div>
 
                             <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-snug break-words">
-                                {aiInsight.title}: <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-orange-500 to-amber-500 dark:from-amber-400 dark:via-orange-400 dark:to-amber-200">{activeVehicle ? `${activeVehicle.marka} ${activeVehicle.model}` : 'Garajınız'}</span>
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-orange-500 to-amber-500 dark:from-amber-400 dark:via-orange-400 dark:to-amber-200">
+                                    {activeVehicle ? `${activeVehicle.marka} ${activeVehicle.model}` : 'SmartGaraj Filo Portalı'}
+                                </span>
                             </h2>
                             
-                            <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm font-medium leading-relaxed">
-                                {aiInsight.text}
-                            </p>
+                            <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                                <span className={`px-2.5 py-0.5 rounded-lg text-[11px] font-extrabold shrink-0 ${
+                                    aiInsight.type === 'danger' 
+                                        ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20' 
+                                        : aiInsight.type === 'warning' 
+                                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' 
+                                        : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                                }`}>
+                                    {aiInsight.title}
+                                </span>
+                                <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm font-medium leading-relaxed">
+                                    {aiInsight.text}
+                                </p>
+                            </div>
                         </div>
 
                         {/* Right: AI Actions */}
@@ -508,11 +521,21 @@ export default function Dashboard({
                                         className="hidden" 
                                     />
                                     {activeVehicle.fotograf_url ? (
-                                        <img 
-                                            src={activeVehicle.fotograf_url} 
-                                            alt={`${activeVehicle.marka} ${activeVehicle.model}`} 
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                                        />
+                                        <div className="relative w-full h-full min-h-[220px] sm:min-h-[250px] flex items-center justify-center overflow-hidden bg-slate-900/60 dark:bg-black/60 rounded-2xl">
+                                            {/* Subtle Ambient Blurred Backdrop */}
+                                            <img 
+                                                src={activeVehicle.fotograf_url} 
+                                                alt="" 
+                                                aria-hidden="true"
+                                                className="absolute inset-0 w-full h-full object-cover blur-lg opacity-35 scale-110" 
+                                            />
+                                            {/* Main sharp full vehicle photo with object-contain */}
+                                            <img 
+                                                src={activeVehicle.fotograf_url} 
+                                                alt={`${activeVehicle.marka} ${activeVehicle.model}`} 
+                                                className="relative z-10 w-full h-full max-h-[270px] object-contain group-hover:scale-105 transition-transform duration-500 p-1" 
+                                            />
+                                        </div>
                                     ) : (
                                         <div className="flex flex-col items-center justify-center p-6 text-center text-slate-400 dark:text-slate-500">
                                             <Car className="w-16 h-16 mb-2 opacity-50" />
