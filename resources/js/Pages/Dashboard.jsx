@@ -298,7 +298,7 @@ export default function Dashboard({
 
                             <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-snug break-words">
                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-orange-500 to-amber-500 dark:from-amber-400 dark:via-orange-400 dark:to-amber-200">
-                                    {activeVehicle ? `${activeVehicle.marka} ${activeVehicle.model}` : 'SmartGaraj Filo Portalı'}
+                                    {activeVehicle ? `${activeVehicle.marka} ${activeVehicle.model}` : 'SmartGaraj Garajım'}
                                 </span>
                             </h2>
                             
@@ -410,14 +410,14 @@ export default function Dashboard({
                         </div>
                     </div>
 
-                    {/* Card 4: Filo Durumu */}
+                    {/* Card 4: Araç Sayısı */}
                     <div className="relative overflow-hidden rounded-3xl bg-white dark:bg-[#11131c] p-5 sm:p-6 border border-slate-200/80 dark:border-white/[0.06] shadow-sm hover:shadow-md transition-all group">
                         <div className="flex items-center justify-between mb-3.5 sm:mb-4">
                             <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                Kayıtlı Filo
+                                Kayıtlı Araç Sayısı
                             </span>
                             <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-purple-500/10 text-purple-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <Shield className="w-5 h-5" />
+                                <Car className="w-5 h-5" />
                             </div>
                         </div>
                         <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono tracking-tight">
@@ -425,7 +425,7 @@ export default function Dashboard({
                         </div>
                         <div className="flex items-center space-x-1.5 mt-2 text-xs font-semibold">
                             {upcomingAlertsCount > 0 ? (
-                                <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center space-x-1 truncate" title="Filodaki araçlarda muayene veya sigorta süresi yaklaşan / dolmuş işlem sayısı">
+                                <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center space-x-1 truncate" title="Garajınızdaki araçlarda muayene veya sigorta süresi yaklaşan / dolmuş işlem sayısı">
                                     <AlertTriangle className="w-3 h-3 shrink-0" />
                                     <span className="truncate">{upcomingAlertsCount} Muayene/Sigorta Vadesi Yakın</span>
                                 </span>

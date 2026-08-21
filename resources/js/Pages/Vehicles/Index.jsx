@@ -186,16 +186,25 @@ export default function VehiclesIndex({ vehicles = [] }) {
                                     className="p-6 rounded-3xl bg-white dark:bg-[#13151b] border border-slate-200/80 dark:border-white/[0.08] hover:border-amber-500/40 transition-all flex flex-col justify-between space-y-5 group relative overflow-hidden shadow-lg hover:shadow-xl"
                                 >
                                     <div className="space-y-4">
-                                        {/* Vehicle Photo Container with Full Bleed */}
-                                        <div className="relative h-48 rounded-2xl overflow-hidden bg-slate-900 dark:bg-black/80 border border-slate-200/80 dark:border-white/10 group/photo shadow-md">
+                                        {/* Vehicle Photo Container with Cinematic Dual-Layer Showcase */}
+                                        <div className="relative h-52 rounded-2xl overflow-hidden bg-slate-950/80 border border-slate-200/80 dark:border-white/10 group/photo flex items-center justify-center shadow-inner">
                                             {v.fotograf_url ? (
                                                 <>
+                                                    {/* Ambient Background Aura */}
+                                                    <img
+                                                        src={v.fotograf_url}
+                                                        alt=""
+                                                        aria-hidden="true"
+                                                        className="absolute inset-0 w-full h-full object-cover filter blur-xl scale-125 opacity-60 dark:opacity-40 saturate-150 transform-gpu pointer-events-none"
+                                                    />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20 pointer-events-none" />
+
+                                                    {/* Foreground Sharp Vehicle (100% visible, never cropped) */}
                                                     <img
                                                         src={v.fotograf_url}
                                                         alt={v.plaka}
-                                                        className="w-full h-full object-cover object-center group-hover/photo:scale-105 transition-transform duration-300"
+                                                        className="relative z-10 w-full h-full object-contain object-center drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] group-hover/photo:scale-105 transition-transform duration-500 p-2"
                                                     />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10 pointer-events-none" />
                                                 </>
                                             ) : (
                                                 <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 space-y-1">
