@@ -18,6 +18,13 @@ class TrafficFine extends Model
         'arac_id',
         'kullanici_id',
         'surucu_id',
+        'ceza_tipi',
+        'otoyol_kopru',
+        'gecis_ucreti',
+        'ihlal_kat_sayisi',
+        'hgs_etiket_no',
+        'giris_istasyonu',
+        'cikis_istasyonu',
         'ceza_tarihi',
         'ceza_maddesi',
         'tutar',
@@ -35,6 +42,8 @@ class TrafficFine extends Model
         'odeme_tarihi' => 'date',
         'tutar' => 'decimal:2',
         'indirimli_tutar' => 'decimal:2',
+        'gecis_ucreti' => 'decimal:2',
+        'ihlal_kat_sayisi' => 'integer',
     ];
 
     public function vehicle()

@@ -208,6 +208,15 @@ export default function AppLayout({ children, title, activeMode }) {
             gradient: 'from-purple-500 to-pink-600',
             badgeColor: 'text-purple-500'
         },
+        { 
+            href: '/fines', 
+            label: 'Trafik & HGS Cezaları', 
+            desc: '%25 indirim & ihlal takibi',
+            icon: ShieldAlert, 
+            active: isFinesActive,
+            gradient: 'from-red-600 to-rose-600',
+            badgeColor: 'text-red-500'
+        },
     ];
 
     const SidebarContent = ({ isMobile = false }) => (

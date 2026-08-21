@@ -84,6 +84,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/fleet/assignments/{id}/release', [DriverController::class, 'release'])->name('fleet.assignments.release');
 
     // Trafik Cezaları & İhlaller
+    Route::get('/fines', [TrafficFineController::class, 'index'])->name('fines.index');
     Route::get('/fleet/fines', [TrafficFineController::class, 'index'])->name('fleet.fines.index');
     Route::post('/fines', [TrafficFineController::class, 'store'])->name('fines.store');
     Route::post('/fines/{id}/status', [TrafficFineController::class, 'updateStatus'])->name('fines.status');

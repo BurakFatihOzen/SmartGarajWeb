@@ -30,6 +30,8 @@ class TrafficFineController extends Controller
         $totalAmount = (float) $fines->sum('tutar');
         $unpaidAmount = (float) $fines->where('durum', 'odenmedi')->sum('tutar');
         $discountedPotential = (float) $fines->where('durum', 'odenmedi')->sum('indirimli_tutar');
+        $hgsCount = $fines->where('ceza_tipi', 'hgs_ihlal')->count();
+        $hgsUnpaidAmount = (float) $fines->where('ceza_tipi', 'hgs_ihlal')->where('durum', 'odenmedi')->sum('tutar');
 
         return Inertia::render('Fleet/Fines', [
             'fines' => $fines,
@@ -41,6 +43,8 @@ class TrafficFineController extends Controller
                 'totalAmount' => $totalAmount,
                 'unpaidAmount' => $unpaidAmount,
                 'discountedPotential' => $discountedPotential,
+                'hgsCount' => $hgsCount,
+                'hgsUnpaidAmount' => $hgsUnpaidAmount,
             ],
         ]);
     }
@@ -52,6 +56,13 @@ class TrafficFineController extends Controller
         $validated = $request->validate([
             'arac_id' => 'required|exists:araclar,id',
             'surucu_id' => 'nullable|exists:suruculer,id',
+            'ceza_tipi' => 'nullable|string|in:trafik_cezasi,hgs_ihlal',
+            'otoyol_kopru' => 'nullable|string|max:150',
+            'gecis_ucreti' => 'nullable|numeric|min:0',
+            'ihlal_kat_sayisi' => 'nullable|integer|min:1|max:10',
+            'hgs_etiket_no' => 'nullable|string|max:50',
+            'giris_istasyonu' => 'nullable|string|max:100',
+            'cikis_istasyonu' => 'nullable|string|max:100',
             'ceza_tarihi' => 'required|date',
             'ceza_maddesi' => 'required|string|max:150',
             'tutar' => 'required|numeric|min:0',
@@ -61,8 +72,11 @@ class TrafficFineController extends Controller
             'tutanak' => 'nullable|image|mimes:jpeg,png,jpg,webp,pdf|max:10240',
         ]);
 
+        $cezaTipi = $validated['ceza_tipi'] ?? 'trafik_cezasi';
         $tutar = (float) $validated['tutar'];
-        $indirimliTutar = round($tutar * 0.75, 2); // %25 erken ödeme indirimi
+        
+        // HGS veya Trafik cezası erken ödeme indirimi
+        $indirimliTutar = round($tutar * 0.75, 2); // %25 indirim
         
         $cezaTarihi = Carbon::parse($validated['ceza_tarihi']);
         $sonOdemeTarihi = $cezaTarihi->copy()->addDays(30);
@@ -77,6 +91,13 @@ class TrafficFineController extends Controller
             'arac_id' => $validated['arac_id'],
             'kullanici_id' => $user->id,
             'surucu_id' => $validated['surucu_id'] ?? null,
+            'ceza_tipi' => $cezaTipi,
+            'otoyol_kopru' => $validated['otoyol_kopru'] ?? null,
+            'gecis_ucreti' => !empty($validated['gecis_ucreti']) ? (float) $validated['gecis_ucreti'] : null,
+            'ihlal_kat_sayisi' => (int) ($validated['ihlal_kat_sayisi'] ?? 4),
+            'hgs_etiket_no' => $validated['hgs_etiket_no'] ?? null,
+            'giris_istasyonu' => $validated['giris_istasyonu'] ?? null,
+            'cikis_istasyonu' => $validated['cikis_istasyonu'] ?? null,
             'ceza_tarihi' => $validated['ceza_tarihi'],
             'ceza_maddesi' => $validated['ceza_maddesi'],
             'tutar' => $tutar,
@@ -88,7 +109,8 @@ class TrafficFineController extends Controller
             'aciklama' => $validated['aciklama'] ?? null,
         ]);
 
-        return back()->with('success', "Trafik cezası başarıyla kaydedildi. (%25 indirimli tutar: ₺" . number_format($indirimliTutar, 2, ',', '.') . ")");
+        $msgTitle = $cezaTipi === 'hgs_ihlal' ? "HGS / OGS Geçiş İhlali" : "Trafik Cezası";
+        return back()->with('success', "{$msgTitle} başarıyla kaydedildi. (%25 indirimli tutar: ₺" . number_format($indirimliTutar, 2, ',', '.') . ")");
     }
 
     public function updateStatus(Request $request, $id)
@@ -115,6 +137,6 @@ class TrafficFineController extends Controller
         $fine = TrafficFine::where('kullanici_id', $user->id)->findOrFail($id);
         $fine->delete();
 
-        return back()->with('success', "Trafik cezası kaydı silindi.");
+        return back()->with('success', "Ceza kaydı silindi.");
     }
 }

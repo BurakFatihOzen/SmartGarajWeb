@@ -18,6 +18,16 @@ class Maintenance extends Model
         'arac_id',
         'islem_tarihi',
         'islem_turu',
+        'servis_turu',
+        'servis_adi',
+        'sanayi_sitesi',
+        'usta_adi',
+        'usta_tel',
+        'yag_markasi',
+        'yag_modeli',
+        'yag_viskozite',
+        'yag_litresi',
+        'yag_filtresi_degisti',
         'islem_km',
         'maliyet_tl',
         'aciklama',
@@ -28,6 +38,8 @@ class Maintenance extends Model
         'islem_tarihi' => 'date',
         'islem_km' => 'integer',
         'maliyet_tl' => 'float',
+        'yag_litresi' => 'float',
+        'yag_filtresi_degisti' => 'boolean',
     ];
 
     /**
