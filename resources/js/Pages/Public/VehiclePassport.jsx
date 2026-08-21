@@ -121,21 +121,16 @@ export default function VehiclePassport({
 
                 {/* Hero Vehicle Card */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-6 sm:p-7 rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200/80 dark:border-white/[0.08] shadow-sm dark:shadow-xl items-center">
-                    {/* Vehicle Photo with Ambient Backdrop */}
+                    {/* Vehicle Photo */}
                     <div className="md:col-span-5 flex flex-col">
                         {vehicle.fotograf_url ? (
-                            <div className="relative w-full h-48 sm:h-56 md:h-52 rounded-2xl overflow-hidden bg-slate-900/60 dark:bg-black/60 border border-slate-200 dark:border-white/10 flex items-center justify-center shadow-md">
-                                <img
-                                    src={vehicle.fotograf_url}
-                                    alt=""
-                                    aria-hidden="true"
-                                    className="absolute inset-0 w-full h-full object-cover blur-md opacity-35 scale-110"
-                                />
+                            <div className="relative w-full h-48 sm:h-56 md:h-56 rounded-2xl overflow-hidden bg-slate-900 dark:bg-black/80 border border-slate-200 dark:border-white/10 flex items-center justify-center shadow-md">
                                 <img
                                     src={vehicle.fotograf_url}
                                     alt={vehicle.plaka}
-                                    className="relative z-10 w-full h-full max-h-52 object-contain p-1"
+                                    className="w-full h-full object-cover object-center"
                                 />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10 pointer-events-none" />
                             </div>
                         ) : (
                             <div className="w-full h-48 sm:h-56 md:h-52 rounded-2xl bg-slate-100 dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 space-y-2">
@@ -216,7 +211,125 @@ export default function VehiclePassport({
                     </div>
                 </div>
 
-                {/* Maintenance Timeline Section */}
+                {/* 1. Kaporta Ekspertiz Durumu & Boya/Değişen Şeması */}
+                {(() => {
+                    const accidentsList = vehicle.accidents || vehicle.kazalar || [];
+                    const partsObj = {};
+                    accidentsList.forEach(acc => {
+                        if (acc.hasarli_parcalar && Array.isArray(acc.hasarli_parcalar)) {
+                            acc.hasarli_parcalar.forEach(p => {
+                                if (p && p.parca) {
+                                    const curr = partsObj[p.parca];
+                                    if (!curr || p.durum === 'Değişen' || (p.durum === 'Boyalı' && curr === 'Lokal Boyalı')) {
+                                        partsObj[p.parca] = p.durum;
+                                    }
+                                }
+                            });
+                        }
+                    });
+                    const allDamagedParts = Object.keys(partsObj).map(k => ({ parca: k, durum: partsObj[k] }));
+
+                    return (
+                        <div className="p-6 sm:p-7 rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200/80 dark:border-white/[0.08] space-y-5 shadow-sm dark:shadow-xl">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-white/[0.06]">
+                                <div>
+                                    <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white flex items-center space-x-2.5">
+                                        <Paintbrush className="w-5 h-5 text-amber-500" />
+                                        <span>Kaporta Ekspertiz Durumu (Boya & Değişen Şeması)</span>
+                                    </h3>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
+                                        TSE ve kurumsal ekspertiz standartlarına uygun boyalı / değişen parça dökümü
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    {tramerTotal > 0 && (
+                                        <span className="text-xs font-black px-3 py-1 rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 font-mono">
+                                            Tramer: ₺{Number(tramerTotal).toLocaleString('tr-TR')}
+                                        </span>
+                                    )}
+                                    <span className={`text-xs font-bold px-3 py-1 rounded-xl border ${
+                                        allDamagedParts.length > 0
+                                            ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                                            : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                                    }`}>
+                                        {allDamagedParts.length > 0 ? `${allDamagedParts.length} Parçada İşlem Var` : 'Hatasız / Boyasız / Orijinal'}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Damage Body Map Component */}
+                            <div className="pt-2">
+                                <DamageBodyMap value={allDamagedParts} readOnly={true} />
+                            </div>
+
+                            {/* Accident Details if any */}
+                            {accidentsList.length > 0 && (
+                                <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-white/[0.06]">
+                                    <h4 className="text-xs font-extrabold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                                        <ShieldAlert className="w-4 h-4 text-red-500" />
+                                        <span>Kayıtlı Kaza & Hasar Onarım Dosyaları ({accidentsList.length})</span>
+                                    </h4>
+                                    <div className="space-y-2.5">
+                                        {accidentsList.map((acc, aIdx) => (
+                                            <div key={aIdx} className="p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/5 space-y-2">
+                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
+                                                    <div className="flex items-center space-x-2">
+                                                        <span className="px-2 py-0.5 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 font-bold border border-red-500/20">
+                                                            {acc.kaza_turu}
+                                                        </span>
+                                                        <span className="font-bold text-slate-700 dark:text-slate-300">
+                                                            {acc.kaza_tarihi ? new Date(acc.kaza_tarihi).toLocaleDateString('tr-TR') : '-'}
+                                                        </span>
+                                                        {acc.kusur_orani !== null && acc.kusur_orani !== undefined && (
+                                                            <span className="text-[11px] font-semibold text-slate-400">
+                                                                (Kusur: %{acc.kusur_orani})
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="font-mono font-black text-slate-900 dark:text-white">
+                                                        Onarım: ₺{Number(acc.hasar_tutari || 0).toLocaleString('tr-TR')}
+                                                        {acc.tramer_kaydi && (
+                                                            <span className="ml-2 text-red-500 font-bold text-[11px]">
+                                                                (Tramer: ₺{Number(acc.tramer_tutari || acc.hasar_tutari || 0).toLocaleString('tr-TR')})
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {acc.aciklama && (
+                                                    <p className="text-xs text-slate-600 dark:text-slate-400">
+                                                        {acc.aciklama}
+                                                    </p>
+                                                )}
+
+                                                {acc.hasarli_parcalar && Array.isArray(acc.hasarli_parcalar) && acc.hasarli_parcalar.length > 0 && (
+                                                    <div className="flex flex-wrap gap-1.5 pt-1">
+                                                        {acc.hasarli_parcalar.map((p, pIdx) => (
+                                                            <span 
+                                                                key={pIdx}
+                                                                className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border ${
+                                                                    p.durum === 'Değişen' 
+                                                                        ? 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20' 
+                                                                        : p.durum === 'Boyalı' 
+                                                                        ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' 
+                                                                        : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                                                                }`}
+                                                            >
+                                                                {p.parca}: {p.durum}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })()}
+
+                {/* 2. Maintenance Timeline Section */}
                 <div className="p-6 sm:p-7 rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200/80 dark:border-white/[0.08] space-y-5 shadow-sm dark:shadow-xl">
                     <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/[0.06]">
                         <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center space-x-2">
@@ -282,106 +395,6 @@ export default function VehiclePassport({
                         </div>
                     )}
                 </div>
-
-                {/* Hasar & Kaza Durumu & Kaporta Ekspertiz Şeması */}
-                {(() => {
-                    const accidentsList = vehicle.accidents || vehicle.kazalar || [];
-                    const partsObj = {};
-                    accidentsList.forEach(acc => {
-                        if (acc.hasarli_parcalar && Array.isArray(acc.hasarli_parcalar)) {
-                            acc.hasarli_parcalar.forEach(p => {
-                                if (p && p.parca) {
-                                    const curr = partsObj[p.parca];
-                                    if (!curr || p.durum === 'Değişen' || (p.durum === 'Boyalı' && curr === 'Lokal Boyalı')) {
-                                        partsObj[p.parca] = p.durum;
-                                    }
-                                }
-                            });
-                        }
-                    });
-                    const allDamagedParts = Object.keys(partsObj).map(k => ({ parca: k, durum: partsObj[k] }));
-
-                    return (
-                        <div className="p-6 sm:p-7 rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200/80 dark:border-white/[0.08] space-y-5 shadow-sm dark:shadow-xl">
-                            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/[0.06]">
-                                <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center space-x-2">
-                                    <ShieldAlert className="w-4 h-4 text-red-500" />
-                                    <span>Hasar & Kaza Geçmişi & Kaporta Ekspertiz Durumu</span>
-                                </h3>
-                                <span className={`text-xs font-bold px-2.5 py-1 rounded-xl border ${
-                                    accidentsList.length > 0
-                                        ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
-                                        : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
-                                }`}>
-                                    {accidentsList.length > 0 ? `${accidentsList.length} Hasar Kaydı` : 'Kusursuz / Hatasız'}
-                                </span>
-                            </div>
-
-                            {/* Damage Body Map */}
-                            <div className="space-y-2">
-                                <DamageBodyMap value={allDamagedParts} readOnly={true} />
-                            </div>
-
-                            {/* Accident Details */}
-                            {accidentsList.length > 0 && (
-                                <div className="space-y-3 pt-2">
-                                    <h4 className="text-xs font-extrabold text-slate-700 dark:text-slate-300">
-                                        Kayıtlı Kaza & Onarım Dosyaları
-                                    </h4>
-                                    <div className="space-y-2.5">
-                                        {accidentsList.map((acc, aIdx) => (
-                                            <div key={aIdx} className="p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/5 space-y-2">
-                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
-                                                    <div className="flex items-center space-x-2">
-                                                        <span className="px-2 py-0.5 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 font-bold border border-red-500/20">
-                                                            {acc.kaza_turu}
-                                                        </span>
-                                                        <span className="font-bold text-slate-700 dark:text-slate-300">
-                                                            {acc.kaza_tarihi ? new Date(acc.kaza_tarihi).toLocaleDateString('tr-TR') : '-'}
-                                                        </span>
-                                                    </div>
-                                                    <div className="font-mono font-black text-slate-900 dark:text-white">
-                                                        Onarım: ₺{Number(acc.hasar_tutari || 0).toLocaleString('tr-TR')}
-                                                        {acc.tramer_kaydi && (
-                                                            <span className="ml-2 text-red-500 font-bold text-[11px]">
-                                                                (Tramer: ₺{Number(acc.tramer_tutari || acc.hasar_tutari || 0).toLocaleString('tr-TR')})
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                {acc.aciklama && (
-                                                    <p className="text-xs text-slate-600 dark:text-slate-400">
-                                                        {acc.aciklama}
-                                                    </p>
-                                                )}
-
-                                                {acc.hasarli_parcalar && Array.isArray(acc.hasarli_parcalar) && acc.hasarli_parcalar.length > 0 && (
-                                                    <div className="flex flex-wrap gap-1.5 pt-1">
-                                                        {acc.hasarli_parcalar.map((p, pIdx) => (
-                                                            <span 
-                                                                key={pIdx}
-                                                                className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border ${
-                                                                    p.durum === 'Değişen' 
-                                                                        ? 'bg-red-500/10 text-red-500 border-red-500/20' 
-                                                                        : p.durum === 'Boyalı'
-                                                                        ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
-                                                                        : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
-                                                                }`}
-                                                            >
-                                                                {p.parca} ({p.durum})
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    );
-                })()}
 
                 {/* QR Verification Footer Card */}
                 <div className="p-6 sm:p-7 rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200/80 dark:border-white/[0.08] shadow-sm dark:shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">

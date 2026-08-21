@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useForm, Head } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import OcrModal from '@/Components/OcrModal';
@@ -31,12 +31,18 @@ import {
     Droplets,
     Phone,
     MapPin,
-    AlertCircle
+    AlertCircle,
+    ChevronDown,
+    Filter,
+    Boxes,
+    Layers,
+    Sparkle
 } from 'lucide-react';
 
 const OPERATION_CATEGORIES = [
     {
         name: 'Periyodik & Rutin Bakım',
+        isOilRelated: true,
         items: [
             'Standart Periyodik Bakım (Yağ + Filtreler)',
             'Motor Yağı Değişimi',
@@ -51,6 +57,7 @@ const OPERATION_CATEGORIES = [
     },
     {
         name: 'Ağır Bakım & Motor Grubu',
+        isOilRelated: false,
         items: [
             'Ağır Bakım (Triger Seti / Zincir Değişimi)',
             'V Kayışı / Gergi Rulmanı Değişimi',
@@ -66,6 +73,7 @@ const OPERATION_CATEGORIES = [
     },
     {
         name: 'Fren & Yürüyen Aksam',
+        isOilRelated: false,
         items: [
             'Fren Balatası Değişimi (Ön/Arka)',
             'Fren Diski Değişimi / Torna İşlemi',
@@ -78,6 +86,7 @@ const OPERATION_CATEGORIES = [
     },
     {
         name: 'Elektrik, Akü & Konfor',
+        isOilRelated: false,
         items: [
             'Akü Değişimi',
             'Şarj / Marş Dinamosu Revizyonu',
@@ -91,6 +100,7 @@ const OPERATION_CATEGORIES = [
     },
     {
         name: 'Diğer & Özel İşlemler',
+        isOilRelated: false,
         items: [
             'Kaporta & Boya Onarımı',
             'Rot & Balans Ayarı',
@@ -148,6 +158,134 @@ const OIL_BRANDS_MODELS = [
     }
 ];
 
+const SPARE_PARTS_CATEGORIES = [
+    {
+        name: 'Filtre Üreticileri (Hava, Yağ, Polen, Yakıt)',
+        brands: [
+            { name: 'Mann Filter', desc: 'Alman Orijinal OEM Filtre Seti' },
+            { name: 'Bosch Filter', desc: 'Premium Hava / Yağ / Polen' },
+            { name: 'Mahle / Knecht', desc: 'Alman OEM Standart Kalite' },
+            { name: 'Filtron', desc: 'Mann+Hummel Güvencesi' },
+            { name: 'Purflux', desc: 'Fransız Orijinal Ekipman' },
+            { name: 'Ufi Filters', desc: 'İtalyan OEM Üretici' },
+            { name: 'Hengst Filter', desc: 'Alman Endüstriyel Filtre' },
+            { name: 'Wunder Filter', desc: 'Yerli Kaliteli Filtre Grubu' },
+            { name: 'Meyle Filter', desc: 'Alman Kalite Filtre Kiti' },
+            { name: 'Sardes Filter', desc: 'Yerli Üretim Filtre' },
+        ]
+    },
+    {
+        name: 'Fren Balata, Disk & Hidrolik Grubu',
+        brands: [
+            { name: 'Brembo', desc: 'Yüksek Performans Disk & Balata' },
+            { name: 'TRW', desc: 'Orijinal Ekipman Fren & Salıncak' },
+            { name: 'ATE', desc: 'Alman Seramik Balata & Hidrolik' },
+            { name: 'Ferodo', desc: 'Premier & Eco-Friction Balata' },
+            { name: 'Textar', desc: 'TMD Friction Alman Kalitesi' },
+            { name: 'Bosch Fren', desc: 'Disk, Balata & Fren Pabucu' },
+            { name: 'Valeo Fren', desc: 'Fren Balata & Hidrolik Merkez' },
+            { name: 'Bendix', desc: 'Fren Kaliperi & Balata' },
+            { name: 'Mintex', desc: 'İngiliz Fren Sürtünme Grubu' },
+            { name: 'Hella Pagid', desc: 'Braking Systems' },
+        ]
+    },
+    {
+        name: 'Yürüyen Aksam, Süspansiyon & Direksiyon',
+        brands: [
+            { name: 'Sachs', desc: 'Orijinal Gazlı Amortisör' },
+            { name: 'Monroe', desc: 'OESpectrum / Reflex Amortisör' },
+            { name: 'Bilstein', desc: 'B4 / B6 Spor & Standart Amortisör' },
+            { name: 'KYB (Kayaba)', desc: 'Japon Orijinal Amortisör' },
+            { name: 'Lemförder', desc: 'ZF Grubu Salıncak & Rotil' },
+            { name: 'Meyle-HD', desc: 'Güçlendirilmiş Z-Rot & Burç' },
+            { name: 'Febi Bilstein', desc: 'Alman Alt Takım Grubu' },
+            { name: 'Delphi', desc: 'Rot, Rotil, Salıncak Kolu' },
+            { name: 'Moog', desc: 'Direksiyon & Süspansiyon' },
+            { name: 'AYD / Formpart', desc: 'Yerli Kalite Alt Takım' },
+        ]
+    },
+    {
+        name: 'Debriyaj, Şanzıman & Aktarma (Volant, Aks)',
+        brands: [
+            { name: 'Luk (Schaeffler)', desc: 'Orijinal Baskı Balata & Volant' },
+            { name: 'Sachs Debriyaj', desc: 'Debriyaj Kiti & Rulman' },
+            { name: 'Valeo Debriyaj', desc: 'Orijinal Debriyaj & Bilye' },
+            { name: 'Aisin', desc: 'Japon Debriyaj & Şanzıman' },
+            { name: 'Exedy', desc: 'Japon Performans Debriyajı' },
+            { name: 'SKF / FAG', desc: 'Porya Rulmanı & Aks Başlığı' },
+            { name: 'GKN / Spidan', desc: 'Aks, Şaft & Aks Körükleri' },
+        ]
+    },
+    {
+        name: 'Triger, V Kayışı, Rulman & Devirdaim (Su Pompası)',
+        brands: [
+            { name: 'Gates', desc: 'PowerGrip Triger & V Kayış Seti' },
+            { name: 'Continental / ContiTech', desc: 'Alman Triger & Devirdaimli Kit' },
+            { name: 'Dayco', desc: 'Triger Kayışı & Gergi Rulmanı' },
+            { name: 'INA (Schaeffler)', desc: 'Gergi Kütüğü, Rulman & Zincir' },
+            { name: 'SKF Zamanlama', desc: 'Devirdaimli Triger Seti' },
+            { name: 'Graf / Dolz', desc: 'Devirdaim Su Pompası' },
+            { name: 'Optibelt', desc: 'Endüstriyel & Oto Kayışları' },
+            { name: 'Hutchinson', desc: 'Fransız Kayış & Kasnak' },
+        ]
+    },
+    {
+        name: 'Akü, Ateşleme & Elektrik Aksamı',
+        brands: [
+            { name: 'Varta Akü', desc: 'Silver Dynamic / AGM / EFB' },
+            { name: 'Mutlu Akü', desc: 'SFB / EFB Start-Stop Serisi' },
+            { name: 'Bosch Akü', desc: 'S4 / S5 AGM Akü Serisi' },
+            { name: 'İnci Akü', desc: 'Formul A / Maxim A Serisi' },
+            { name: 'Yiğit Akü', desc: 'Prestige / EFB Start-Stop' },
+            { name: 'Exide Akü', desc: 'Start-Stop AGM / EFB' },
+            { name: 'NGK', desc: 'Laser Iridium / V-Line Buji & O2' },
+            { name: 'Denso', desc: 'İridyum TT Buji & Ateşleme Bobini' },
+            { name: 'Bosch Buji / Bobin', desc: 'Double Platinum Buji & Ateşleme' },
+            { name: 'Beru / Champion', desc: 'Kızdırma Bujisi & Modülü' },
+            { name: 'Delphi Bobin', desc: 'Ateşleme Bobinleri & Sensörler' },
+        ]
+    },
+    {
+        name: 'Soğutma, Radyatör & İklimlendirme (Klima)',
+        brands: [
+            { name: 'Kale Radyatör', desc: 'Yerli Orijinal Su & Klima Radyatörü' },
+            { name: 'Behr Hella', desc: 'Alman Termostat & Radyatör' },
+            { name: 'Nissens', desc: 'Danimarka Radyatör & Intercooler' },
+            { name: 'Valeo Termal', desc: 'Klima Kompresörü & Radyatör' },
+            { name: 'NRF', desc: 'Hollanda Soğutma & Klima Parçaları' },
+            { name: 'Mahle Termal', desc: 'Termostat & Soğutma Sistemi' },
+        ]
+    },
+    {
+        name: 'Lastik Markaları (Yaz / Kış / 4 Mevsim)',
+        brands: [
+            { name: 'Michelin', desc: 'Primacy 4 / CrossClimate / Pilot Sport' },
+            { name: 'Continental Lastik', desc: 'PremiumContact / WinterContact' },
+            { name: 'Goodyear', desc: 'Eagle F1 / Vector 4Seasons' },
+            { name: 'Pirelli', desc: 'P Zero / Cinturato P7 / Scorpion' },
+            { name: 'Bridgestone', desc: 'Turanza / Weather Control / Blizzak' },
+            { name: 'Lassa', desc: 'Driveways / Competus / Multiways' },
+            { name: 'Petlas', desc: 'Velox Sport / Imperium / Explero' },
+            { name: 'Hankook', desc: 'Ventus Prime / Kinergy / Winter' },
+            { name: 'Nokian', desc: 'Seasonproof / WR Snowproof' },
+            { name: 'Kumho / Falken', desc: 'Ecsta / Azenis / Ziex' },
+        ]
+    },
+    {
+        name: 'Aydınlatma, Silecek & Detailing Kimyasalları',
+        brands: [
+            { name: 'Osram', desc: 'Night Breaker LED / Xenarc / Halojen' },
+            { name: 'Philips Aydınlatma', desc: 'X-tremeVision / Ultinon LED' },
+            { name: 'Bosch Aerotwin', desc: 'Muz Tipi Premium Silecek' },
+            { name: 'Valeo Silencio', desc: 'Orijinal Sessiz Silecek Takımı' },
+            { name: 'Hella Aydınlatma', desc: 'Far, Stop & Röle Grubu' },
+            { name: 'Meguiar\'s / Sonax', desc: 'Pasta Cila & Boya Koruma' },
+            { name: 'Koch Chemie / Menzerna', desc: 'Profesyonel Detailing Kimyasalları' },
+            { name: '3M / Würth', desc: 'Cam Filmi, İzolasyon & Spreyler' },
+        ]
+    }
+];
+
 const SANAYI_PRESETS = [
     'Maslak Atatürk Oto Sanayi Sitesi (İstanbul)',
     'İkitelli Güngören / Bağcılar Sanayi Sitesi (İstanbul)',
@@ -189,9 +327,18 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
 
     const [selectedParts, setSelectedParts] = useState([]);
     const [customPartInput, setCustomPartInput] = useState('');
-    const [isCustomOperation, setIsCustomOperation] = useState(false);
+    const [partSearchTerm, setPartSearchTerm] = useState('');
+    const [selectedPartCategory, setSelectedPartCategory] = useState(0);
     const [isOcrOpen, setIsOcrOpen] = useState(false);
     const [showOilSection, setShowOilSection] = useState(true);
+
+    // Automatically expand/show oil section if user chooses an oil/periodic maintenance operation
+    useEffect(() => {
+        const isOil = data.islem_turu.toLowerCase().includes('yağ') || 
+                      data.islem_turu.toLowerCase().includes('periyodik') ||
+                      data.islem_turu.toLowerCase().includes('bakım');
+        setShowOilSection(isOil);
+    }, [data.islem_turu]);
 
     const handleVehicleChange = (newId) => {
         const v = vehicles.find(item => String(item.id) === String(newId));
@@ -202,30 +349,19 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
         }));
     };
 
-    const [auditResults, setAuditResults] = useState([]);
-    const [auditSummary, setAuditSummary] = useState(null);
-
     const handleOcrExtracted = (extracted) => {
         if (extracted.tarih) setData('islem_tarihi', extracted.tarih);
         if (extracted.islem_km) setData('islem_km', extracted.islem_km);
         if (extracted.toplam_tutar) setData('maliyet_tl', extracted.toplam_tutar);
         if (extracted.servis_adi) setData('servis_adi', extracted.servis_adi);
-        if (extracted.islem_turu) {
-            setData('islem_turu', extracted.islem_turu);
-            setIsCustomOperation(true);
-        }
+        if (extracted.islem_turu) setData('islem_turu', extracted.islem_turu);
         
         let aciklamaMetni = "";
         if (extracted.aciklama) {
             aciklamaMetni += `${extracted.aciklama}\n`;
         }
 
-        if (extracted.audit_summary) {
-            setAuditSummary(extracted.audit_summary);
-        }
-
         if (extracted.parcalar && extracted.parcalar.length > 0) {
-            setAuditResults(extracted.parcalar);
             const newParts = [...selectedParts];
             extracted.parcalar.forEach((p) => {
                 const partName = p.parca || p.ad || '';
@@ -259,7 +395,7 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
         
         let finalDescription = data.aciklama ? data.aciklama.trim() : '';
         if (selectedParts.length > 0) {
-            const partsBlock = `Kullanılan Parçalar: ${selectedParts.join(', ')}`;
+            const partsBlock = `Değişen / Kullanılan Parçalar: ${selectedParts.join(', ')}`;
             if (!finalDescription.includes(partsBlock)) {
                 finalDescription = finalDescription ? `${finalDescription}\n\n${partsBlock}` : partsBlock;
             }
@@ -274,6 +410,14 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
     };
 
     const activeBrandConfig = OIL_BRANDS_MODELS.find(b => b.brand === data.yag_markasi) || OIL_BRANDS_MODELS[0];
+
+    const filteredCategories = SPARE_PARTS_CATEGORIES.map(cat => ({
+        ...cat,
+        brands: cat.brands.filter(b => 
+            b.name.toLowerCase().includes(partSearchTerm.toLowerCase()) ||
+            b.desc.toLowerCase().includes(partSearchTerm.toLowerCase())
+        )
+    })).filter(cat => cat.brands.length > 0);
 
     return (
         <AppLayout activeMode="individual" title="Yeni Bakım & Servis Kaydı">
@@ -325,7 +469,7 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            {/* Vehicle Select */}
+                            {/* Vehicle Select with Luxury Plate Badge */}
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
                                     İşlem Yapılan Araç *
@@ -347,7 +491,7 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
                                     type="date"
                                     value={data.islem_tarihi}
                                     onChange={(e) => setData('islem_tarihi', e.target.value)}
-                                    className="w-full bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 rounded-2xl px-4 py-2.5 text-xs font-bold text-slate-900 dark:text-white"
+                                    className="w-full bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 rounded-2xl px-4 py-3 text-xs font-bold text-slate-900 dark:text-white"
                                     required
                                 />
                             </div>
@@ -356,174 +500,100 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
                                     <Gauge className="w-3.5 h-3.5 text-emerald-500" />
-                                    <span>İşlem Yapıldığı Kilometre (KM)</span>
+                                    <span>İşlem Kilometresi (KM)</span>
                                 </label>
                                 <input
                                     type="number"
                                     value={data.islem_km}
                                     onChange={(e) => setData('islem_km', e.target.value)}
                                     placeholder="145000"
-                                    className="w-full bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 rounded-2xl px-4 py-2.5 text-xs font-black font-mono text-slate-900 dark:text-white"
+                                    className="w-full bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 rounded-2xl px-4 py-3 text-xs font-black font-mono text-slate-900 dark:text-white"
                                 />
                             </div>
                         </div>
                     </div>
 
-                    {/* Section 2: Service Provider (Yetkili Servis vs. Sanayi / Usta) */}
+                    {/* Section 2: Operation Type */}
                     <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200/80 dark:border-white/[0.08] shadow-sm space-y-6">
                         <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/[0.06]">
                             <div className="flex items-center space-x-2.5">
-                                <Building2 className="w-5 h-5 text-indigo-500" />
+                                <SlidersHorizontal className="w-5 h-5 text-purple-500" />
                                 <div>
                                     <h3 className="text-base font-black text-slate-900 dark:text-white">
-                                        2. İşlem Yapılan Yer & Servis Sağlayıcı
+                                        2. Yapılan Bakım & İşlem Türü
                                     </h3>
                                     <p className="text-xs text-slate-400 font-semibold">
-                                        İşlemin yetkili bayide mi, özel serviste mi yoksa sanayideki ustanızda mı yapıldığını belirtin.
+                                        Periyodik bakım, ağır bakım veya mekanik onarım kategorisini seçin.
                                     </p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Service Type Selection Cards */}
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                            {[
-                                { key: 'yetkili_servis', label: 'Yetkili Servis', icon: Building2, desc: 'Markanın resmi bayisi (Doğuş, Otokoç vb.)', color: 'text-blue-500 border-blue-500' },
-                                { key: 'ozel_servis', label: 'Özel Servis', icon: Store, desc: 'Markaya özel bağımsız teknik servis', color: 'text-purple-500 border-purple-500' },
-                                { key: 'sanayi', label: 'Sanayi / Usta', icon: Hammer, desc: 'Oto Sanayi Sitesi & Mekanik Dükkanı', color: 'text-amber-500 border-amber-500' },
-                                { key: 'kendi_garajimiz', label: 'Kendi Garajım', icon: Home, desc: 'Kendim / Kendi şirket garajımız', color: 'text-emerald-500 border-emerald-500' },
-                            ].map(st => {
-                                const Icon = st.icon;
-                                const isSelected = data.servis_turu === st.key;
-                                return (
-                                    <button
-                                        key={st.key}
-                                        type="button"
-                                        onClick={() => setData('servis_turu', st.key)}
-                                        className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                                            isSelected 
-                                                ? `bg-slate-50 dark:bg-white/[0.08] ring-2 ring-indigo-500 border-indigo-500`
-                                                : `bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/5 hover:border-slate-300`
-                                        }`}
-                                    >
-                                        <div className="flex items-center justify-between mb-2">
-                                            <Icon className={`w-5 h-5 ${isSelected ? 'text-indigo-500' : 'text-slate-400'}`} />
-                                            {isSelected && <CheckCircle2 className="w-4 h-4 text-indigo-500" />}
-                                        </div>
-                                        <div>
-                                            <div className="text-xs font-black text-slate-900 dark:text-white">
-                                                {st.label}
-                                            </div>
-                                            <div className="text-[10px] text-slate-400 font-semibold mt-0.5 leading-tight">
-                                                {st.desc}
-                                            </div>
-                                        </div>
-                                    </button>
-                                );
-                            })}
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
+                                    Hızlı İşlem Seçimi:
+                                </label>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-56 overflow-y-auto p-1 bg-slate-50 dark:bg-white/[0.02] rounded-2xl border border-slate-200 dark:border-white/5">
+                                    {OPERATION_CATEGORIES.flatMap(c => c.items).map((op, idx) => {
+                                        const isSelected = data.islem_turu === op;
+                                        return (
+                                            <button
+                                                key={idx}
+                                                type="button"
+                                                onClick={() => setData('islem_turu', op)}
+                                                className={`p-2.5 rounded-xl text-xs font-bold text-left transition-colors flex items-center justify-between cursor-pointer ${
+                                                    isSelected
+                                                        ? 'bg-amber-500 text-slate-950 shadow-sm'
+                                                        : 'hover:bg-slate-200/60 dark:hover:bg-white/[0.06] text-slate-700 dark:text-slate-300'
+                                                }`}
+                                            >
+                                                <span className="truncate">{op}</span>
+                                                {isSelected && <Check className="w-3.5 h-3.5 shrink-0 ml-1" />}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                    Seçilen / Özel İşlem Başlığı:
+                                </label>
+                                <input
+                                    type="text"
+                                    value={data.islem_turu}
+                                    onChange={(e) => setData('islem_turu', e.target.value)}
+                                    placeholder="Örn: 120.000 KM Ağır Bakımı + Ön Balata"
+                                    className="w-full bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 rounded-2xl px-4 py-2.5 text-xs font-extrabold text-slate-900 dark:text-white"
+                                    required
+                                />
+                            </div>
                         </div>
-
-                        {/* Detailed Fields based on Service Type */}
-                        {data.servis_turu === 'yetkili_servis' && (
-                            <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10 space-y-3">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
-                                        <Building2 className="w-3.5 h-3.5 text-blue-500" />
-                                        <span>Yetkili Servis & Bayi Adı</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={data.servis_adi}
-                                        onChange={(e) => setData('servis_adi', e.target.value)}
-                                        placeholder="Örn: Doğuş Oto Maslak / Otokoç İstinye / Borusan Oto Avcılar"
-                                        className="w-full bg-white dark:bg-[#1a1d29] border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 dark:text-white"
-                                    />
-                                </div>
-                            </div>
-                        )}
-
-                        {(data.servis_turu === 'sanayi' || data.servis_turu === 'ozel_servis') && (
-                            <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 space-y-4">
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    {/* Sanayi Sitesi Preset / Input */}
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
-                                            <MapPin className="w-3.5 h-3.5 text-amber-500" />
-                                            <span>Sanayi Sitesi / Bölge</span>
-                                        </label>
-                                        <input
-                                            list="sanayi-list"
-                                            value={data.sanayi_sitesi}
-                                            onChange={(e) => setData('sanayi_sitesi', e.target.value)}
-                                            placeholder="Örn: Maslak Atatürk Oto Sanayi"
-                                            className="w-full bg-white dark:bg-[#1a1d29] border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 dark:text-white"
-                                        />
-                                        <datalist id="sanayi-list">
-                                            {SANAYI_PRESETS.map((s, idx) => (
-                                                <option key={idx} value={s} />
-                                            ))}
-                                        </datalist>
-                                    </div>
-
-                                    {/* Usta / Firma Adı */}
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
-                                            <Hammer className="w-3.5 h-3.5 text-purple-500" />
-                                            <span>Özel Servis / Usta Adı</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={data.usta_adi}
-                                            onChange={(e) => setData('usta_adi', e.target.value)}
-                                            placeholder="Örn: Özkan Usta - Güven Oto Mekanik"
-                                            className="w-full bg-white dark:bg-[#1a1d29] border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 dark:text-white"
-                                        />
-                                    </div>
-
-                                    {/* Usta Telefonu */}
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
-                                            <Phone className="w-3.5 h-3.5 text-emerald-500" />
-                                            <span>Usta İletişim Telefonu</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={data.usta_tel}
-                                            onChange={(e) => setData('usta_tel', e.target.value)}
-                                            placeholder="0532 123 45 67"
-                                            className="w-full bg-white dark:bg-[#1a1d29] border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 dark:text-white"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        )}
                     </div>
 
-                    {/* Section 3: Comprehensive Motor Oil & Viscosity Specifications */}
-                    <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200/80 dark:border-white/[0.08] shadow-sm space-y-6">
-                        <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/[0.06]">
-                            <div className="flex items-center space-x-2.5">
-                                <Droplets className="w-5 h-5 text-amber-500" />
-                                <div>
-                                    <h3 className="text-base font-black text-slate-900 dark:text-white">
-                                        3. Motor Yağı & Yağ Filtresi Spesifikasyonları
-                                    </h3>
-                                    <p className="text-xs text-slate-400 font-semibold">
-                                        Viskozite (5W-30, 0W-20 vb.), yağ markası, özel serisi ve dolum miktarı
-                                    </p>
+                    {/* Section 3: Comprehensive Motor Oil & Viscosity (Auto-expanded on Periodic/Oil Maintenance) */}
+                    {showOilSection && (
+                        <div className="p-6 sm:p-8 rounded-3xl bg-amber-500/[0.03] dark:bg-amber-500/[0.02] border border-amber-500/20 shadow-sm space-y-6 animate-in fade-in zoom-in-95 duration-200">
+                            <div className="flex items-center justify-between pb-4 border-b border-amber-500/15">
+                                <div className="flex items-center space-x-2.5">
+                                    <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                                        <Droplets className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+                                            <span>3. Motor Yağı & Filtre Spesifikasyonları</span>
+                                            <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[10px] font-black uppercase">
+                                                YAĞ BAKIMI
+                                            </span>
+                                        </h3>
+                                        <p className="text-xs text-slate-400 font-semibold">
+                                            Viskozite derecesi, kullanılan yağ markası, özel serisi ve dolum miktarı
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
 
-                            <button
-                                type="button"
-                                onClick={() => setShowOilSection(!showOilSection)}
-                                className="text-xs font-bold text-amber-500 hover:text-amber-600 cursor-pointer"
-                            >
-                                {showOilSection ? 'Gizle' : 'Göster & Düzenle'}
-                            </button>
-                        </div>
-
-                        {showOilSection && (
                             <div className="space-y-5">
                                 {/* Viscosity Quick Pick Badges */}
                                 <div>
@@ -540,8 +610,8 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
                                                     onClick={() => setData('yag_viskozite', vis)}
                                                     className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
                                                         isSelected
-                                                            ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
-                                                            : 'bg-slate-100 dark:bg-white/[0.04] text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/[0.08]'
+                                                            ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20 scale-105'
+                                                            : 'bg-white dark:bg-white/[0.04] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/10'
                                                     }`}
                                                 >
                                                     {vis}
@@ -594,7 +664,7 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
                                             value={data.yag_litresi}
                                             onChange={(e) => setData('yag_litresi', e.target.value)}
                                             placeholder="4.5"
-                                            className="w-full bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white font-mono"
+                                            className="w-full bg-white dark:bg-[#1a1d29] border border-slate-200 dark:border-white/10 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white font-mono"
                                         />
                                     </div>
                                 </div>
@@ -612,46 +682,277 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
                                     </label>
                                 </div>
                             </div>
+                        </div>
+                    )}
+
+                    {/* Section 4: Categorized Spare Parts & OEM Brands Catalog */}
+                    <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200/80 dark:border-white/[0.08] shadow-sm space-y-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-white/[0.06]">
+                            <div className="flex items-center space-x-2.5">
+                                <Boxes className="w-5 h-5 text-emerald-500" />
+                                <div>
+                                    <h3 className="text-base font-black text-slate-900 dark:text-white">
+                                        4. Değişen Parçalar & Marka Kataloğu
+                                    </h3>
+                                    <p className="text-xs text-slate-400 font-semibold">
+                                        Kullanılan OEM parçaları (Filtre, Balata, Triger, Akü vb.) kataloğumuzdan seçin veya serbest yazın.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Search inside catalog */}
+                            <div className="relative w-full sm:w-64">
+                                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+                                <input
+                                    type="text"
+                                    value={partSearchTerm}
+                                    onChange={(e) => setPartSearchTerm(e.target.value)}
+                                    placeholder="Marka / parça ara (örn: Mann, Brembo)..."
+                                    className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Selected Parts Chips */}
+                        {selectedParts.length > 0 && (
+                            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 space-y-2">
+                                <div className="text-xs font-extrabold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                                    <span>Seçilen / Değişen Parça Listesi ({selectedParts.length})</span>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setSelectedParts([])}
+                                        className="text-[11px] text-red-500 hover:underline font-bold"
+                                    >
+                                        Tümünü Temizle
+                                    </button>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {selectedParts.map((part, pIdx) => (
+                                        <span
+                                            key={pIdx}
+                                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 text-xs font-bold"
+                                        >
+                                            <Check className="w-3 h-3 text-emerald-500" />
+                                            <span>{part}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemovePartTag(pIdx)}
+                                                className="hover:text-red-500 transition-colors ml-1 cursor-pointer"
+                                            >
+                                                <X className="w-3.5 h-3.5" />
+                                            </button>
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Custom Part Input Bar */}
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={customPartInput}
+                                onChange={(e) => setCustomPartInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        handleAddPartTag(customPartInput);
+                                    }
+                                }}
+                                placeholder="Özel parça adı yazın (örn: Sağ Ön Salıncak, V Kayışı)..."
+                                className="flex-1 px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-xs font-medium text-slate-900 dark:text-white"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => handleAddPartTag(customPartInput)}
+                                className="px-5 py-2.5 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-extrabold flex items-center gap-1.5 hover:opacity-90 transition-opacity cursor-pointer shrink-0"
+                            >
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>Parça Ekle</span>
+                            </button>
+                        </div>
+
+                        {/* Category Brands Grid */}
+                        <div className="space-y-4 pt-2">
+                            {filteredCategories.map((cat, catIdx) => (
+                                <div key={catIdx} className="space-y-2">
+                                    <div className="text-xs font-black text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                                        {cat.name}
+                                    </div>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                                        {cat.brands.map((b, bIdx) => {
+                                            const isAdded = selectedParts.some(p => p.includes(b.name));
+                                            return (
+                                                <button
+                                                    key={bIdx}
+                                                    type="button"
+                                                    onClick={() => handleAddPartTag(b.name)}
+                                                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                                                        isAdded 
+                                                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 ring-1 ring-emerald-500'
+                                                            : 'bg-slate-50/60 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/15'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <span className="font-extrabold text-xs text-slate-900 dark:text-white truncate">
+                                                            {b.name}
+                                                        </span>
+                                                        {isAdded ? (
+                                                            <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                                                        ) : (
+                                                            <Plus className="w-3.5 h-3.5 text-slate-400 shrink-0 opacity-60" />
+                                                        )}
+                                                    </div>
+                                                    <span className="text-[10px] text-slate-400 font-medium line-clamp-1">
+                                                        {b.desc}
+                                                    </span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Section 5: Service Provider (Yetkili Servis vs. Sanayi / Usta) */}
+                    <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200/80 dark:border-white/[0.08] shadow-sm space-y-6">
+                        <div className="flex items-center space-x-2.5 pb-4 border-b border-slate-100 dark:border-white/[0.06]">
+                            <Building2 className="w-5 h-5 text-indigo-500" />
+                            <div>
+                                <h3 className="text-base font-black text-slate-900 dark:text-white">
+                                    5. İşlem Yapılan Yer & Servis Sağlayıcı
+                                </h3>
+                                <p className="text-xs text-slate-400 font-semibold">
+                                    İşlemin yetkili bayide mi, özel serviste mi yoksa sanayideki ustanızda mı yapıldığını belirtin.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Service Type Selection Cards */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                            {[
+                                { key: 'yetkili_servis', label: 'Yetkili Servis', icon: Building2, desc: 'Markanın resmi bayisi (Doğuş, Otokoç vb.)' },
+                                { key: 'ozel_servis', label: 'Özel Servis', icon: Store, desc: 'Markaya özel bağımsız teknik servis' },
+                                { key: 'sanayi', label: 'Sanayi / Usta', icon: Hammer, desc: 'Oto Sanayi Sitesi & Mekanik Dükkanı' },
+                                { key: 'kendi_garajimiz', label: 'Kendi Garajım', icon: Home, desc: 'Kendim / Kendi şirket garajımız' },
+                            ].map(st => {
+                                const Icon = st.icon;
+                                const isSelected = data.servis_turu === st.key;
+                                return (
+                                    <button
+                                        key={st.key}
+                                        type="button"
+                                        onClick={() => setData('servis_turu', st.key)}
+                                        className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                                            isSelected 
+                                                ? `bg-indigo-500/10 dark:bg-indigo-500/20 ring-2 ring-indigo-500 border-indigo-500`
+                                                : `bg-slate-50/50 dark:bg-white/[0.02] border-slate-200 dark:border-white/5 hover:border-slate-300`
+                                        }`}
+                                    >
+                                        <div className="flex items-center justify-between mb-2">
+                                            <Icon className={`w-5 h-5 ${isSelected ? 'text-indigo-500' : 'text-slate-400'}`} />
+                                            {isSelected && <CheckCircle2 className="w-4 h-4 text-indigo-500" />}
+                                        </div>
+                                        <div>
+                                            <div className="text-xs font-black text-slate-900 dark:text-white">
+                                                {st.label}
+                                            </div>
+                                            <div className="text-[10px] text-slate-400 font-semibold mt-0.5 leading-tight">
+                                                {st.desc}
+                                            </div>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Detailed Fields based on Service Type */}
+                        {data.servis_turu === 'yetkili_servis' && (
+                            <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10 space-y-3">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
+                                        <Building2 className="w-3.5 h-3.5 text-blue-500" />
+                                        <span>Yetkili Servis & Bayi Adı</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={data.servis_adi}
+                                        onChange={(e) => setData('servis_adi', e.target.value)}
+                                        placeholder="Örn: Doğuş Oto Maslak / Otokoç İstinye / Borusan Oto Avcılar"
+                                        className="w-full bg-white dark:bg-[#1a1d29] border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white"
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {(data.servis_turu === 'sanayi' || data.servis_turu === 'ozel_servis') && (
+                            <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 space-y-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    {/* Sanayi Sitesi Preset / Input */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
+                                            <MapPin className="w-3.5 h-3.5 text-amber-500" />
+                                            <span>Sanayi Sitesi / Bölge</span>
+                                        </label>
+                                        <input
+                                            list="sanayi-list"
+                                            value={data.sanayi_sitesi}
+                                            onChange={(e) => setData('sanayi_sitesi', e.target.value)}
+                                            placeholder="Örn: Maslak Atatürk Oto Sanayi"
+                                            className="w-full bg-white dark:bg-[#1a1d29] border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white"
+                                        />
+                                        <datalist id="sanayi-list">
+                                            {SANAYI_PRESETS.map((s, idx) => (
+                                                <option key={idx} value={s} />
+                                            ))}
+                                        </datalist>
+                                    </div>
+
+                                    {/* Usta / Firma Adı */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
+                                            <Hammer className="w-3.5 h-3.5 text-purple-500" />
+                                            <span>Özel Servis / Usta Adı</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={data.usta_adi}
+                                            onChange={(e) => setData('usta_adi', e.target.value)}
+                                            placeholder="Örn: Özkan Usta - Güven Oto Mekanik"
+                                            className="w-full bg-white dark:bg-[#1a1d29] border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white"
+                                        />
+                                    </div>
+
+                                    {/* Usta Telefonu */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
+                                            <Phone className="w-3.5 h-3.5 text-emerald-500" />
+                                            <span>Usta İletişim Telefonu</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={data.usta_tel}
+                                            onChange={(e) => setData('usta_tel', e.target.value)}
+                                            placeholder="0532 123 45 67"
+                                            className="w-full bg-white dark:bg-[#1a1d29] border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
                         )}
                     </div>
 
-                    {/* Section 4: Operation Type & Financials */}
+                    {/* Section 6: Total Cost & Notes */}
                     <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200/80 dark:border-white/[0.08] shadow-sm space-y-6">
                         <div className="flex items-center space-x-2.5 pb-4 border-b border-slate-100 dark:border-white/[0.06]">
-                            <SlidersHorizontal className="w-5 h-5 text-purple-500" />
+                            <Coins className="w-5 h-5 text-amber-500" />
                             <h3 className="text-base font-black text-slate-900 dark:text-white">
-                                4. Yapılan İşlem & Maliyet
+                                6. Maliyet & Servis Notları
                             </h3>
                         </div>
 
                         <div className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
-                                    İşlem Başlığı / Türü *
-                                </label>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1 bg-slate-50 dark:bg-white/[0.02] rounded-2xl border border-slate-200 dark:border-white/5">
-                                    {OPERATION_CATEGORIES.flatMap(c => c.items).map((op, idx) => (
-                                        <button
-                                            key={idx}
-                                            type="button"
-                                            onClick={() => {
-                                                setData('islem_turu', op);
-                                                setIsCustomOperation(false);
-                                            }}
-                                            className={`p-2.5 rounded-xl text-xs font-bold text-left transition-colors flex items-center justify-between cursor-pointer ${
-                                                data.islem_turu === op && !isCustomOperation
-                                                    ? 'bg-amber-500 text-slate-950'
-                                                    : 'hover:bg-slate-200/60 dark:hover:bg-white/[0.06] text-slate-700 dark:text-slate-300'
-                                            }`}
-                                        >
-                                            <span className="truncate">{op}</span>
-                                            {data.islem_turu === op && !isCustomOperation && <Check className="w-3.5 h-3.5 shrink-0 ml-1" />}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Total Cost */}
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
                                     <Coins className="w-4 h-4 text-amber-500" />
@@ -663,7 +964,7 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
                                     value={data.maliyet_tl}
                                     onChange={(e) => setData('maliyet_tl', e.target.value)}
                                     placeholder="4850.00"
-                                    className="w-full bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 rounded-2xl px-4 py-3 text-sm font-black font-mono text-slate-900 dark:text-white"
+                                    className="w-full bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 rounded-2xl px-4 py-3.5 text-base font-black font-mono text-slate-900 dark:text-white"
                                     required
                                 />
                             </div>

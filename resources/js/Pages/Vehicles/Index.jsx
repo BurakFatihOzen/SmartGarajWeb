@@ -186,14 +186,17 @@ export default function VehiclesIndex({ vehicles = [] }) {
                                     className="p-6 rounded-3xl bg-white dark:bg-[#13151b] border border-slate-200/80 dark:border-white/[0.08] hover:border-amber-500/40 transition-all flex flex-col justify-between space-y-5 group relative overflow-hidden shadow-lg hover:shadow-xl"
                                 >
                                     <div className="space-y-4">
-                                        {/* Vehicle Photo Container with Quick Upload */}
-                                        <div className="relative h-44 rounded-2xl overflow-hidden bg-slate-100 dark:bg-[#181b24] border border-slate-200/80 dark:border-white/10 group/photo">
+                                        {/* Vehicle Photo Container with Full Bleed */}
+                                        <div className="relative h-48 rounded-2xl overflow-hidden bg-slate-900 dark:bg-black/80 border border-slate-200/80 dark:border-white/10 group/photo shadow-md">
                                             {v.fotograf_url ? (
-                                                <img
-                                                    src={v.fotograf_url}
-                                                    alt={v.plaka}
-                                                    className="w-full h-full object-cover group-hover/photo:scale-105 transition-transform duration-300"
-                                                />
+                                                <>
+                                                    <img
+                                                        src={v.fotograf_url}
+                                                        alt={v.plaka}
+                                                        className="w-full h-full object-cover object-center group-hover/photo:scale-105 transition-transform duration-300"
+                                                    />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10 pointer-events-none" />
+                                                </>
                                             ) : (
                                                 <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 space-y-1">
                                                     <Car className="w-10 h-10 text-slate-400 dark:text-slate-600" />

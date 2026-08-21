@@ -59,7 +59,22 @@ export default function Dashboard({
     const [searchQuery, setSearchQuery] = useState('');
     const [isVehicleDropdownOpen, setIsVehicleDropdownOpen] = useState(false);
     const [vehicleFilterQuery, setVehicleFilterQuery] = useState('');
+    const [photoRatio, setPhotoRatio] = useState('landscape');
     const vehicleDropdownRef = useRef(null);
+
+    useEffect(() => {
+        if (activeVehicle?.fotograf_url) {
+            const img = new Image();
+            img.src = activeVehicle.fotograf_url;
+            img.onload = () => {
+                if (img.naturalHeight > img.naturalWidth * 1.05) {
+                    setPhotoRatio('portrait');
+                } else {
+                    setPhotoRatio('landscape');
+                }
+            };
+        }
+    }, [activeVehicle?.id, activeVehicle?.fotograf_url]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -248,7 +263,7 @@ export default function Dashboard({
         if (dM !== null && dM <= 0) return { text: `${activeVehicle.plaka} aracınızın TÜVTÜRK muayene süresi doldu! Ceza yememek için randevu alın.`, type: 'danger', title: 'Muayene Uyarısı' };
         if (dM !== null && dM <= 30) return { text: `Muayene vadesine ${dM} gün kaldı. Randevunuzu erkenden planlamanızı öneririz.`, type: 'warning', title: 'Vade Yaklaşıyor' };
         if (dS !== null && dS <= 30) return { text: `Zorunlu Trafik Sigortası bitimine ${dS} gün var. Poliçe yenileme tekliflerini inceleyin.`, type: 'warning', title: 'Sigorta Vadesi' };
-        if (healthScore < 60) return { text: `${activeVehicle.marka} ${activeVehicle.model} için kritik bakım uyarıları var! AI sağlık teşhisini inceleyin.`, type: 'danger', title: healthStatusLabel || 'Kritik Dikkat Gerektiriyor' };
+        if (healthScore < 60) return { text: `${activeVehicle.marka} ${activeVehicle.model} için kritik bakım uyarıları var! Akıllı analizi inceleyin.`, type: 'danger', title: healthStatusLabel || 'Kritik Dikkat Gerektiriyor' };
         if (maintenances.length > 0) return { text: `Son işlem: "${maintenances[0].islem_turu}". Araç kondisyonu ve servis takvimi güncel.`, type: 'success', title: healthStatusLabel || 'Kondisyon Mükemmel' };
         return { text: `${activeVehicle.marka} ${activeVehicle.model} için henüz bakım kaydı girilmedi. Fatura ve periyodik bakım ekleyin.`, type: 'info', title: 'İlk Bakımı Ekleyin' };
     }, [activeVehicle, maintenances, healthScore, healthStatusLabel]);
@@ -311,7 +326,7 @@ export default function Dashboard({
                                     className="px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs shadow-lg shadow-purple-600/25 hover:shadow-purple-600/40 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center space-x-2 cursor-pointer border border-purple-400/30"
                                 >
                                     <Sparkles className="w-4 h-4 text-purple-200" />
-                                    <span>AI Sağlık Teşhisi</span>
+                                    <span>Akıllı Analiz</span>
                                 </button>
                             )}
 
@@ -542,8 +557,16 @@ export default function Dashboard({
                         {/* Main Hero Content */}
                         <div className="p-5 sm:p-7 md:p-8 flex flex-col lg:flex-row gap-6 sm:gap-8 items-stretch">
                             {/* Left: Vehicle Image with Plate Badge */}
-                            <div className="lg:w-[380px] shrink-0 flex flex-col">
-                                <label className="relative flex-1 min-h-[200px] sm:min-h-[220px] rounded-2xl bg-slate-100 dark:bg-[#161824] border border-slate-200 dark:border-white/[0.06] overflow-hidden group cursor-pointer flex items-center justify-center">
+                            <div className={`shrink-0 flex flex-col justify-center transition-all duration-300 ${
+                                photoRatio === 'portrait'
+                                    ? 'w-full sm:w-[220px] md:w-[240px] lg:w-[250px]'
+                                    : 'w-full lg:w-[380px] xl:w-[420px]'
+                            }`}>
+                                <label className={`relative w-full rounded-2xl bg-slate-900 border border-slate-200/80 dark:border-white/10 overflow-hidden group cursor-pointer flex items-center justify-center shadow-lg shadow-black/20 transition-all duration-300 ${
+                                    photoRatio === 'portrait'
+                                        ? 'aspect-[3/4] sm:h-[270px] lg:h-[280px]'
+                                        : 'aspect-[16/10]'
+                                }`}>
                                     <input 
                                         type="file" 
                                         accept="image/*" 
@@ -558,21 +581,16 @@ export default function Dashboard({
                                         className="hidden" 
                                     />
                                     {activeVehicle.fotograf_url ? (
-                                        <div className="relative w-full h-full min-h-[220px] sm:min-h-[250px] flex items-center justify-center overflow-hidden bg-slate-900/60 dark:bg-black/60 rounded-2xl">
-                                            {/* Subtle Ambient Blurred Backdrop */}
-                                            <img 
-                                                src={activeVehicle.fotograf_url} 
-                                                alt="" 
-                                                aria-hidden="true"
-                                                className="absolute inset-0 w-full h-full object-cover blur-lg opacity-35 scale-110" 
-                                            />
-                                            {/* Main sharp full vehicle photo with object-contain */}
+                                        <>
+                                            {/* Full Bleed High-Res Vehicle Photo (100% Frame Fill) */}
                                             <img 
                                                 src={activeVehicle.fotograf_url} 
                                                 alt={`${activeVehicle.marka} ${activeVehicle.model}`} 
-                                                className="relative z-10 w-full h-full max-h-[270px] object-contain group-hover:scale-105 transition-transform duration-500 p-1" 
+                                                className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500" 
                                             />
-                                        </div>
+                                            {/* Bottom Vignette Gradient for Plate Legibility */}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10 pointer-events-none" />
+                                        </>
                                     ) : (
                                         <div className="flex flex-col items-center justify-center p-6 text-center text-slate-400 dark:text-slate-500">
                                             <Car className="w-16 h-16 mb-2 opacity-50" />
