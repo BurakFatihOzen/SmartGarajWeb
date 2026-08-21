@@ -20,12 +20,12 @@ use App\Http\Controllers\Web\DocumentController;
 |--------------------------------------------------------------------------
 */
 
-// Ana Sayfa Yönlendirmesi
+// Ana Sayfa — Giriş yapmamışsa Landing, yapmışsa Dashboard
 Route::get('/', function () {
     if (auth()->check()) {
         return auth()->user()->isFleet() ? redirect()->route('fleet.index') : redirect()->route('dashboard');
     }
-    return redirect()->route('login');
+    return view('welcome');
 });
 
 // Herkese Açık Doğrulanabilir Dijital Araç Pasaportu (QR Tarama)
