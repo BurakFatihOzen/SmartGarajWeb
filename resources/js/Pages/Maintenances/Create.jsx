@@ -379,15 +379,6 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
                             </p>
                         </div>
                     </div>
-
-                    <button
-                        type="button"
-                        onClick={() => setIsOcrOpen(true)}
-                        className="inline-flex items-center justify-center space-x-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs shadow-lg shadow-purple-600/25 hover:shadow-purple-600/40 hover:-translate-y-0.5 active:scale-95 transition-all cursor-pointer border border-purple-400/30 shrink-0"
-                    >
-                        <Sparkles className="w-4 h-4 text-purple-200" />
-                        <span>🧠 Vision AI ile Fatura / Fiş Tara</span>
-                    </button>
                 </div>
 
                 {/* ═══════════════════════════════════════════════════════════════

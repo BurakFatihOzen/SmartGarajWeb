@@ -204,6 +204,45 @@ export default function OcrModal({ isOpen, onClose, type = 'ruhsat', onDataExtra
                         </button>
                     </div>
                 )}
+
+                {/* Development Sample Fill Option */}
+                {!result && (
+                    <div className="pt-2 text-center">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const sample = type === 'ruhsat' ? {
+                                    plaka: '34 SG 2026',
+                                    sasi_no: 'WBA3A5C50DF819283',
+                                    marka: 'Volkswagen',
+                                    model: 'Passat 1.5 TSI Elegance',
+                                    motor: '1.5 TSI 150 HP ACT',
+                                    yil: 2022,
+                                    ruhsat_tipi: 'Otomobil (Hususi)',
+                                    muayene_tarihi: '2027-04-18'
+                                } : {
+                                    tarih: new Date().toISOString().split('T')[0],
+                                    servis_adi: 'Bosch Car Service',
+                                    islem_km: 45000,
+                                    toplam_tutar: 5450.00,
+                                    islem_turu: 'Periyodik Bakım & Filtre Seti',
+                                    aciklama: 'Yıllık periyodik bakım yapıldı, motor yağı ve tüm filtreler orijinal parça ile yenilendi.',
+                                    parcalar: [
+                                        { ad: 'Motul 8100 X-Clean+ 5W-30 (5L)', adet: 1, fiyat: 2100.00 },
+                                        { ad: 'Mann Orijinal Yağ Filtresi', adet: 1, fiyat: 420.00 },
+                                        { ad: 'Mann Karbonlu Polen Filtresi', adet: 1, fiyat: 580.00 },
+                                        { ad: 'Mann Hava Filtresi', adet: 1, fiyat: 550.00 },
+                                        { ad: 'Periyodik Bakım İşçilik Bedeli', adet: 1, fiyat: 1800.00 }
+                                    ]
+                                };
+                                setResult({ success: true, data: sample });
+                            }}
+                            className="text-[11px] font-bold text-slate-400 hover:text-purple-500 dark:hover:text-purple-400 hover:underline transition-colors cursor-pointer"
+                        >
+                            ⚡ Test için örnek {type === 'ruhsat' ? 'ruhsat' : 'fatura'} verisi yükle
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

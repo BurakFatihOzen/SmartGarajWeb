@@ -126,11 +126,16 @@ export default function AppLayout({ children, title }) {
 
     const SidebarContent = ({ isMobile = false }) => (
         <div className="flex flex-col h-full bg-white dark:bg-[#0c0d14] text-slate-800 dark:text-slate-200 transition-colors duration-200">
-            {/* Logo Area */}
-            <div className={`flex items-center h-[72px] sm:h-[76px] px-5 border-b border-slate-200/80 dark:border-white/[0.06] ${
-                sidebarCollapsed && !isMobile ? 'justify-center px-2' : 'space-x-3.5'
-            }`}>
-                <div className="relative flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-amber-500 via-orange-500 to-amber-400 text-slate-950 font-black shadow-lg shadow-amber-500/25 shrink-0">
+            {/* Logo Area (Clickable to Dashboard) */}
+            <Link 
+                href="/dashboard"
+                onClick={() => isMobile && setMobileMenuOpen(false)}
+                className={`flex items-center h-[72px] sm:h-[76px] px-5 border-b border-slate-200/80 dark:border-white/[0.06] hover:opacity-90 transition-opacity cursor-pointer group ${
+                    sidebarCollapsed && !isMobile ? 'justify-center px-2' : 'space-x-3.5'
+                }`}
+                title="Ana Sayfaya Git"
+            >
+                <div className="relative flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-amber-500 via-orange-500 to-amber-400 text-slate-950 font-black shadow-lg shadow-amber-500/25 shrink-0 group-hover:scale-105 transition-transform">
                     <Wrench className="w-5 h-5 text-slate-950 stroke-[2.5]" />
                     <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white dark:border-[#0c0d14]"></span>
                 </div>
@@ -146,7 +151,7 @@ export default function AppLayout({ children, title }) {
                         </span>
                     </div>
                 )}
-            </div>
+            </Link>
 
             {/* Nav Menu */}
             <nav className="flex-1 px-3.5 py-5 space-y-2 overflow-y-auto">
@@ -164,7 +169,7 @@ export default function AppLayout({ children, title }) {
                             sidebarCollapsed && !isMobile ? 'justify-center p-3' : 'px-3.5 py-3 space-x-3.5'
                         } ${
                             item.active
-                                ? 'bg-amber-50 dark:bg-gradient-to-r dark:from-amber-500/[0.12] dark:to-orange-500/[0.04] text-slate-900 dark:text-white border border-amber-200 dark:border-amber-500/20 shadow-sm'
+                                ? 'bg-amber-500/15 dark:bg-amber-500/15 text-slate-950 dark:text-white border border-amber-400/40 dark:border-amber-500/30 shadow-xs'
                                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]'
                         }`}
                         title={sidebarCollapsed ? item.label : undefined}
@@ -178,10 +183,10 @@ export default function AppLayout({ children, title }) {
                         </div>
                         {(!sidebarCollapsed || isMobile) && (
                             <div className="flex-1 text-left min-w-0">
-                                <div className={`text-[13px] font-bold truncate ${item.active ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'}`}>
+                                <div className={`text-[13px] font-bold truncate ${item.active ? 'text-slate-950 dark:text-white' : 'text-slate-700 dark:text-slate-300'}`}>
                                     {item.label}
                                 </div>
-                                <div className="text-[10px] text-slate-400 dark:text-slate-500 truncate font-medium">
+                                <div className={`text-[10px] truncate font-medium ${item.active ? 'text-amber-800 dark:text-amber-300/80' : 'text-slate-400 dark:text-slate-500'}`}>
                                     {item.desc}
                                 </div>
                             </div>
