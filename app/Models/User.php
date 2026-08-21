@@ -24,7 +24,25 @@ class User extends Authenticatable
         'sehir',
         'ehliyet_sinifi',
         'rol',
+        'hesap_turu',
+        'sirket_adi',
     ];
+
+    /**
+     * Kurumsal Filo Hesabı mı?
+     */
+    public function isFleet(): bool
+    {
+        return $this->hesap_turu === 'filo';
+    }
+
+    /**
+     * Bireysel Hesap mı?
+     */
+    public function isIndividual(): bool
+    {
+        return $this->hesap_turu !== 'filo';
+    }
 
     protected $hidden = [
         'sifre',

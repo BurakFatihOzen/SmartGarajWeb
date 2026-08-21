@@ -15,9 +15,14 @@ class ReportController extends Controller
     public function verifyPassport($token)
     {
         $vehicle = Vehicle::where('qr_token', $token)
-            ->with(['maintenances' => function($q) {
-                $q->orderBy('islem_tarihi', 'desc');
-            }])
+            ->with([
+                'maintenances' => function($q) {
+                    $q->orderBy('islem_tarihi', 'desc');
+                },
+                'accidents' => function($q) {
+                    $q->orderBy('kaza_tarihi', 'desc');
+                }
+            ])
             ->firstOrFail();
 
         $verifyUrl = route('passport.verify', ['token' => $vehicle->qr_token]);
@@ -28,7 +33,10 @@ class ReportController extends Controller
             'qrCodeUrl' => $qrCodeUrl,
             'verifyUrl' => $verifyUrl,
             'totalSpent' => $vehicle->total_spent,
+            'totalDamage' => $vehicle->total_damage,
+            'tramerTotal' => $vehicle->tramer_total,
             'maintenanceCount' => $vehicle->maintenance_count,
+            'accidentCount' => $vehicle->accident_count,
         ]);
     }
 
@@ -37,9 +45,14 @@ class ReportController extends Controller
      */
     public function printReport($id)
     {
-        $vehicle = Vehicle::with(['maintenances' => function($q) {
-            $q->orderBy('islem_tarihi', 'desc');
-        }])->findOrFail($id);
+        $vehicle = Vehicle::with([
+            'maintenances' => function($q) {
+                $q->orderBy('islem_tarihi', 'desc');
+            },
+            'accidents' => function($q) {
+                $q->orderBy('kaza_tarihi', 'desc');
+            }
+        ])->findOrFail($id);
 
         if (empty($vehicle->qr_token)) {
             $vehicle->update(['qr_token' => bin2hex(random_bytes(16))]);
@@ -52,6 +65,23 @@ class ReportController extends Controller
             'vehicle' => $vehicle,
             'qrCodeUrl' => $qrCodeUrl,
             'verifyUrl' => $verifyUrl,
+            'totalSpent' => $vehicle->total_spent,
+            'totalDamage' => $vehicle->total_damage,
+            'tramerTotal' => $vehicle->tramer_total,
         ]);
+    }
+
+    /**
+     * Araç Dijital Pasaportuna Doğrudan Erişim
+     */
+    public function showPassport($id)
+    {
+        $vehicle = Vehicle::findOrFail($id);
+
+        if (empty($vehicle->qr_token)) {
+            $vehicle->update(['qr_token' => bin2hex(random_bytes(16))]);
+        }
+
+        return redirect()->route('passport.verify', ['token' => $vehicle->qr_token]);
     }
 }

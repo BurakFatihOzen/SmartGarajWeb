@@ -5,11 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class FuelLog extends Model
+class TrafficFine extends Model
 {
     use HasFactory;
 
-    protected $table = 'yakit_kayitlari';
+    protected $table = 'trafik_cezalari';
 
     const CREATED_AT = 'kayit_tarihi';
     const UPDATED_AT = 'guncelleme_tarihi';
@@ -18,25 +18,23 @@ class FuelLog extends Model
         'arac_id',
         'kullanici_id',
         'surucu_id',
-        'tarih',
-        'km',
-        'litre',
-        'birim_fiyat',
-        'toplam_tutar',
-        'yakit_turu',
-        'istasyon',
-        'tam_depo_mu',
-        'fis_url',
-        'notlar',
+        'ceza_tarihi',
+        'ceza_maddesi',
+        'tutar',
+        'indirimli_tutar',
+        'son_odeme_tarihi',
+        'durum',
+        'odeme_tarihi',
+        'tutanak_url',
+        'aciklama',
     ];
 
     protected $casts = [
-        'tarih' => 'date',
-        'km' => 'integer',
-        'litre' => 'decimal:2',
-        'birim_fiyat' => 'decimal:2',
-        'toplam_tutar' => 'decimal:2',
-        'tam_depo_mu' => 'boolean',
+        'ceza_tarihi' => 'date',
+        'son_odeme_tarihi' => 'date',
+        'odeme_tarihi' => 'date',
+        'tutar' => 'decimal:2',
+        'indirimli_tutar' => 'decimal:2',
     ];
 
     public function vehicle()

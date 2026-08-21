@@ -17,6 +17,9 @@ import {
     CheckCircle2, 
     AlertCircle, 
     AlertTriangle, 
+    ShieldAlert,
+    ShieldCheck,
+    Paintbrush,
     Coins, 
     TrendingUp,
     Clock, 
@@ -32,12 +35,17 @@ import {
     Share2,
     Fuel
 } from 'lucide-react';
+import DamageBodyMap from '@/Components/DamageBodyMap';
+import AccidentModal from '@/Components/AccidentModal';
 
 export default function Dashboard({ 
     vehicles = [], 
     activeVehicle = null, 
     maintenances = [], 
+    accidents = [],
     totalSpent = 0, 
+    totalDamage = 0,
+    tramerTotal = 0,
     allVehiclesCount = 0, 
     monthlyStats = [], 
     categoryStats = [],
@@ -46,6 +54,7 @@ export default function Dashboard({
     upcomingAlertsCount = 0 
 }) {
     const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+    const [isAccidentModalOpen, setIsAccidentModalOpen] = useState(false);
     const [selectedOperationFilter, setSelectedOperationFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [isVehicleDropdownOpen, setIsVehicleDropdownOpen] = useState(false);
@@ -102,6 +111,34 @@ export default function Dashboard({
             return matchesFilter && matchesSearch;
         });
     }, [maintenances, selectedOperationFilter, searchQuery]);
+
+    // Aggregated damaged parts across all accidents of active vehicle
+    const allDamagedParts = useMemo(() => {
+        const partsObj = {};
+        if (Array.isArray(accidents)) {
+            accidents.forEach(acc => {
+                if (acc.hasarli_parcalar && Array.isArray(acc.hasarli_parcalar)) {
+                    acc.hasarli_parcalar.forEach(p => {
+                        if (p && p.parca) {
+                            const curr = partsObj[p.parca];
+                            if (!curr || p.durum === 'Değişen' || (p.durum === 'Boyalı' && curr === 'Lokal Boyalı')) {
+                                partsObj[p.parca] = p.durum;
+                            }
+                        }
+                    });
+                }
+            });
+        }
+        return Object.keys(partsObj).map(k => ({ parca: k, durum: partsObj[k] }));
+    }, [accidents]);
+
+    const handleDeleteAccident = (id) => {
+        if (confirm('Bu hasar/kaza kaydını silmek istediğinize emin misiniz?')) {
+            router.delete(`/accidents/${id}`, {
+                preserveScroll: true,
+            });
+        }
+    };
 
     // Monthly Area Chart
     const chartCategories = monthlyStats.length > 0 ? monthlyStats.map(s => s.month) : ['Ock', 'Şbt', 'Mrt', 'Nsn', 'Mys', 'Hzr'];
@@ -631,8 +668,17 @@ export default function Dashboard({
                                         <span>Bakım Ekle</span>
                                     </Link>
 
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsAccidentModalOpen(true)}
+                                        className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 font-extrabold text-xs transition-all flex items-center justify-center space-x-1.5 cursor-pointer"
+                                    >
+                                        <ShieldAlert className="w-4 h-4" />
+                                        <span>Hasar / Kaza Bildir</span>
+                                    </button>
+
                                     <a
-                                        href={activeVehicle.qr_token ? `/verify/${activeVehicle.qr_token}` : `/vehicles/${activeVehicle.id}/print-report`}
+                                        href={`/vehicles/${activeVehicle.id}/passport`}
                                         target="_blank"
                                         rel="noreferrer"
                                         className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-white/[0.05] hover:bg-slate-200 dark:hover:bg-white/[0.1] border border-slate-200 dark:border-white/[0.08] text-slate-800 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-center space-x-1.5"
@@ -863,6 +909,182 @@ export default function Dashboard({
                         )}
                     </div>
                 )}
+
+                {/* Hasar, Kaza & Kaporta Ekspertiz Durumu Bölümü */}
+                {activeVehicle && (
+                    <div className="rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200/80 dark:border-white/[0.06] shadow-sm overflow-hidden space-y-6 p-5 sm:p-6">
+                        {/* Section Header */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-white/[0.06] pb-4">
+                            <div>
+                                <h4 className="text-base font-black text-slate-900 dark:text-white flex items-center space-x-2">
+                                    <ShieldAlert className="w-5 h-5 text-red-500" />
+                                    <span>Hasar & Kaza Geçmişi & Kaporta Durumu</span>
+                                </h4>
+                                <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 mt-0.5">
+                                    {activeVehicle.plaka} — Toplam {accidents.length} hasar kaydı &bull; Tramer: <strong className="text-red-500">₺{Number(tramerTotal).toLocaleString('tr-TR')}</strong>
+                                </p>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() => setIsAccidentModalOpen(true)}
+                                className="shrink-0 px-3.5 sm:px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 font-extrabold text-xs transition-all flex items-center space-x-1.5 cursor-pointer"
+                            >
+                                <PlusCircle className="w-4 h-4 stroke-[2.5]" />
+                                <span>Yeni Hasar / Kaza Ekle</span>
+                            </button>
+                        </div>
+
+                        {/* Top: Summary KPI Badges */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 space-y-1">
+                                <span className="text-[11px] font-bold text-slate-400">Toplam Onarım Maliyeti</span>
+                                <div className="text-lg font-black text-slate-900 dark:text-white font-mono">
+                                    ₺{Number(totalDamage).toLocaleString('tr-TR')}
+                                </div>
+                            </div>
+
+                            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 space-y-1">
+                                <span className="text-[11px] font-bold text-slate-400">TRAMER Kaydı Durumu</span>
+                                <div className="text-lg font-black font-mono">
+                                    {tramerTotal > 0 ? (
+                                        <span className="text-red-500">₺{Number(tramerTotal).toLocaleString('tr-TR')}</span>
+                                    ) : (
+                                        <span className="text-emerald-500 text-sm font-bold">Tramer Kaydı Yok (0 ₺)</span>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 space-y-1">
+                                <span className="text-[11px] font-bold text-slate-400">İşlem Gören Parça Sayısı</span>
+                                <div className="text-lg font-black font-mono">
+                                    {allDamagedParts.length > 0 ? (
+                                        <span className="text-amber-500">{allDamagedParts.length} Parça</span>
+                                    ) : (
+                                        <span className="text-emerald-500 text-sm font-bold">Hatasız / Boyasız</span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Middle: Interactive Visual Body Damage Schematic */}
+                        <div className="space-y-2">
+                            <h5 className="text-xs font-black text-slate-700 dark:text-slate-300 flex items-center space-x-1.5">
+                                <Paintbrush className="w-4 h-4 text-amber-500" />
+                                <span>Güncel Kaporta Durumu Şeması</span>
+                            </h5>
+                            <DamageBodyMap value={allDamagedParts} readOnly={true} />
+                        </div>
+
+                        {/* Bottom: Accident Records Table */}
+                        <div className="space-y-3 pt-2">
+                            <h5 className="text-xs font-black text-slate-700 dark:text-slate-300">
+                                Kaza & Olay Kayıt Detayları ({accidents.length})
+                            </h5>
+
+                            {accidents.length > 0 ? (
+                                <div className="overflow-x-auto w-full">
+                                    <table className="w-full text-left text-xs min-w-[620px]">
+                                        <thead className="bg-slate-50 dark:bg-white/[0.02] text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-200/80 dark:border-white/[0.06]">
+                                            <tr>
+                                                <th className="px-4 py-3">Tarih</th>
+                                                <th className="px-4 py-3">Kaza Türü</th>
+                                                <th className="px-4 py-3">Hasar & Tramer</th>
+                                                <th className="px-4 py-3">Kusur / Sigorta</th>
+                                                <th className="px-4 py-3">Hasarlı Parçalar</th>
+                                                <th className="px-4 py-3">Açıklama</th>
+                                                <th className="px-4 py-3 text-right">İşlem</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100 dark:divide-white/[0.04]">
+                                            {accidents.map((acc) => (
+                                                <tr key={acc.id} className="hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors">
+                                                    <td className="px-4 py-3 whitespace-nowrap text-slate-700 dark:text-slate-300 font-bold">
+                                                        {formatDate(acc.kaza_tarihi)}
+                                                        {acc.kaza_km && (
+                                                            <div className="text-[10px] text-slate-400 font-mono">
+                                                                {Number(acc.kaza_km).toLocaleString('tr-TR')} KM
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
+                                                            {acc.kaza_turu}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap font-mono">
+                                                        <div className="font-black text-slate-900 dark:text-white">
+                                                            ₺{Number(acc.hasar_tutari || 0).toLocaleString('tr-TR')}
+                                                        </div>
+                                                        {acc.tramer_kaydi && (
+                                                            <div className="text-[10px] text-amber-500 font-bold">
+                                                                Tramer: ₺{Number(acc.tramer_tutari || acc.hasar_tutari || 0).toLocaleString('tr-TR')}
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-[11px]">
+                                                        <div className="font-bold text-slate-700 dark:text-slate-300">
+                                                            Kusur: %{acc.kusur_orani || 0}
+                                                        </div>
+                                                        {acc.sigorta_sirketi && (
+                                                            <div className="text-[10px] text-slate-400">
+                                                                {acc.sigorta_sirketi} {acc.dosya_no ? `(${acc.dosya_no})` : ''}
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <div className="flex flex-wrap gap-1 max-w-xs">
+                                                            {acc.hasarli_parcalar && Array.isArray(acc.hasarli_parcalar) && acc.hasarli_parcalar.length > 0 ? (
+                                                                acc.hasarli_parcalar.map((p, pIdx) => (
+                                                                    <span 
+                                                                        key={pIdx}
+                                                                        className={`px-1.5 py-0.2 rounded text-[10px] font-bold border ${
+                                                                            p.durum === 'Değişen' 
+                                                                                ? 'bg-red-500/10 text-red-500 border-red-500/20' 
+                                                                                : p.durum === 'Boyalı'
+                                                                                ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                                                                                : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                                                                        }`}
+                                                                    >
+                                                                        {p.parca} ({p.durum})
+                                                                    </span>
+                                                                ))
+                                                            ) : (
+                                                                <span className="text-[10px] text-slate-400">Belirtilmedi</span>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400 max-w-xs truncate font-medium text-[11px]">
+                                                        {acc.aciklama || '-'}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right">
+                                                        <button
+                                                            onClick={() => handleDeleteAccident(acc.id)}
+                                                            className="p-1.5 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
+                                                            title="Kaydı Sil"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/15 text-center space-y-1.5">
+                                    <ShieldCheck className="w-8 h-8 text-emerald-500 mx-auto" />
+                                    <div className="text-xs font-black text-emerald-700 dark:text-emerald-400">
+                                        Kusursuz Araç Geçmişi
+                                    </div>
+                                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                                        Bu araca ait kayıtlı herhangi bir hasar veya kaza kaydı bulunmamaktadır.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* AI Diagnosis Modal */}
@@ -875,6 +1097,14 @@ export default function Dashboard({
                     vehicleName={`${activeVehicle.marka} ${activeVehicle.model}`} 
                 />
             )}
+
+            {/* Accident & Damage Modal */}
+            <AccidentModal
+                isOpen={isAccidentModalOpen}
+                onClose={() => setIsAccidentModalOpen(false)}
+                vehicles={vehicles}
+                activeVehicle={activeVehicle}
+            />
         </AppLayout>
     );
 }

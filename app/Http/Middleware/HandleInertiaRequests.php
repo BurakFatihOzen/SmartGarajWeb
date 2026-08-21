@@ -44,6 +44,8 @@ class HandleInertiaRequests extends Middleware
                     'email' => $request->user()->email,
                     'telefon' => $request->user()->telefon,
                     'rol' => $request->user()->rol,
+                    'hesap_turu' => $request->user()->hesap_turu ?? 'bireysel',
+                    'sirket_adi' => $request->user()->sirket_adi,
                 ] : null,
             ],
             'flash' => [

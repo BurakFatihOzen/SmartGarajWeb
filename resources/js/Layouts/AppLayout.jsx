@@ -23,11 +23,16 @@ import {
     Search,
     Clock,
     Activity,
-    QrCode
+    QrCode,
+    Building2,
+    ShieldAlert,
+    Truck,
+    UserCheck,
+    Fuel
 } from 'lucide-react';
 import ProfileModal from '@/Components/ProfileModal';
 
-export default function AppLayout({ children, title }) {
+export default function AppLayout({ children, title, activeMode }) {
     const { auth, flash } = usePage().props;
     const currentUrl = usePage().url;
     const user = auth?.user;
@@ -37,7 +42,9 @@ export default function AppLayout({ children, title }) {
     const [isDark, setIsDark] = useState(true);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [headerSearch, setHeaderSearch] = useState('');
+
+    // Is current user a Fleet / Corporate account?
+    const isFleetMode = user?.hesap_turu === 'filo' || user?.rol === 'filo' || activeMode === 'fleet';
 
     // Initialize theme
     useEffect(() => {
@@ -81,14 +88,93 @@ export default function AppLayout({ children, title }) {
     };
 
     const isPanelActive = currentUrl === '/dashboard' || currentUrl === '/';
+    const isFleetActive = currentUrl === '/fleet';
+    const isDriversActive = currentUrl.startsWith('/fleet/drivers');
+    const isFinesActive = currentUrl.startsWith('/fleet/fines');
+    const isFuelActive = currentUrl.startsWith('/fleet/fuel');
+    const isAccidentsActive = currentUrl.startsWith('/fleet/accidents') || currentUrl === '/accidents';
     const isGarageActive = currentUrl.startsWith('/vehicles') && currentUrl !== '/vehicles/create';
     const isAddVehicleActive = currentUrl === '/vehicles/create';
     const isMaintenanceActive = currentUrl.startsWith('/maintenances');
 
-    const navItems = [
+    // Dynamic nav items based on user account type
+    const navItems = isFleetMode ? [
+        { 
+            href: '/fleet', 
+            label: 'Filo Portalı', 
+            desc: 'KPI & Operasyon Paneli',
+            icon: Building2, 
+            active: isFleetActive,
+            gradient: 'from-blue-600 to-indigo-600',
+            badgeColor: 'text-blue-500'
+        },
+        { 
+            href: '/vehicles', 
+            label: 'Filo Araçları', 
+            desc: 'Tüm araç listesi & durum',
+            icon: Car, 
+            active: isGarageActive,
+            gradient: 'from-amber-500 to-orange-500',
+            badgeColor: 'text-amber-500'
+        },
+        { 
+            href: '/fleet/drivers', 
+            label: 'Sürücüler & Zimmet', 
+            desc: 'Ehliyet & zimmet takibi',
+            icon: UserCheck, 
+            active: isDriversActive,
+            gradient: 'from-cyan-600 to-blue-600',
+            badgeColor: 'text-cyan-500'
+        },
+        { 
+            href: '/fleet/fines', 
+            label: 'Trafik Cezaları', 
+            desc: '%25 indirim & ihlal takibi',
+            icon: ShieldAlert, 
+            active: isFinesActive,
+            gradient: 'from-red-600 to-rose-600',
+            badgeColor: 'text-red-500'
+        },
+        { 
+            href: '/fleet/fuel', 
+            label: 'Yakıt & Tüketim', 
+            desc: 'Fiş & litre başı analiz',
+            icon: Fuel, 
+            active: isFuelActive,
+            gradient: 'from-emerald-600 to-teal-600',
+            badgeColor: 'text-emerald-500'
+        },
+        { 
+            href: '/fleet/accidents', 
+            label: 'Kaza & Hasar Portalı', 
+            desc: 'Sigorta, eksper & dosya',
+            icon: ShieldAlert, 
+            active: isAccidentsActive,
+            gradient: 'from-rose-600 to-red-600',
+            badgeColor: 'text-rose-500'
+        },
+        { 
+            href: '/vehicles/create', 
+            label: 'Yeni Araç Ekle', 
+            desc: 'Ruhsat ile filo kaydı',
+            icon: PlusCircle, 
+            active: isAddVehicleActive,
+            gradient: 'from-emerald-500 to-teal-600',
+            badgeColor: 'text-emerald-500'
+        },
+        { 
+            href: '/maintenances/create', 
+            label: 'Bakım Kaydı İşle', 
+            desc: 'Servis ve masraf girişi',
+            icon: Wrench, 
+            active: isMaintenanceActive,
+            gradient: 'from-purple-500 to-pink-600',
+            badgeColor: 'text-purple-500'
+        },
+    ] : [
         { 
             href: '/dashboard', 
-            label: 'Ana Sayfa', 
+            label: 'Garajım (Ana Sayfa)', 
             desc: 'Genel bakış & AI analiz',
             icon: Home, 
             active: isPanelActive,
@@ -97,8 +183,8 @@ export default function AppLayout({ children, title }) {
         },
         { 
             href: '/vehicles', 
-            label: 'Garajım (Filo)', 
-            desc: 'Kayıtlı tüm araçlar',
+            label: 'Tüm Araçlarım', 
+            desc: 'Kayıtlı araç listesi',
             icon: Car, 
             active: isGarageActive,
             gradient: 'from-blue-500 to-indigo-600',
@@ -126,127 +212,145 @@ export default function AppLayout({ children, title }) {
 
     const SidebarContent = ({ isMobile = false }) => (
         <div className="flex flex-col h-full bg-white dark:bg-[#0c0d14] text-slate-800 dark:text-slate-200 transition-colors duration-200">
-            {/* Logo Area (Clickable to Dashboard) */}
+            {/* Logo Area */}
             <Link 
-                href="/dashboard"
+                href={isFleetMode ? "/fleet" : "/dashboard"}
                 onClick={() => isMobile && setMobileMenuOpen(false)}
                 className={`flex items-center h-[72px] sm:h-[76px] px-5 border-b border-slate-200/80 dark:border-white/[0.06] hover:opacity-90 transition-opacity cursor-pointer group ${
                     sidebarCollapsed && !isMobile ? 'justify-center px-2' : 'space-x-3.5'
                 }`}
                 title="Ana Sayfaya Git"
             >
-                <div className="relative flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-amber-500 via-orange-500 to-amber-400 text-slate-950 font-black shadow-lg shadow-amber-500/25 shrink-0 group-hover:scale-105 transition-transform">
-                    <Wrench className="w-5 h-5 text-slate-950 stroke-[2.5]" />
+                <div className={`relative flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-2xl font-black shadow-lg shrink-0 group-hover:scale-105 transition-transform ${
+                    isFleetMode
+                        ? 'bg-gradient-to-tr from-blue-600 via-indigo-600 to-blue-400 text-white shadow-blue-600/25'
+                        : 'bg-gradient-to-tr from-amber-500 via-orange-500 to-amber-400 text-slate-950 shadow-amber-500/25'
+                }`}>
+                    {isFleetMode ? <Building2 className="w-5 h-5 stroke-[2.5]" /> : <Wrench className="w-5 h-5 text-slate-950 stroke-[2.5]" />}
                     <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white dark:border-[#0c0d14]"></span>
                 </div>
                 {(!sidebarCollapsed || isMobile) && (
-                    <div className="overflow-hidden">
+                    <div className="flex flex-col min-w-0">
                         <div className="flex items-center space-x-1.5">
-                            <span className="text-[17px] font-black tracking-tight text-slate-900 dark:text-white leading-none">
-                                Smart<span className="text-amber-500">Garaj</span>
+                            <span className="text-lg font-black tracking-tight text-slate-900 dark:text-white leading-tight">Smart</span>
+                            <span className={`text-lg font-black tracking-tight leading-tight ${isFleetMode ? 'text-blue-500' : 'text-amber-500'}`}>
+                                {isFleetMode ? 'Filo' : 'Garaj'}
+                            </span>
+                            <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-extrabold border ${
+                                isFleetMode 
+                                    ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' 
+                                    : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                            }`}>
+                                {isFleetMode ? 'PRO' : 'v2.5'}
                             </span>
                         </div>
-                        <span className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold tracking-wider uppercase block mt-1">
-                            Akıllı Araç Portalı
+                        <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase truncate">
+                            {isFleetMode ? (user?.sirket_adi || 'Kurumsal Filo Portalı') : 'Kişisel Araç Asistanı'}
                         </span>
                     </div>
                 )}
             </Link>
 
-            {/* Nav Menu */}
-            <nav className="flex-1 px-3.5 py-5 space-y-2 overflow-y-auto">
-                {(!sidebarCollapsed || isMobile) && (
-                    <div className="px-3 mb-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-                        YÖNETİM MENÜSÜ
-                    </div>
-                )}
-                {navItems.map((item) => (
-                    <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => isMobile && setMobileMenuOpen(false)}
-                        className={`group relative flex items-center rounded-2xl transition-all duration-200 ${
-                            sidebarCollapsed && !isMobile ? 'justify-center p-3' : 'px-3.5 py-3 space-x-3.5'
-                        } ${
-                            item.active
-                                ? 'bg-amber-500/15 dark:bg-amber-500/15 text-slate-950 dark:text-white border border-amber-400/40 dark:border-amber-500/30 shadow-xs'
-                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]'
-                        }`}
-                        title={sidebarCollapsed ? item.label : undefined}
-                    >
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 ${
-                            item.active
-                                ? `bg-gradient-to-tr ${item.gradient} text-white shadow-md shadow-amber-500/20 scale-105`
-                                : 'bg-slate-100 dark:bg-white/[0.04] text-slate-500 dark:text-slate-400 group-hover:scale-105 group-hover:bg-slate-200 dark:group-hover:bg-white/[0.08]'
-                        }`}>
-                            <item.icon className="w-5 h-5" />
-                        </div>
-                        {(!sidebarCollapsed || isMobile) && (
-                            <div className="flex-1 text-left min-w-0">
-                                <div className={`text-[13px] font-bold truncate ${item.active ? 'text-slate-950 dark:text-white' : 'text-slate-700 dark:text-slate-300'}`}>
-                                    {item.label}
-                                </div>
-                                <div className={`text-[10px] truncate font-medium ${item.active ? 'text-amber-800 dark:text-amber-300/80' : 'text-slate-400 dark:text-slate-500'}`}>
-                                    {item.desc}
-                                </div>
-                            </div>
-                        )}
-                        {item.active && (!sidebarCollapsed || isMobile) && (
-                            <div className="w-2 h-2 rounded-full bg-amber-500 shadow-sm shadow-amber-500" />
-                        )}
-                    </Link>
-                ))}
-            </nav>
-
-            {/* AI Assistant Quick Card (Only if expanded) */}
+            {/* Account Type Indicator Badge */}
             {(!sidebarCollapsed || isMobile) && (
-                <div className="p-3.5 mx-3 mb-4 rounded-2xl bg-gradient-to-br from-amber-500/[0.08] via-orange-500/[0.04] to-transparent border border-amber-500/20">
-                    <div className="flex items-center space-x-2 mb-1.5">
-                        <Sparkles className="w-4 h-4 text-amber-500" />
-                        <span className="text-[11px] font-black uppercase text-amber-600 dark:text-amber-400 tracking-wider">
-                            Akıllı Teşhis Aktif
+                <div className="px-4 pt-3.5 pb-1">
+                    <div className={`px-3 py-2 rounded-2xl border flex items-center justify-between text-xs ${
+                        isFleetMode
+                            ? 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400'
+                            : 'bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400'
+                    }`}>
+                        <div className="flex items-center space-x-2 font-bold">
+                            {isFleetMode ? <Building2 className="w-3.5 h-3.5" /> : <Car className="w-3.5 h-3.5" />}
+                            <span className="truncate">{isFleetMode ? (user?.sirket_adi || 'Kurumsal Filo') : 'Bireysel Hesap'}</span>
+                        </div>
+                        <span className="text-[10px] uppercase font-black tracking-wider opacity-80">
+                            {isFleetMode ? 'PRO' : 'AKTİF'}
                         </span>
                     </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                        Arıza belirtisi veya bakım ihtiyacı durumunda anında teşhis alın.
-                    </p>
                 </div>
             )}
 
-            {/* User Profile & Theme Toggle footer */}
+            {/* Nav Menu */}
+            <div className="flex-1 overflow-y-auto px-3 py-3 space-y-1.5">
+                {navItems.map((item, index) => {
+                    const Icon = item.icon;
+                    const isActive = item.active;
+
+                    return (
+                        <Link
+                            key={index}
+                            href={item.href}
+                            onClick={() => isMobile && setMobileMenuOpen(false)}
+                            className={`group relative flex items-center rounded-2xl transition-all duration-200 ${
+                                sidebarCollapsed && !isMobile ? 'justify-center p-3' : 'p-3 space-x-3.5'
+                            } ${
+                                isActive
+                                    ? (isFleetMode 
+                                        ? 'bg-blue-500/10 dark:bg-blue-500/15 text-slate-950 dark:text-white font-extrabold border border-blue-500/30 shadow-sm'
+                                        : 'bg-amber-500/10 dark:bg-amber-500/15 text-slate-950 dark:text-white font-extrabold border border-amber-500/30 shadow-sm')
+                                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-white/[0.04]'
+                            }`}
+                            title={sidebarCollapsed && !isMobile ? item.label : undefined}
+                        >
+                            <div className={`flex items-center justify-center w-9 h-9 rounded-xl transition-all shrink-0 ${
+                                isActive 
+                                    ? `bg-gradient-to-tr ${item.gradient} text-white font-black shadow-md` 
+                                    : 'bg-slate-100 dark:bg-white/[0.04] text-slate-500 dark:text-slate-400 group-hover:text-amber-500 group-hover:bg-amber-500/10'
+                            }`}>
+                                <Icon className={`w-4 h-4 ${isActive && !isFleetMode ? 'text-slate-950' : ''}`} />
+                            </div>
+
+                            {(!sidebarCollapsed || isMobile) && (
+                                <div className="flex-1 min-w-0">
+                                    <div className={`text-xs tracking-tight ${isActive ? 'text-slate-950 dark:text-white font-black' : 'font-semibold'}`}>
+                                        {item.label}
+                                    </div>
+                                    <div className="text-[10px] text-slate-400 dark:text-slate-500 truncate">
+                                        {item.desc}
+                                    </div>
+                                </div>
+                            )}
+
+                            {isActive && (
+                                <div className={`absolute right-2 w-1.5 h-6 rounded-full ${isFleetMode ? 'bg-blue-500' : 'bg-amber-500'}`}></div>
+                            )}
+                        </Link>
+                    );
+                })}
+            </div>
+
+            {/* User & Controls Footer */}
             <div className="p-3 border-t border-slate-200/80 dark:border-white/[0.06] space-y-2 bg-slate-50/50 dark:bg-white/[0.01]">
                 {/* Theme Toggle Button */}
                 <button
                     onClick={toggleTheme}
-                    className={`w-full flex items-center rounded-xl p-2.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/[0.06] transition-all cursor-pointer ${
-                        sidebarCollapsed && !isMobile ? 'justify-center' : 'justify-between px-3.5'
+                    className={`w-full flex items-center rounded-xl p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-all cursor-pointer ${
+                        sidebarCollapsed && !isMobile ? 'justify-center' : 'space-x-2.5 px-3'
                     }`}
+                    title={isDark ? 'Açık Moda Geç' : 'Koyu Moda Geç'}
                 >
-                    <div className="flex items-center space-x-3">
-                        <div className="w-7 h-7 rounded-lg bg-slate-200 dark:bg-white/[0.06] flex items-center justify-center text-amber-500">
-                            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4 text-slate-700" />}
-                        </div>
-                        {(!sidebarCollapsed || isMobile) && (
-                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                                {isDark ? 'Açık Mod\'a Geç' : 'Koyu Mod\'a Geç'}
-                            </span>
-                        )}
-                    </div>
+                    {isDark ? (
+                        <Sun className="w-4 h-4 text-amber-400" />
+                    ) : (
+                        <Moon className="w-4 h-4 text-slate-700" />
+                    )}
                     {(!sidebarCollapsed || isMobile) && (
-                        <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-slate-200 dark:bg-white/[0.06] text-slate-500 dark:text-slate-400">
-                            {isDark ? 'Dark' : 'Light'}
-                        </span>
+                        <span className="text-xs font-bold">{isDark ? 'Açık Tema' : 'Koyu Tema'}</span>
                     )}
                 </button>
 
-                {/* User Menu */}
+                {/* Profile Card Button */}
                 <button
-                    onClick={() => { setIsProfileOpen(true); isMobile && setMobileMenuOpen(false); }}
-                    className={`w-full flex items-center rounded-xl p-2.5 text-left hover:bg-slate-200/60 dark:hover:bg-white/[0.06] transition-all cursor-pointer group ${
-                        sidebarCollapsed && !isMobile ? 'justify-center' : 'space-x-3 px-3'
+                    onClick={() => setIsProfileOpen(true)}
+                    className={`w-full flex items-center rounded-xl p-2 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-all cursor-pointer group text-left ${
+                        sidebarCollapsed && !isMobile ? 'justify-center' : 'space-x-2.5 px-3'
                     }`}
                 >
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center text-xs font-black text-slate-950 uppercase shrink-0 shadow-md">
+                    <div className={`w-8 h-8 rounded-full font-black flex items-center justify-center text-xs shrink-0 shadow-sm ${
+                        isFleetMode
+                            ? 'bg-gradient-to-tr from-blue-600 to-indigo-600 text-white'
+                            : 'bg-gradient-to-tr from-amber-500 to-orange-500 text-slate-950'
+                    }`}>
                         {user?.ad_soyad?.charAt(0) || 'U'}
                     </div>
                     {(!sidebarCollapsed || isMobile) && (
@@ -314,9 +418,7 @@ export default function AppLayout({ children, title }) {
                 sidebarCollapsed ? 'md:ml-[78px]' : 'md:ml-[268px]'
             }`}>
                 
-                {/* ═══════════════════════════════════════════════════════════════
-                    TOP HEADER BAR (Clean, non-repetitive, high-utility)
-                ═══════════════════════════════════════════════════════════════ */}
+                {/* TOP HEADER BAR */}
                 <header className="sticky top-0 z-30 h-[68px] sm:h-[76px] bg-white/80 dark:bg-[#090a0f]/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/[0.06] flex items-center justify-between px-4 sm:px-6 md:px-8">
                     {/* Left: Mobile Toggle & Page Title */}
                     <div className="flex items-center space-x-3 sm:space-x-3.5 min-w-0">
@@ -328,8 +430,17 @@ export default function AppLayout({ children, title }) {
                             <Menu className="w-5 h-5" />
                         </button>
                         <div className="min-w-0">
-                            <h1 className="text-base sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight truncate">
-                                {title || 'Ana Sayfa'}
+                            <h1 className="text-base sm:text-xl font-black text-slate-900 dark:text-white tracking-tight truncate flex items-center gap-2">
+                                <span>{title || (isFleetMode ? 'SmartFilo Operasyon Portalı' : 'Ana Sayfa')}</span>
+                                {isFleetMode ? (
+                                    <span className="px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[10px] font-extrabold uppercase">
+                                        Kurumsal Filo
+                                    </span>
+                                ) : (
+                                    <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[10px] font-extrabold uppercase">
+                                        Bireysel
+                                    </span>
+                                )}
                             </h1>
                             <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 hidden sm:block">
                                 {new Date().toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -337,22 +448,23 @@ export default function AppLayout({ children, title }) {
                         </div>
                     </div>
 
-                    {/* Right: Informative AI Status & Direct Digital Passport Link */}
-                    <div className="flex items-center space-x-3 shrink-0">
+                    {/* Right: Quick Controls & Theme Toggle */}
+                    <div className="flex items-center space-x-2.5 sm:space-x-3 shrink-0">
                         {/* Live Status Badge */}
                         <div className="hidden sm:flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold shadow-2xs">
                             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span>Sistem Çevrimiçi</span>
+                            <span>{isFleetMode ? 'Filo Telemetrisi Aktif' : 'Sistem Çevrimiçi'}</span>
                         </div>
 
-                        {/* Garajım Quick Link */}
-                        <Link
-                            href="/vehicles"
-                            className="hidden md:inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-white/[0.05] hover:bg-slate-200 dark:hover:bg-white/[0.1] border border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-200 text-xs font-bold transition-all"
+                        {/* Theme Toggle Button */}
+                        <button
+                            type="button"
+                            onClick={toggleTheme}
+                            className="p-2 rounded-xl bg-slate-100 dark:bg-white/[0.05] hover:bg-slate-200 dark:hover:bg-white/[0.1] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/[0.08] transition-all cursor-pointer"
+                            title={isDark ? 'Açık Moda Geç' : 'Koyu Moda Geç'}
                         >
-                            <Car className="w-3.5 h-3.5 text-amber-500" />
-                            <span>Garaj Filosu</span>
-                        </Link>
+                            {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
+                        </button>
                     </div>
                 </header>
 
@@ -381,31 +493,24 @@ export default function AppLayout({ children, title }) {
                                 </button>
                             </div>
                         )}
+                        {flash.info && (
+                            <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-800 dark:text-blue-300 text-sm font-semibold flex items-center justify-between shadow-sm">
+                                <div className="flex items-center space-x-3">
+                                    <Sparkles className="w-5 h-5 text-blue-500 shrink-0" />
+                                    <span>{flash.info}</span>
+                                </div>
+                                <button onClick={() => setShowFlash(false)} className="p-1 hover:opacity-75 cursor-pointer">
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
 
-                {/* Page Main Content */}
-                <main className="flex-1 w-full max-w-full px-3.5 sm:px-6 md:px-8 py-5 sm:py-6 pb-24 md:pb-8">
+                {/* Page Content */}
+                <main className="flex-1 p-4 sm:p-6 md:p-8">
                     {children}
                 </main>
-            </div>
-
-            {/* ===== MOBILE BOTTOM TAB BAR ===== */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#0c0d14]/95 backdrop-blur-xl border-t border-slate-200 dark:border-white/[0.08] px-2 py-2 flex items-center justify-around shadow-lg">
-                {navItems.map((item) => (
-                    <Link
-                        key={item.href}
-                        href={item.href}
-                        className={`flex flex-col items-center space-y-1 px-3 py-1.5 rounded-xl transition-all ${
-                            item.active
-                                ? 'text-amber-500 font-bold scale-105'
-                                : 'text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                        }`}
-                    >
-                        <item.icon className="w-5 h-5" />
-                        <span className="text-[10px] tracking-tight">{item.label.split(' ')[0]}</span>
-                    </Link>
-                ))}
             </div>
 
             {/* Profile Modal */}

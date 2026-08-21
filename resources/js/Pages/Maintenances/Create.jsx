@@ -271,6 +271,9 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
         }));
     };
 
+    const [auditResults, setAuditResults] = useState([]);
+    const [auditSummary, setAuditSummary] = useState(null);
+
     const handleOcrExtracted = (extracted) => {
         if (extracted.tarih) setData('islem_tarihi', extracted.tarih);
         if (extracted.islem_km) setData('islem_km', extracted.islem_km);
@@ -288,10 +291,16 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
             aciklamaMetni += `${extracted.aciklama}\n`;
         }
 
+        if (extracted.audit_summary) {
+            setAuditSummary(extracted.audit_summary);
+        }
+
         if (extracted.parcalar && extracted.parcalar.length > 0) {
+            setAuditResults(extracted.parcalar);
             const newParts = [...selectedParts];
             extracted.parcalar.forEach((p) => {
-                const partLabel = `${p.ad} (${p.adet || 1} Adet)`;
+                const partName = p.parca || p.ad || '';
+                const partLabel = `${partName} (${p.adet || 1} Adet)`;
                 if (!newParts.includes(partLabel)) {
                     newParts.push(partLabel);
                 }
@@ -353,6 +362,7 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
                 isOpen={isOcrOpen} 
                 onClose={() => setIsOcrOpen(false)} 
                 type="fatura"
+                vehicleId={data.arac_id}
                 onDataExtracted={handleOcrExtracted} 
                 onExtracted={handleOcrExtracted} 
             />

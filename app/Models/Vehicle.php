@@ -33,6 +33,10 @@ class Vehicle extends Model
         'notlar',
         'fotograf_url',
         'qr_token',
+        'durum',
+        'zimmet_surucu_adi',
+        'departman',
+        'sozlesme_turu',
     ];
 
     protected $casts = [
@@ -65,6 +69,19 @@ class Vehicle extends Model
     }
 
     /**
+     * İlişki: Kaza ve Hasar Kayıtları
+     */
+    public function accidents()
+    {
+        return $this->hasMany(Accident::class, 'arac_id')->orderBy('kaza_tarihi', 'desc')->orderBy('id', 'desc');
+    }
+
+    public function kazalar()
+    {
+        return $this->accidents();
+    }
+
+    /**
      * İlişki: Yakıt Kayıtları
      */
     public function fuelLogs()
@@ -89,11 +106,35 @@ class Vehicle extends Model
     }
 
     /**
+     * Toplam Hasar / Onarım Tutarı
+     */
+    public function getTotalDamageAttribute()
+    {
+        return (float) $this->accidents()->sum('hasar_tutari');
+    }
+
+    /**
+     * Toplam Tramer Kaydı Tutarı
+     */
+    public function getTramerTotalAttribute()
+    {
+        return (float) $this->accidents()->where('tramer_kaydi', true)->sum('tramer_tutari');
+    }
+
+    /**
      * Toplam Bakım Kaydı Sayısı
      */
     public function getMaintenanceCountAttribute()
     {
         return $this->maintenances()->count();
+    }
+
+    /**
+     * Toplam Kaza Kaydı Sayısı
+     */
+    public function getAccidentCountAttribute()
+    {
+        return $this->accidents()->count();
     }
 
     /**
@@ -140,6 +181,41 @@ class Vehicle extends Model
                 'icon' => 'bi-check-circle-fill'
             ];
         }
+    }
+
+    public function assignments()
+    {
+        return $this->hasMany(VehicleAssignment::class, 'arac_id')->orderBy('teslim_tarihi', 'desc');
+    }
+
+    public function activeAssignment()
+    {
+        return $this->hasOne(VehicleAssignment::class, 'arac_id')->where('durum', 'aktif')->with('driver');
+    }
+
+    public function fines()
+    {
+        return $this->hasMany(TrafficFine::class, 'arac_id')->orderBy('ceza_tarihi', 'desc');
+    }
+
+    public function documents()
+    {
+        return $this->hasMany(VehicleDocument::class, 'arac_id')->orderBy('kayit_tarihi', 'desc');
+    }
+
+    public function getTotalFuelExpenseAttribute()
+    {
+        return (float) $this->fuelLogs()->sum('toplam_tutar');
+    }
+
+    public function getTotalFinesAttribute()
+    {
+        return (float) $this->fines()->sum('tutar');
+    }
+
+    public function getUnpaidFinesTotalAttribute()
+    {
+        return (float) $this->fines()->where('durum', 'odenmedi')->sum('tutar');
     }
 
     public function getInspectionBadgeAttribute()

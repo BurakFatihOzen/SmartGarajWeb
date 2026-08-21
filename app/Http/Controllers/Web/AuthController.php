@@ -20,7 +20,8 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check()) {
-            return redirect()->route('dashboard');
+            $user = Auth::user();
+            return $user->isFleet() ? redirect()->route('fleet.index') : redirect()->route('dashboard');
         }
         return Inertia::render('Auth/Login');
     }
@@ -30,6 +31,10 @@ class AuthController extends Controller
         $credentials = $request->validate([
             'email' => 'required|email',
             'sifre' => 'required|string',
+        ], [
+            'email.required' => 'E-posta adresi zorunludur.',
+            'email.email' => 'Geçerli bir e-posta adresi giriniz.',
+            'sifre.required' => 'Şifre alanı zorunludur.',
         ]);
 
         $user = User::where('email', trim($credentials['email']))->first();
@@ -45,8 +50,29 @@ class AuthController extends Controller
                     $user->update(['sifre' => $credentials['sifre']]);
                 }
 
+                $selectedMode = $request->input('mode', 'personal');
+
+                // Portal Eşleşme Kontrolü
+                if ($selectedMode === 'fleet' && !$user->isFleet()) {
+                    return back()->withErrors([
+                        'email' => 'Bu hesap "Bireysel Garaj" olarak kayıtlıdır. Lütfen yukarıdaki "🚗 Bireysel Garaj" sekmesinden giriş yapın.',
+                    ])->withInput($request->only('email'));
+                }
+
+                if ($selectedMode === 'personal' && $user->isFleet()) {
+                    return back()->withErrors([
+                        'email' => 'Bu hesap "SmartFilo Kurumsal" olarak kayıtlıdır. Lütfen yukarıdaki "🏢 SmartFilo Pro" sekmesinden giriş yapın.',
+                    ])->withInput($request->only('email'));
+                }
+
                 Auth::login($user, true);
                 $request->session()->regenerate();
+
+                // Kullanıcının kayıtlı hesap türüne göre kesin yönlendirme
+                if ($user->isFleet()) {
+                    return redirect()->route('fleet.index');
+                }
+
                 return redirect()->route('dashboard');
             }
         }
@@ -62,19 +88,36 @@ class AuthController extends Controller
             'ad_soyad' => 'required|string|max:150',
             'email' => 'required|string|email|max:150|unique:kullanicilar,email',
             'sifre' => 'required|string|min:6',
+            'sirket_adi' => 'nullable|string|max:200',
+            'mode' => 'nullable|string|in:personal,fleet',
+        ], [
+            'email.unique' => 'Bu e-posta adresiyle kayıtlı bir hesap zaten var. Lütfen giriş yapın veya farklı bir e-posta adresi kullanın.',
+            'email.required' => 'E-posta adresi zorunludur.',
+            'email.email' => 'Lütfen geçerli bir e-posta adresi giriniz.',
+            'ad_soyad.required' => 'Ad ve soyad alanı zorunludur.',
+            'sifre.required' => 'Şifre alanı zorunludur.',
+            'sifre.min' => 'Şifreniz en az 6 karakter olmalıdır.',
         ]);
+
+        $hesapTuru = ($request->input('mode') === 'fleet') ? 'filo' : 'bireysel';
 
         $user = User::create([
             'ad_soyad' => $validated['ad_soyad'],
             'email' => $validated['email'],
             'sifre' => Hash::make($validated['sifre']),
             'rol' => 'kullanici',
+            'hesap_turu' => $hesapTuru,
+            'sirket_adi' => $validated['sirket_adi'] ?? null,
         ]);
 
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('dashboard')->with('success', 'Hesabınız başarıyla oluşturuldu! Hoş geldiniz.');
+        if ($user->isFleet()) {
+            return redirect()->route('fleet.index')->with('success', 'SmartFilo kurumsal filo hesabınız başarıyla oluşturuldu! Hoş geldiniz.');
+        }
+
+        return redirect()->route('dashboard')->with('success', 'SmartGaraj bireysel hesabınız başarıyla oluşturuldu! Hoş geldiniz.');
     }
 
     public function logout(Request $request)

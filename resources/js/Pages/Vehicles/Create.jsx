@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useForm, Link, Head } from '@inertiajs/react';
+import { useForm, Link, Head, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { BRANDS_LIST, CAR_CATALOG } from '@/data/carData';
 import OcrModal from '@/Components/OcrModal';
@@ -28,6 +28,10 @@ import {
     HelpCircle,
     ShieldCheck,
     ShieldAlert,
+    Building2,
+    UserCheck,
+    Truck,
+    Layers,
     Hash
 } from 'lucide-react';
 
@@ -72,6 +76,9 @@ export default function VehicleCreate() {
     const modelDropdownRef = useRef(null);
     const motorDropdownRef = useRef(null);
 
+    const { auth } = usePage().props;
+    const isFleet = auth?.user?.hesap_turu === 'filo' || auth?.user?.rol === 'filo';
+
     const { data, setData, post, processing, errors } = useForm({
         plaka: '',
         marka: '',
@@ -88,6 +95,10 @@ export default function VehicleCreate() {
         sasi_no: '',
         notlar: '',
         fotograf: null,
+        durum: 'aktif',
+        zimmet_surucu_adi: '',
+        departman: '',
+        sozlesme_turu: 'Özmal',
     });
 
     const handlePhotoChange = (e) => {
@@ -966,6 +977,90 @@ export default function VehicleCreate() {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* SECTION 3: KURUMSAL FİLO & ZİMMET BİLGİLERİ (Sadece Kurumsal Hesaplarda) */}
+                            {isFleet && (
+                                <div className="p-6 sm:p-7 rounded-3xl bg-white dark:bg-[#11131c] border border-blue-500/20 dark:border-blue-500/30 shadow-sm space-y-6">
+                                    <div className="flex items-center space-x-2.5 pb-4 border-b border-slate-100 dark:border-white/[0.04]">
+                                        <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-black text-xs">
+                                            3
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                                                <Building2 className="w-4 h-4 text-blue-500" />
+                                                <span>Filo & Zimmet Yönetim Bilgileri</span>
+                                            </h3>
+                                            <p className="text-[11px] text-slate-400">Şirket filonuzdaki araç durumu, zimmet ve departman ataması</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {/* Filo Durumu */}
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                                Filo Durumu
+                                            </label>
+                                            <select
+                                                value={data.durum}
+                                                onChange={(e) => setData('durum', e.target.value)}
+                                                className="w-full bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            >
+                                                <option value="aktif">🟢 Aktif / Havuzda (Boşta)</option>
+                                                <option value="gorevde">🔵 Görevde / Zimmetli</option>
+                                                <option value="serviste">🟠 Serviste / Bakımda</option>
+                                                <option value="atil">🔴 Atıl / Kullanılmıyor</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Sözleşme / Mülkiyet Türü */}
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                                Mülkiyet / Sözleşme Türü
+                                            </label>
+                                            <select
+                                                value={data.sozlesme_turu}
+                                                onChange={(e) => setData('sozlesme_turu', e.target.value)}
+                                                className="w-full bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            >
+                                                <option value="Özmal">🏢 Özmal (Şirket Malı)</option>
+                                                <option value="Uzun Dönem Kiralık">📄 Uzun Dönem Filo Kiralama</option>
+                                                <option value="Finansal Kiralama (Leasing)">💳 Finansal Kiralama / Leasing</option>
+                                                <option value="Kısa Dönem Kiralık">⏱️ Kısa Dönem Kiralık</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Zimmetli Sürücü */}
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center space-x-1">
+                                                <UserCheck className="w-3.5 h-3.5 text-blue-500" />
+                                                <span>Zimmetli Sürücü / Personel</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={data.zimmet_surucu_adi}
+                                                onChange={(e) => setData('zimmet_surucu_adi', e.target.value)}
+                                                placeholder="Örn: Ahmet Yılmaz"
+                                                className="w-full bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+
+                                        {/* Departman / Birim */}
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center space-x-1">
+                                                <Layers className="w-3.5 h-3.5 text-indigo-500" />
+                                                <span>Departman / Saha Birimi</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={data.departman}
+                                                onChange={(e) => setData('departman', e.target.value)}
+                                                placeholder="Örn: Lojistik, Saha Satış, Yönetim"
+                                                className="w-full bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* RIGHT COLUMN: LIVE PREVIEW & ACTIONS (5 Columns on Large Screens) */}

@@ -43,6 +43,10 @@ class VehicleController extends Controller
             'sasi_no' => 'nullable|string|max:50',
             'notlar' => 'nullable|string',
             'fotograf' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240',
+            'durum' => 'nullable|string|in:aktif,gorevde,serviste,atil',
+            'zimmet_surucu_adi' => 'nullable|string|max:150',
+            'departman' => 'nullable|string|max:100',
+            'sozlesme_turu' => 'nullable|string|max:50',
         ]);
 
         $validated['kullanici_id'] = $user->id;
@@ -58,6 +62,11 @@ class VehicleController extends Controller
         unset($validated['fotograf']);
 
         $vehicle = Vehicle::create($validated);
+
+        if ($user->isFleet()) {
+            return redirect()->route('fleet.index')
+                ->with('success', "{$vehicle->plaka} plakalı araç filonuza başarıyla eklendi!");
+        }
 
         return redirect()->route('dashboard', ['arac_id' => $vehicle->id])
             ->with('success', "{$vehicle->plaka} plakalı aracınız garaja başarıyla eklendi!");

@@ -16,6 +16,12 @@ class DashboardController extends Controller
     public function index(Request $request, SmartDiagnosisService $diagnosisService)
     {
         $user = Auth::user();
+
+        // Kurumsal filo hesabı ise doğrudan filo operasyon portalına yönlendir
+        if ($user && $user->isFleet()) {
+            return redirect()->route('fleet.index');
+        }
+
         $vehicles = $user->vehicles;
         $allVehiclesCount = $vehicles->count();
 
@@ -32,7 +38,10 @@ class DashboardController extends Controller
         }
 
         $maintenances = collect();
+        $accidents = collect();
         $totalSpent = 0;
+        $totalDamage = 0;
+        $tramerTotal = 0;
         $monthlyStats = [];
         $categoryStats = [];
         $healthScore = 85;
@@ -41,7 +50,10 @@ class DashboardController extends Controller
 
         if ($activeVehicle) {
             $maintenances = $activeVehicle->maintenances()->orderBy('islem_tarihi', 'desc')->get();
+            $accidents = $activeVehicle->accidents()->orderBy('kaza_tarihi', 'desc')->get();
             $totalSpent = (float) $activeVehicle->maintenances()->sum('maliyet_tl');
+            $totalDamage = (float) $activeVehicle->accidents()->sum('hasar_tutari');
+            $tramerTotal = (float) $activeVehicle->accidents()->where('tramer_kaydi', true)->sum('tramer_tutari');
 
             // Son 6 ayın harcama dağılımı (ApexCharts Trend için)
             $months = [
@@ -121,7 +133,10 @@ class DashboardController extends Controller
             'vehicles' => $vehicles,
             'activeVehicle' => $activeVehicle,
             'maintenances' => $maintenances,
+            'accidents' => $accidents,
             'totalSpent' => $totalSpent,
+            'totalDamage' => $totalDamage,
+            'tramerTotal' => $tramerTotal,
             'allVehiclesCount' => $allVehiclesCount,
             'monthlyStats' => $monthlyStats,
             'categoryStats' => $categoryStats,
