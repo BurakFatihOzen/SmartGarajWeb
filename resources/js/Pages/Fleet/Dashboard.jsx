@@ -47,6 +47,7 @@ import EditVehicleModal from '../../Components/EditVehicleModal';
 import EditMaintenanceModal from '../../Components/EditMaintenanceModal';
 import MaintenanceDetailModal from '../../Components/MaintenanceDetailModal';
 import FleetOperationsModal from '../../Components/FleetOperationsModal';
+import CustomDropdown from '../../Components/CustomDropdown';
 import { 
     FLEET_STATUS_OPTIONS, 
     FLEET_OWNERSHIP_OPTIONS, 
@@ -337,19 +338,20 @@ export default function FleetDashboard({
                             {/* Switch Vehicle Dropdown & Close Button */}
                             <div className="flex items-center space-x-2.5">
                                 {vehicles.length > 1 && (
-                                    <div className="flex items-center space-x-2">
-                                        <span className="text-xs font-bold text-slate-400 hidden sm:inline">Aracı Değiştir:</span>
-                                        <select
-                                            value={activeVehicle.id}
-                                            onChange={(e) => setSelectedVehicleId(Number(e.target.value))}
-                                            className="text-xs font-black px-3.5 py-2 rounded-2xl bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.1] text-slate-900 dark:text-white cursor-pointer focus:ring-2 focus:ring-blue-500 outline-none"
-                                        >
-                                            {vehicles.map((v) => (
-                                                <option key={v.id} value={v.id}>
-                                                    {v.plaka} &bull; {v.marka} {v.model} ({v.durum})
-                                                </option>
-                                            ))}
-                                        </select>
+                                    <div className="w-56 sm:w-64">
+                                        <CustomDropdown
+                                            icon={Car}
+                                            placeholder="Aracı Değiştir..."
+                                            value={String(activeVehicle.id)}
+                                            options={safeVehicles.map((v) => ({
+                                                value: String(v.id),
+                                                label: `${v.plaka} • ${v.marka} ${v.model}`,
+                                                description: `${v.departman || 'Genel Filo'} (${v.durum})`
+                                            }))}
+                                            onChange={(val) => {
+                                                if (val) setSelectedVehicleId(Number(val));
+                                            }}
+                                        />
                                     </div>
                                 )}
 
@@ -357,7 +359,7 @@ export default function FleetDashboard({
                                     type="button"
                                     onClick={() => setSelectedVehicleId(null)}
                                     title="Detay Kartını Kapat"
-                                    className="p-2 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.06] dark:hover:bg-white/[0.12] text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer flex items-center gap-1 text-xs font-bold"
+                                    className="h-11 px-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.06] dark:hover:bg-white/[0.12] text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer flex items-center gap-1 text-xs font-bold shrink-0"
                                 >
                                     <X className="w-4 h-4" />
                                     <span className="hidden sm:inline">Kapat</span>
@@ -708,23 +710,20 @@ export default function FleetDashboard({
                         </div>
 
                         {safeVehicles.length > 0 && (
-                            <div className="flex items-center space-x-2 w-full sm:w-auto shrink-0">
-                                <select
+                            <div className="w-full sm:w-72 shrink-0">
+                                <CustomDropdown
+                                    icon={Car}
+                                    placeholder="🎯 Hızlı Araç Seçimi..."
                                     value=""
-                                    onChange={(e) => {
-                                        if (e.target.value) {
-                                            handleSelectVehicle(Number(e.target.value));
-                                        }
+                                    options={safeVehicles.map((v) => ({
+                                        value: String(v.id),
+                                        label: `${v.plaka} • ${v.marka} ${v.model}`,
+                                        description: `${v.departman || 'Genel Filo'} (${v.durum})`
+                                    }))}
+                                    onChange={(val) => {
+                                        if (val) handleSelectVehicle(Number(val));
                                     }}
-                                    className="w-full sm:w-auto text-xs font-black px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.1] text-blue-600 dark:text-blue-400 cursor-pointer focus:ring-2 focus:ring-blue-500 outline-none"
-                                >
-                                    <option value="">🎯 Hızlı Araç Seçimi...</option>
-                                    {safeVehicles.map((v) => (
-                                        <option key={v.id} value={v.id}>
-                                            {v.plaka} &bull; {v.marka} {v.model}
-                                        </option>
-                                    ))}
-                                </select>
+                                />
                             </div>
                         )}
                     </div>
@@ -827,27 +826,34 @@ export default function FleetDashboard({
 
                     {/* Status and Department Filter */}
                     <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
-                        <select
-                            value={selectedStatus}
-                            onChange={(e) => setSelectedStatus(e.target.value)}
-                            className="px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-bold cursor-pointer outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="all">Tüm Durumlar ({vehicles.length})</option>
-                            {FLEET_STATUS_OPTIONS.map(s => (
-                                <option key={s.value} value={s.value}>{s.label}</option>
-                            ))}
-                        </select>
+                        <div className="w-full sm:w-48">
+                            <CustomDropdown
+                                icon={ShieldCheck}
+                                placeholder="Tüm Durumlar"
+                                value={selectedStatus}
+                                options={[
+                                    { value: 'all', label: `Tüm Durumlar (${vehicles.length})` },
+                                    ...FLEET_STATUS_OPTIONS.map(s => ({ value: s.value, label: s.label }))
+                                ]}
+                                onChange={(val) => setSelectedStatus(val)}
+                            />
+                        </div>
 
-                        <select
-                            value={selectedDept}
-                            onChange={(e) => setSelectedDept(e.target.value)}
-                            className="px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-bold cursor-pointer outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="all">Tüm Departmanlar</option>
-                            {Object.keys(departmentDistribution || {}).map((dept, idx) => (
-                                <option key={idx} value={dept}>{dept} ({departmentDistribution[dept]})</option>
-                            ))}
-                        </select>
+                        <div className="w-full sm:w-52">
+                            <CustomDropdown
+                                icon={Layers}
+                                placeholder="Tüm Departmanlar"
+                                value={selectedDept}
+                                options={[
+                                    { value: 'all', label: 'Tüm Departmanlar' },
+                                    ...Object.keys(departmentDistribution || {}).map(dept => ({
+                                        value: dept,
+                                        label: `${dept} (${departmentDistribution[dept]})`
+                                    }))
+                                ]}
+                                onChange={(val) => setSelectedDept(val)}
+                            />
+                        </div>
                     </div>
                 </div>
 

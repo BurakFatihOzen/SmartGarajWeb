@@ -7,6 +7,7 @@ import DamageBodyMap from '@/Components/DamageBodyMap';
 import AccidentModal from '@/Components/AccidentModal';
 import EditVehicleModal from '@/Components/EditVehicleModal';
 import EditMaintenanceModal from '@/Components/EditMaintenanceModal';
+import MaintenanceDetailModal from '@/Components/MaintenanceDetailModal';
 import { 
     Car, 
     Wrench, 
@@ -60,6 +61,7 @@ export default function Dashboard({
     const [isAccidentModalOpen, setIsAccidentModalOpen] = useState(false);
     const [isEditVehicleOpen, setIsEditVehicleOpen] = useState(false);
     const [editingMaintenance, setEditingMaintenance] = useState(null);
+    const [selectedMaintenanceForDetail, setSelectedMaintenanceForDetail] = useState(null);
     const [editingAccident, setEditingAccident] = useState(null);
     const [selectedOperationFilter, setSelectedOperationFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
@@ -904,12 +906,16 @@ export default function Dashboard({
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 dark:divide-white/[0.04]">
                                         {filteredMaintenances.map((item) => (
-                                            <tr key={item.id} className="hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors">
+                                            <tr 
+                                                key={item.id} 
+                                                onClick={() => setSelectedMaintenanceForDetail(item)}
+                                                className="hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors cursor-pointer group"
+                                            >
                                                 <td className="px-5 sm:px-6 py-4 whitespace-nowrap text-slate-700 dark:text-slate-300 font-bold">
                                                     {formatDate(item.islem_tarihi)}
                                                 </td>
                                                 <td className="px-5 sm:px-6 py-4 whitespace-nowrap">
-                                                    <span className="px-3 py-1 rounded-lg text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                                    <span className="px-3 py-1 rounded-lg text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 group-hover:bg-amber-500 group-hover:text-white transition-colors">
                                                         {item.islem_turu}
                                                     </span>
                                                 </td>
@@ -922,7 +928,14 @@ export default function Dashboard({
                                                 <td className="px-5 sm:px-6 py-4 text-slate-500 dark:text-slate-400 max-w-xs truncate font-medium">
                                                     {item.aciklama || '-'}
                                                 </td>
-                                                <td className="px-5 sm:px-6 py-4 text-right whitespace-nowrap space-x-1">
+                                                <td className="px-5 sm:px-6 py-4 text-right whitespace-nowrap space-x-1" onClick={(e) => e.stopPropagation()}>
+                                                    <button
+                                                        onClick={() => setSelectedMaintenanceForDetail(item)}
+                                                        className="p-2 rounded-xl text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors cursor-pointer"
+                                                        title="Detaylı Bakım Fişini İncele"
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                    </button>
                                                     <button
                                                         onClick={() => setEditingMaintenance(item)}
                                                         className="p-2 rounded-xl text-slate-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors cursor-pointer"
@@ -1177,6 +1190,18 @@ export default function Dashboard({
                 vehicles={vehicles}
                 activeVehicle={activeVehicle}
                 accidentToEdit={editingAccident}
+            />
+
+            {/* Maintenance Detail Modal (Categorized inspection) */}
+            <MaintenanceDetailModal
+                isOpen={!!selectedMaintenanceForDetail}
+                onClose={() => setSelectedMaintenanceForDetail(null)}
+                maintenance={selectedMaintenanceForDetail}
+                onEdit={(m) => {
+                    setSelectedMaintenanceForDetail(null);
+                    setEditingMaintenance(m);
+                }}
+                vehicle={activeVehicle}
             />
         </AppLayout>
     );
