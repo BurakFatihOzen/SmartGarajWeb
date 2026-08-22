@@ -44,6 +44,7 @@ import {
 import AccidentModal from '../../Components/AccidentModal';
 import EditVehicleModal from '../../Components/EditVehicleModal';
 import EditMaintenanceModal from '../../Components/EditMaintenanceModal';
+import MaintenanceDetailModal from '../../Components/MaintenanceDetailModal';
 import FleetOperationsModal from '../../Components/FleetOperationsModal';
 import { 
     FLEET_STATUS_OPTIONS, 
@@ -69,6 +70,7 @@ export default function FleetDashboard({
     const [fleetOpsInitialTab, setFleetOpsInitialTab] = useState('status');
     const [isEditVehicleOpen, setIsEditVehicleOpen] = useState(false);
     const [editingMaintenance, setEditingMaintenance] = useState(null);
+    const [selectedMaintenanceForDetail, setSelectedMaintenanceForDetail] = useState(null);
     const [isAccidentModalOpen, setIsAccidentModalOpen] = useState(false);
     const [selectedVehicleForAccident, setSelectedVehicleForAccident] = useState(null);
 
@@ -565,46 +567,75 @@ export default function FleetDashboard({
 
                             {activeVehicle.maintenances && activeVehicle.maintenances.length > 0 ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                    {activeVehicle.maintenances.map((m) => (
-                                        <div
-                                            key={m.id}
-                                            className="p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.06] space-y-2 hover:border-amber-500/30 transition-all flex flex-col justify-between"
-                                        >
-                                            <div className="space-y-1.5">
-                                                <div className="flex items-center justify-between text-[11px]">
-                                                    <span className="font-extrabold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md">
-                                                        {m.islem_tarihi_formatted || formatDate(m.islem_tarihi)}
-                                                    </span>
-                                                    <span className="font-mono font-bold text-slate-500 dark:text-slate-400">
-                                                        {Number(m.islem_km || 0).toLocaleString('tr-TR')} KM
-                                                    </span>
+                                    {activeVehicle.maintenances.map((m) => {
+                                        const serviceTitle = m.servis_adi || (m.usta_adi ? `${m.usta_adi}${m.sanayi_sitesi ? ` (${m.sanayi_sitesi})` : ''}` : (m.sanayi_sitesi || (m.servis_turu === 'kendi_garajimiz' ? 'Kendi Garajım (DIY)' : 'Özel Servis / Sanayi')));
+
+                                        return (
+                                            <div
+                                                key={m.id}
+                                                onClick={() => setSelectedMaintenanceForDetail(m)}
+                                                className="group p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.06] space-y-2.5 hover:border-amber-500/40 hover:shadow-md transition-all flex flex-col justify-between cursor-pointer"
+                                            >
+                                                <div className="space-y-2">
+                                                    {/* Date & KM Bar */}
+                                                    <div className="flex items-center justify-between text-[11px]">
+                                                        <span className="font-extrabold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md">
+                                                            {m.islem_tarihi_formatted || formatDate(m.islem_tarihi)}
+                                                        </span>
+                                                        <span className="font-mono font-bold text-slate-500 dark:text-slate-400">
+                                                            {Number(m.islem_km || 0).toLocaleString('tr-TR')} KM
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Operation Title */}
+                                                    <h5 className="text-xs font-black text-slate-900 dark:text-white line-clamp-1 group-hover:text-amber-500 transition-colors" title={m.islem_turu}>
+                                                        {m.islem_turu}
+                                                    </h5>
+
+                                                    {/* Service Place Badge (Patron ve yöneticinin tek bakışta gördüğü yer) */}
+                                                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20 text-[11px] font-bold">
+                                                        <Building2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                                                        <span className="truncate" title={serviceTitle}>
+                                                            {serviceTitle}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Description Excerpt */}
+                                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-tight">
+                                                        {m.aciklama || 'Açıklama belirtilmedi.'}
+                                                    </p>
                                                 </div>
 
-                                                <h5 className="text-xs font-black text-slate-900 dark:text-white line-clamp-1" title={m.islem_turu}>
-                                                    {m.islem_turu}
-                                                </h5>
+                                                {/* Bottom Cost & Action Buttons */}
+                                                <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-white/5" onClick={(e) => e.stopPropagation()}>
+                                                    <div className="text-xs font-black font-mono text-emerald-600 dark:text-emerald-400">
+                                                        ₺{Number(m.maliyet_tl || 0).toLocaleString('tr-TR', { maximumFractionDigits: 0 })}
+                                                    </div>
 
-                                                <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-tight">
-                                                    {m.aciklama || (m.servis_adi ? `Servis: ${m.servis_adi}` : 'Açıklama belirtilmedi.')}
-                                                </p>
-                                            </div>
+                                                    <div className="flex items-center gap-1">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setSelectedMaintenanceForDetail(m)}
+                                                            className="px-2 py-1 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-blue-500 hover:bg-blue-500/10 transition-colors flex items-center gap-1 cursor-pointer"
+                                                            title="Tüm detayları incele"
+                                                        >
+                                                            <Eye className="w-3.5 h-3.5 text-blue-500" />
+                                                            <span>Detay</span>
+                                                        </button>
 
-                                            <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-white/5">
-                                                <div className="text-xs font-black font-mono text-emerald-600 dark:text-emerald-400">
-                                                    ₺{Number(m.maliyet_tl || 0).toLocaleString('tr-TR', { maximumFractionDigits: 0 })}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setEditingMaintenance(m)}
+                                                            className="p-1.5 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-amber-500/10 transition-colors cursor-pointer"
+                                                            title="Bakım kaydını düzenle"
+                                                        >
+                                                            <Pencil className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
                                                 </div>
-
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setEditingMaintenance(m)}
-                                                    className="p-1.5 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-amber-500/10 transition-colors cursor-pointer"
-                                                    title="Bakım kaydını düzenle"
-                                                >
-                                                    <Pencil className="w-3.5 h-3.5" />
-                                                </button>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             ) : (
                                 <div className="p-6 rounded-2xl bg-slate-50/50 dark:bg-white/[0.01] border border-slate-200/60 dark:border-white/[0.04] text-center space-y-1">
@@ -1003,7 +1034,11 @@ export default function FleetDashboard({
                                 <tbody className="divide-y divide-slate-100 dark:divide-white/[0.04] text-xs">
                                     {filteredMaintenances.length > 0 ? (
                                         filteredMaintenances.map((m) => (
-                                            <tr key={m.id} className="hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors">
+                                            <tr 
+                                                key={m.id} 
+                                                onClick={() => setSelectedMaintenanceForDetail(m)}
+                                                className="hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors cursor-pointer"
+                                            >
                                                 <td className="py-4 px-4 sm:px-6">
                                                     <div className="badge-plate text-xs font-black px-2 py-0.5 inline-block">
                                                         {m.vehicle_plaka}
@@ -1054,15 +1089,26 @@ export default function FleetDashboard({
                                                     </p>
                                                 </td>
 
-                                                <td className="py-4 px-4 sm:px-6 text-right">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setEditingMaintenance(m)}
-                                                        className="p-2 rounded-xl bg-slate-100 dark:bg-white/[0.04] hover:bg-amber-500/10 text-slate-700 dark:text-slate-300 hover:text-amber-500 transition-colors cursor-pointer"
-                                                        title="Bakımı Düzenle"
-                                                    >
-                                                        <Pencil className="w-4 h-4" />
-                                                    </button>
+                                                <td className="py-4 px-4 sm:px-6 text-right" onClick={(e) => e.stopPropagation()}>
+                                                    <div className="flex items-center justify-end gap-1">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setSelectedMaintenanceForDetail(m)}
+                                                            className="p-2 rounded-xl bg-slate-100 dark:bg-white/[0.04] hover:bg-blue-500/10 text-slate-700 dark:text-slate-300 hover:text-blue-500 transition-colors cursor-pointer"
+                                                            title="Bakım Detaylarını İncele"
+                                                        >
+                                                            <Eye className="w-4 h-4" />
+                                                        </button>
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setEditingMaintenance(m)}
+                                                            className="p-2 rounded-xl bg-slate-100 dark:bg-white/[0.04] hover:bg-amber-500/10 text-slate-700 dark:text-slate-300 hover:text-amber-500 transition-colors cursor-pointer"
+                                                            title="Bakımı Düzenle"
+                                                        >
+                                                            <Pencil className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))
@@ -1190,6 +1236,17 @@ export default function FleetDashboard({
                         isOpen={!!editingMaintenance}
                         onClose={() => setEditingMaintenance(null)}
                         maintenance={editingMaintenance}
+                    />
+                )}
+
+                {/* Maintenance Detail Modal */}
+                {selectedMaintenanceForDetail && (
+                    <MaintenanceDetailModal
+                        isOpen={!!selectedMaintenanceForDetail}
+                        onClose={() => setSelectedMaintenanceForDetail(null)}
+                        maintenance={selectedMaintenanceForDetail}
+                        onEdit={(m) => setEditingMaintenance(m)}
+                        vehicle={activeVehicle}
                     />
                 )}
 
