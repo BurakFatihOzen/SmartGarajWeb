@@ -29,6 +29,20 @@ export default function CustomDropdown({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    // Smoothly scroll dropdown into view if it opens near the bottom of the viewport
+    useEffect(() => {
+        if (isOpen && dropdownRef.current) {
+            const timer = setTimeout(() => {
+                dropdownRef.current?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest',
+                    inline: 'nearest'
+                });
+            }, 60);
+            return () => clearTimeout(timer);
+        }
+    }, [isOpen]);
+
     const selectedOption = options.find((opt) => opt.value === value);
 
     const handleSelect = (optionValue) => {

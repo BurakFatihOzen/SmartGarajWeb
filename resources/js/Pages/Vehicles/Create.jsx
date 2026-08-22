@@ -1049,6 +1049,37 @@ export default function VehicleCreate() {
                                     </div>
                                 </div>
                             )}
+
+                            {/* BOTTOM ACTION BAR (Tüm form doldurulduktan sonra aşağıda direkt kaydet butonu) */}
+                            <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200/80 dark:border-white/[0.06] shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+                                <div>
+                                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-1.5">
+                                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                        <span>Tüm Bilgiler Tamamlandı mı?</span>
+                                    </h4>
+                                    <p className="text-[11px] text-slate-400 mt-0.5">
+                                        Girdiğiniz ruhsat, muayene ve {isFleet ? 'filo/zimmet' : 'araç'} verileri güvenle garajınıza kaydedilir.
+                                    </p>
+                                </div>
+
+                                <div className="flex items-center space-x-3 w-full sm:w-auto">
+                                    <Link
+                                        href={isFleet ? "/fleet" : "/dashboard"}
+                                        className="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/[0.08] text-slate-600 dark:text-slate-400 font-bold text-xs flex items-center justify-center transition-all text-center"
+                                    >
+                                        İptal
+                                    </Link>
+
+                                    <button
+                                        type="submit"
+                                        disabled={processing}
+                                        className="flex-1 sm:flex-none px-6 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black text-xs sm:text-sm tracking-wide shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
+                                    >
+                                        <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
+                                        <span>{processing ? 'Araç Kaydediliyor...' : (isFleet ? 'Aracı Filoya Ekle' : 'Aracı Garaja Kaydet')}</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         {/* RIGHT COLUMN: LIVE PREVIEW & ACTIONS (5 Columns on Large Screens) */}
