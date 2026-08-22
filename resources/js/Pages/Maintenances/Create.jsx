@@ -396,7 +396,7 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
     // Inline custom operation input per category
     const [categoryCustomInputs, setCategoryCustomInputs] = useState({});
 
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, reset, transform } = useForm({
         arac_id: defaultVehicleId,
         islem_tarihi: new Date().toISOString().split('T')[0],
         islem_turu: 'Standart Periyodik Bakım (Yağ + Tüm Filtreler)',
@@ -638,11 +638,22 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
             }
         }
 
+        const combinedOperations = selectedOperations.length > 0 ? selectedOperations.join(' + ') : data.islem_turu;
+
+        transform((formData) => ({
+            ...formData,
+            islem_turu: combinedOperations,
+            aciklama: finalDescription
+        }));
+
         post('/maintenances', {
-            data: {
-                ...data,
-                aciklama: finalDescription
-            }
+            preserveScroll: false,
+            onSuccess: () => {
+                reset();
+                setSelectedOperations(['Standart Periyodik Bakım (Yağ + Tüm Filtreler)']);
+                setSelectedParts([]);
+                setBodyworkParts([]);
+            },
         });
     };
 
@@ -699,6 +710,21 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
 
                 {/* Main Form */}
                 <form onSubmit={handleSubmit} className="space-y-6">
+
+                    {/* Validation Errors Alert */}
+                    {Object.keys(errors).length > 0 && (
+                        <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-400 text-xs font-bold space-y-1 animate-fadeIn">
+                            <div className="flex items-center space-x-2 text-sm font-black text-red-600 dark:text-red-400">
+                                <AlertCircle className="w-4 h-4" />
+                                <span>Lütfen formdaki eksik veya hatalı alanları kontrol edin:</span>
+                            </div>
+                            <ul className="list-disc list-inside space-y-0.5 pt-1 text-[11px]">
+                                {Object.entries(errors).map(([field, msg], i) => (
+                                    <li key={i}>{msg}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
 
                     {/* Section 1: Vehicle & Basic Stats */}
                     <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200/80 dark:border-white/[0.08] shadow-sm space-y-6">

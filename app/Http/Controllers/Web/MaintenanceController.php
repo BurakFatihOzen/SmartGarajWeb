@@ -30,7 +30,7 @@ class MaintenanceController extends Controller
         $validated = $request->validate([
             'arac_id' => 'required|integer',
             'islem_tarihi' => 'required|date',
-            'islem_turu' => 'required|string|max:150',
+            'islem_turu' => 'required|string|max:500',
             'servis_turu' => 'nullable|string|in:yetkili_servis,ozel_servis,sanayi,kendi_garajimiz',
             'servis_adi' => 'nullable|string|max:200',
             'sanayi_sitesi' => 'nullable|string|max:200',
@@ -70,8 +70,11 @@ class MaintenanceController extends Controller
             $vehicle->update(['guncel_km' => (int) $validated['islem_km']]);
         }
 
-        return redirect()->route('dashboard', ['arac_id' => $vehicle->id])
-            ->with('success', 'Bakım kaydı başarıyla eklendi!');
+        $redirectUrl = ($user->hesap_turu === 'filo' || (method_exists($user, 'isFleet') && $user->isFleet()))
+            ? route('fleet.index')
+            : route('dashboard', ['arac_id' => $vehicle->id]);
+
+        return redirect($redirectUrl)->with('success', 'Bakım kaydı başarıyla eklendi!');
     }
 
     public function update(Request $request, $id)
@@ -83,7 +86,7 @@ class MaintenanceController extends Controller
 
         $validated = $request->validate([
             'islem_tarihi' => 'required|date',
-            'islem_turu' => 'required|string|max:150',
+            'islem_turu' => 'required|string|max:500',
             'servis_turu' => 'nullable|string|in:yetkili_servis,ozel_servis,sanayi,kendi_garajimiz',
             'servis_adi' => 'nullable|string|max:200',
             'sanayi_sitesi' => 'nullable|string|max:200',
