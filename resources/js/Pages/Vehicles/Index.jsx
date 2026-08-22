@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Link, router, Head } from '@inertiajs/react';
+import { Link, router, Head, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import EditVehicleModal from '@/Components/EditVehicleModal';
 import { 
@@ -24,6 +24,9 @@ import {
 } from 'lucide-react';
 
 export default function VehiclesIndex({ vehicles = [] }) {
+    const { auth } = usePage().props;
+    const isFleet = auth?.user?.hesap_turu === 'filo' || auth?.user?.rol === 'filo';
+
     const [uploadingId, setUploadingId] = useState(null);
     const [editingVehicle, setEditingVehicle] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -330,7 +333,7 @@ export default function VehiclesIndex({ vehicles = [] }) {
                                     {/* Bottom Actions */}
                                     <div className="flex items-center justify-between pt-4 border-t border-slate-200/80 dark:border-white/10 gap-2">
                                         <Link
-                                            href={`/dashboard?arac_id=${v.id}`}
+                                            href={isFleet ? `/fleet?arac_id=${v.id}` : `/dashboard?arac_id=${v.id}`}
                                             className="flex-1 py-2 px-3 rounded-xl bg-slate-100 hover:bg-amber-500 hover:text-black dark:bg-white/[0.05] dark:hover:bg-amber-500 dark:hover:text-black text-slate-700 dark:text-slate-200 text-xs font-bold text-center transition-all flex items-center justify-center space-x-1.5 shadow-2xs"
                                         >
                                             <span>Yönet</span>
@@ -421,7 +424,7 @@ export default function VehiclesIndex({ vehicles = [] }) {
                                                 </td>
                                                 <td className="px-4 py-3.5 text-right whitespace-nowrap space-x-1.5">
                                                     <Link
-                                                        href={`/dashboard?arac_id=${v.id}`}
+                                                        href={isFleet ? `/fleet?arac_id=${v.id}` : `/dashboard?arac_id=${v.id}`}
                                                         className="px-3 py-1.5 rounded-lg bg-amber-500 text-black font-bold text-xs hover:brightness-110 transition-all inline-flex items-center space-x-1"
                                                     >
                                                         <span>Yönet</span>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '../../Layouts/AppLayout';
 import { 
@@ -57,9 +57,39 @@ export default function FleetDashboard({
     drivers = [], 
     kpis = {}, 
     departmentDistribution = {}, 
-    brandDistribution = {} 
+    brandDistribution = {},
+    selected_vehicle_id = null
 }) {
-    const [selectedVehicleId, setSelectedVehicleId] = useState(vehicles[0]?.id || null);
+    const safeVehicles = Array.isArray(vehicles) ? vehicles : [];
+
+    const getInitialVehicleId = () => {
+        if (selected_vehicle_id && safeVehicles.some(v => String(v.id) === String(selected_vehicle_id))) {
+            return Number(selected_vehicle_id);
+        }
+        if (typeof window !== 'undefined') {
+            const urlParams = new URLSearchParams(window.location.search);
+            const qId = urlParams.get('arac_id');
+            if (qId && safeVehicles.some(v => String(v.id) === String(qId))) {
+                return Number(qId);
+            }
+        }
+        return safeVehicles[0]?.id || null;
+    };
+
+    const [selectedVehicleId, setSelectedVehicleId] = useState(getInitialVehicleId);
+
+    useEffect(() => {
+        if (selected_vehicle_id && safeVehicles.some(v => String(v.id) === String(selected_vehicle_id))) {
+            setSelectedVehicleId(Number(selected_vehicle_id));
+        } else if (typeof window !== 'undefined') {
+            const urlParams = new URLSearchParams(window.location.search);
+            const qId = urlParams.get('arac_id');
+            if (qId && safeVehicles.some(v => String(v.id) === String(qId))) {
+                setSelectedVehicleId(Number(qId));
+            }
+        }
+    }, [selected_vehicle_id, vehicles]);
+
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('all');
     const [selectedDept, setSelectedDept] = useState('all');
@@ -78,54 +108,54 @@ export default function FleetDashboard({
 
     // Active vehicle computation
     const activeVehicle = useMemo(() => {
-        if (!vehicles.length) return null;
-        return vehicles.find(v => v.id === selectedVehicleId) || vehicles[0];
-    }, [vehicles, selectedVehicleId]);
+        if (!safeVehicles.length) return null;
+        return safeVehicles.find(v => String(v.id) === String(selectedVehicleId)) || safeVehicles[0] || null;
+    }, [safeVehicles, selectedVehicleId]);
 
     // All Fleet Maintenances Flattened
     const allFleetMaintenances = useMemo(() => {
         const list = [];
-        vehicles.forEach(v => {
+        safeVehicles.forEach(v => {
             if (Array.isArray(v.maintenances)) {
                 v.maintenances.forEach(m => {
                     list.push({
                         ...m,
                         vehicle_id: v.id,
-                        vehicle_plaka: v.plaka,
-                        vehicle_name: `${v.marka} ${v.model}`,
-                        vehicle_dept: v.departman,
+                        vehicle_plaka: v.plaka || '',
+                        vehicle_name: `${v.marka || ''} ${v.model || ''}`.trim(),
+                        vehicle_dept: v.departman || 'Genel Havuz',
                     });
                 });
             }
         });
         return list.sort((a, b) => new Date(b.islem_tarihi || 0) - new Date(a.islem_tarihi || 0));
-    }, [vehicles]);
+    }, [safeVehicles]);
 
     // All Fleet Accidents Flattened
     const allFleetAccidents = useMemo(() => {
         const list = [];
-        vehicles.forEach(v => {
+        safeVehicles.forEach(v => {
             if (Array.isArray(v.accidents)) {
                 v.accidents.forEach(a => {
                     list.push({
                         ...a,
                         vehicle_id: v.id,
-                        vehicle_plaka: v.plaka,
-                        vehicle_name: `${v.marka} ${v.model}`,
-                        vehicle_dept: v.departman,
+                        vehicle_plaka: v.plaka || '',
+                        vehicle_name: `${v.marka || ''} ${v.model || ''}`.trim(),
+                        vehicle_dept: v.departman || 'Genel Havuz',
                     });
                 });
             }
         });
         return list.sort((a, b) => new Date(b.kaza_tarihi || 0) - new Date(a.kaza_tarihi || 0));
-    }, [vehicles]);
+    }, [safeVehicles]);
 
     // Filtered Vehicles
     const filteredVehicles = useMemo(() => {
-        return vehicles.filter(v => {
+        return safeVehicles.filter(v => {
             const matchesSearch = 
-                v.plaka.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                `${v.marka} ${v.model}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (v.plaka || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                `${v.marka || ''} ${v.model || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 (v.zimmet_surucu_adi && v.zimmet_surucu_adi.toLowerCase().includes(searchTerm.toLowerCase())) ||
                 (v.departman && v.departman.toLowerCase().includes(searchTerm.toLowerCase()));
             
@@ -134,14 +164,14 @@ export default function FleetDashboard({
 
             return matchesSearch && matchesStatus && matchesDept;
         });
-    }, [vehicles, searchTerm, selectedStatus, selectedDept]);
+    }, [safeVehicles, searchTerm, selectedStatus, selectedDept]);
 
     // Filtered Maintenances
     const filteredMaintenances = useMemo(() => {
         return allFleetMaintenances.filter(m => {
             const matchesSearch = 
-                m.vehicle_plaka.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                m.vehicle_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (m.vehicle_plaka || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (m.vehicle_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                 (m.islem_turu && m.islem_turu.toLowerCase().includes(searchTerm.toLowerCase())) ||
                 (m.servis_adi && m.servis_adi.toLowerCase().includes(searchTerm.toLowerCase())) ||
                 (m.usta_adi && m.usta_adi.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -157,8 +187,8 @@ export default function FleetDashboard({
     const filteredAccidents = useMemo(() => {
         return allFleetAccidents.filter(a => {
             const matchesSearch = 
-                a.vehicle_plaka.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                a.vehicle_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (a.vehicle_plaka || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (a.vehicle_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                 (a.kaza_turu && a.kaza_turu.toLowerCase().includes(searchTerm.toLowerCase())) ||
                 (a.surucu_adi && a.surucu_adi.toLowerCase().includes(searchTerm.toLowerCase())) ||
                 (a.sigorta_sirketi && a.sigorta_sirketi.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -761,7 +791,7 @@ export default function FleetDashboard({
                             className="px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-bold cursor-pointer outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="all">Tüm Departmanlar</option>
-                            {Object.keys(departmentDistribution).map((dept, idx) => (
+                            {Object.keys(departmentDistribution || {}).map((dept, idx) => (
                                 <option key={idx} value={dept}>{dept} ({departmentDistribution[dept]})</option>
                             ))}
                         </select>

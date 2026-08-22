@@ -17,9 +17,9 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
-        // Kurumsal filo hesabı ise doğrudan filo operasyon portalına yönlendir
+        // Kurumsal filo hesabı ise doğrudan filo operasyon portalına yönlendir (arac_id query parametresini koru)
         if ($user && $user->isFleet()) {
-            return redirect()->route('fleet.index');
+            return redirect()->route('fleet.index', $request->query());
         }
 
         $vehicles = $user->vehicles;

@@ -224,6 +224,7 @@ class FleetController extends Controller
             ],
             'departmentDistribution' => $departmentMap,
             'brandDistribution' => $brandMap,
+            'selected_vehicle_id' => $request->query('arac_id') ? (int) $request->query('arac_id') : null,
         ]);
     }
 
