@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useForm, Head } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import OcrModal from '@/Components/OcrModal';
@@ -42,7 +42,9 @@ import {
     Paintbrush,
     Sparkle,
     Cpu,
-    CheckCheck
+    CheckCheck,
+    Lightbulb,
+    PlusCircle
 } from 'lucide-react';
 
 export const ENHANCED_OPERATION_CATEGORIES = [
@@ -52,6 +54,7 @@ export const ENHANCED_OPERATION_CATEGORIES = [
         icon: '🛢️',
         isOilRelated: true,
         isBodyworkRelated: false,
+        partCategoryIndices: [0, 6], // Filtre Grubu, Soğutma
         desc: 'Motor yağı, filtreler, antifriz, hidrolik sıvıları',
         items: [
             'Standart Periyodik Bakım (Yağ + Tüm Filtreler)',
@@ -70,6 +73,7 @@ export const ENHANCED_OPERATION_CATEGORIES = [
         icon: '🛑',
         isOilRelated: false,
         isBodyworkRelated: false,
+        partCategoryIndices: [1], // Fren Sistemi
         desc: 'Fren balataları, diskler, kaliper ve el freni',
         items: [
             'Ön Fren Balatası Değişimi',
@@ -88,6 +92,7 @@ export const ENHANCED_OPERATION_CATEGORIES = [
         icon: '⚙️',
         isOilRelated: false,
         isBodyworkRelated: false,
+        partCategoryIndices: [3, 4], // Debriyaj & Triger
         desc: 'Triger seti, devirdaim, debriyaj, buji, turbo',
         items: [
             'Ağır Bakım: Triger Seti & Devirdaim (Su Pompası)',
@@ -108,6 +113,7 @@ export const ENHANCED_OPERATION_CATEGORIES = [
         icon: '🛞',
         isOilRelated: false,
         isBodyworkRelated: false,
+        partCategoryIndices: [2, 7], // Süspansiyon, Lastik
         desc: 'Amortisör, salıncak, rot başı, lastik & balans',
         items: [
             'Ön / Arka Amortisör & Takoz Değişimi',
@@ -126,6 +132,7 @@ export const ENHANCED_OPERATION_CATEGORIES = [
         icon: '🎨',
         isOilRelated: false,
         isBodyworkRelated: true,
+        partCategoryIndices: [8], // Detailing & Kimyasallar
         desc: 'Boyasız göçük (PDR), kuru çekiç, lokal boya, pasta cila',
         items: [
             'Kaporta Onarımı & Boyasız Göçük Düzeltme (PDR)',
@@ -144,6 +151,7 @@ export const ENHANCED_OPERATION_CATEGORIES = [
         icon: '🔋',
         isOilRelated: false,
         isBodyworkRelated: false,
+        partCategoryIndices: [5, 6], // Akü & Elektrik, Soğutma & Klima
         desc: 'Akü değişimi, klima gazı, aydınlatma, alternatör',
         items: [
             'Akü Değişimi & Şarj Ölçümü',
@@ -162,6 +170,7 @@ export const ENHANCED_OPERATION_CATEGORIES = [
         icon: '🔍',
         isOilRelated: false,
         isBodyworkRelated: false,
+        partCategoryIndices: [],
         desc: 'TÜVTÜRK hazırlık, arıza teşhisi, genel kontrol',
         items: [
             'TÜVTÜRK Muayene Öncesi Genel Kontrol',
@@ -177,6 +186,7 @@ export const ENHANCED_OPERATION_CATEGORIES = [
         icon: '🔧',
         isOilRelated: false,
         isBodyworkRelated: false,
+        partCategoryIndices: [],
         desc: 'Özel projeler, cam/kilit, döşeme, egzoz',
         items: [
             'Egzoz & Susturucu / Katalizör Onarımı',
@@ -378,6 +388,14 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
     const defaultVehicleId = selected_vehicle_id || (vehicles.length > 0 ? vehicles[0].id : '');
     const activeVehicle = vehicles.find(v => String(v.id) === String(defaultVehicleId));
 
+    // MULTI-SELECTION STATE FOR MAINTENANCE OPERATIONS
+    const [selectedOperations, setSelectedOperations] = useState([
+        'Standart Periyodik Bakım (Yağ + Tüm Filtreler)'
+    ]);
+
+    // Inline custom operation input per category
+    const [categoryCustomInputs, setCategoryCustomInputs] = useState({});
+
     const { data, setData, post, processing, errors } = useForm({
         arac_id: defaultVehicleId,
         islem_tarihi: new Date().toISOString().split('T')[0],
@@ -411,6 +429,9 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
     const [partSearchTerm, setPartSearchTerm] = useState('');
     const [activePartCatalogCat, setActivePartCatalogCat] = useState('all');
 
+    // Cross-category feedback suggestion notice
+    const [categoryHint, setCategoryHint] = useState(null);
+
     // AI Generation animation state
     const [isGeneratingAi, setIsGeneratingAi] = useState(false);
     const [aiSuccessMessage, setAiSuccessMessage] = useState(false);
@@ -419,17 +440,24 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
     const [isOcrOpen, setIsOcrOpen] = useState(false);
     const [showOilSection, setShowOilSection] = useState(true);
 
-    // Automatically expand/show oil or bodywork sections based on selected operation
+    // Automatically sync `data.islem_turu` string whenever `selectedOperations` changes
     useEffect(() => {
-        const opLower = (data.islem_turu || '').toLowerCase();
-        const isOil = opLower.includes('yağ') || opLower.includes('periyodik') || opLower.includes('filtre');
+        if (selectedOperations.length > 0) {
+            setData('islem_turu', selectedOperations.join(' + '));
+        } else {
+            setData('islem_turu', '');
+        }
+
+        // Check if ANY selected operation is oil-related or bodywork-related
+        const combinedText = selectedOperations.join(' ').toLowerCase();
+        const isOil = combinedText.includes('yağ') || combinedText.includes('periyodik') || combinedText.includes('filtre') || combinedText.includes('sıvı');
         setShowOilSection(isOil);
 
-        const isBodywork = opLower.includes('kaporta') || opLower.includes('boya') || opLower.includes('göçük') || opLower.includes('rötüş') || opLower.includes('pasta') || opLower.includes('ppf');
+        const isBodywork = combinedText.includes('kaporta') || combinedText.includes('boya') || combinedText.includes('göçük') || combinedText.includes('rötüş') || combinedText.includes('pasta') || combinedText.includes('ppf');
         if (isBodywork) {
             setShowBodyworkMap(true);
         }
-    }, [data.islem_turu]);
+    }, [selectedOperations]);
 
     const handleVehicleChange = (newId) => {
         const v = vehicles.find(item => String(item.id) === String(newId));
@@ -440,19 +468,73 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
         }));
     };
 
-    const handleSelectOperation = (opItem, cat) => {
-        setData('islem_turu', opItem);
-        if (cat.isBodyworkRelated) {
-            setShowBodyworkMap(true);
+    // Toggle multi-select operation
+    const handleToggleOperation = (opItem, cat) => {
+        if (selectedOperations.includes(opItem)) {
+            setSelectedOperations(prev => prev.filter(item => item !== opItem));
+        } else {
+            setSelectedOperations(prev => [...prev, opItem]);
+            if (cat.isBodyworkRelated) {
+                setShowBodyworkMap(true);
+            }
         }
     };
+
+    // Add custom operation to category
+    const handleAddCustomCategoryOp = (catId) => {
+        const customVal = (categoryCustomInputs[catId] || '').trim();
+        if (!customVal) return;
+
+        if (!selectedOperations.includes(customVal)) {
+            setSelectedOperations(prev => [...prev, customVal]);
+        }
+
+        setCategoryCustomInputs(prev => ({ ...prev, [catId]: '' }));
+    };
+
+    const handleRemoveOperation = (opToRemove) => {
+        setSelectedOperations(prev => prev.filter(item => item !== opToRemove));
+    };
+
+    const handleClearAllOperations = () => {
+        setSelectedOperations([]);
+    };
+
+    // Map which spare part categories are suggested based on selected operations
+    const suggestedPartCategories = useMemo(() => {
+        const indices = new Set();
+        const combinedText = selectedOperations.join(' ').toLowerCase();
+
+        ENHANCED_OPERATION_CATEGORIES.forEach(cat => {
+            const hasOpFromThisCat = cat.items.some(it => selectedOperations.includes(it)) ||
+                                    selectedOperations.some(op => op.toLowerCase().includes(cat.name.toLowerCase()));
+            if (hasOpFromThisCat && cat.partCategoryIndices) {
+                cat.partCategoryIndices.forEach(idx => indices.add(idx));
+            }
+        });
+
+        // Fallbacks based on keywords
+        if (combinedText.includes('fren') || combinedText.includes('balata') || combinedText.includes('disk')) indices.add(1);
+        if (combinedText.includes('yağ') || combinedText.includes('filtre') || combinedText.includes('periyodik')) indices.add(0);
+        if (combinedText.includes('triger') || combinedText.includes('devirdaim')) indices.add(4);
+        if (combinedText.includes('debriyaj')) indices.add(3);
+        if (combinedText.includes('amortisör') || combinedText.includes('salıncak') || combinedText.includes('rot')) indices.add(2);
+        if (combinedText.includes('akü') || combinedText.includes('buji')) indices.add(5);
+        if (combinedText.includes('klima') || combinedText.includes('antifriz')) indices.add(6);
+        if (combinedText.includes('lastik')) indices.add(7);
+        if (combinedText.includes('boya') || combinedText.includes('pasta') || combinedText.includes('detailing')) indices.add(8);
+
+        return Array.from(indices);
+    }, [selectedOperations]);
 
     const handleOcrExtracted = (extracted) => {
         if (extracted.tarih) setData('islem_tarihi', extracted.tarih);
         if (extracted.islem_km) setData('islem_km', extracted.islem_km);
         if (extracted.toplam_tutar) setData('maliyet_tl', extracted.toplam_tutar);
         if (extracted.servis_adi) setData('servis_adi', extracted.servis_adi);
-        if (extracted.islem_turu) setData('islem_turu', extracted.islem_turu);
+        if (extracted.islem_turu) {
+            setSelectedOperations([extracted.islem_turu]);
+        }
         
         let aciklamaMetni = "";
         if (extracted.aciklama) {
@@ -476,12 +558,22 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
         }
     };
 
-    const handleAddPartTag = (partName) => {
+    const handleAddPartTag = (partName, categoryIndex = null) => {
         if (!partName.trim()) return;
         if (!selectedParts.includes(partName.trim())) {
             setSelectedParts([...selectedParts, partName.trim()]);
         }
         setCustomPartInput('');
+
+        // Smart Cross-Category Hint
+        if (categoryIndex !== null && !suggestedPartCategories.includes(categoryIndex)) {
+            const catName = SPARE_PARTS_CATEGORIES[categoryIndex]?.name.split('(')[0];
+            setCategoryHint({
+                text: `"${partName}" (${catName}) eklendi. İsterseniz yukarıdaki bakım kategorilerinden ilgili işlemi de ekleyebilirsiniz.`,
+                catIndex: categoryIndex
+            });
+            setTimeout(() => setCategoryHint(null), 6000);
+        }
     };
 
     const handleRemovePartTag = (indexToRemove) => {
@@ -496,6 +588,7 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
         setTimeout(() => {
             const enhancedText = generateSmartMaintenanceDescription({
                 vehicle: activeVehicle,
+                operationsList: selectedOperations,
                 operationType: data.islem_turu,
                 km: data.islem_km,
                 parts: selectedParts,
@@ -590,7 +683,7 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
                             <span>Bakım & Servis <span className="text-amber-500">Kaydı İşle</span></span>
                         </h2>
                         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium max-w-xl">
-                            Yetkili servis, sanayi ustası veya kendi garajınızda yapılan motor yağı, parça, kaporta ve mekanik işlemlerini akıllıca kaydedin.
+                            Aynı anda birden fazla bakım işlemi (yağ, fren, mekanik, kaporta) seçebilir, OEM parça ve AI açıklama desteğinden yararlanabilirsiniz.
                         </p>
                     </div>
 
@@ -600,7 +693,7 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
                         className="px-5 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-extrabold text-xs shadow-lg shadow-indigo-500/25 transition-all flex items-center space-x-2.5 cursor-pointer self-start md:self-auto"
                     >
                         <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
-                        <span>AI ile Fatura Tara & Otomatik Doldur</span>
+                        <span>AI ile Fatura Tara & Doldur</span>
                     </button>
                 </div>
 
@@ -661,17 +754,22 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
                         </div>
                     </div>
 
-                    {/* Section 2: Categorized Operation Type Selection */}
+                    {/* Section 2: MULTI-SELECT Categorized Operation Selection */}
                     <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200/80 dark:border-white/[0.08] shadow-sm space-y-6">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-white/[0.06]">
                             <div className="flex items-center space-x-2.5">
                                 <SlidersHorizontal className="w-5 h-5 text-purple-500" />
                                 <div>
-                                    <h3 className="text-base font-black text-slate-900 dark:text-white">
-                                        2. Yapılan Bakım & İşlem Kategorisi
+                                    <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+                                        <span>2. Yapılan Bakım & İşlem Türleri</span>
+                                        {selectedOperations.length > 0 && (
+                                            <span className="px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950 text-xs font-black">
+                                                {selectedOperations.length} İşlem Seçili
+                                            </span>
+                                        )}
                                     </h3>
                                     <p className="text-xs text-slate-400 font-semibold">
-                                        İşlem türünü kategoriler arasından kolayca seçin veya özel başlık girin.
+                                        Aynı anda birden çok kategoriye tıklayarak tüm servis işlemlerini tek seferde ekleyebilirsiniz.
                                     </p>
                                 </div>
                             </div>
@@ -680,27 +778,64 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
                             <button
                                 type="button"
                                 onClick={() => setShowBodyworkMap(!showBodyworkMap)}
-                                className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold border transition-all flex items-center space-x-1.5 cursor-pointer ${
+                                className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold border transition-all flex items-center space-x-1.5 cursor-pointer self-start sm:self-auto ${
                                     showBodyworkMap 
                                         ? 'bg-purple-500 text-white border-purple-500 shadow-md shadow-purple-500/20' 
                                         : 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 hover:bg-purple-500/20'
                                 }`}
                             >
                                 <Paintbrush className="w-3.5 h-3.5" />
-                                <span>{showBodyworkMap ? 'Kaporta Şemasını Gizle' : '🎨 Kaporta / Göçük Şeması Aç'}</span>
+                                <span>{showBodyworkMap ? 'Kaporta Şemasını Gizle' : '🎨 Kaporta / Göçük Şeması'}</span>
                             </button>
                         </div>
 
-                        {/* Category Selector Tabs */}
+                        {/* Selected Operations Chips Bar */}
+                        {selectedOperations.length > 0 && (
+                            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 space-y-2 animate-fadeIn">
+                                <div className="flex items-center justify-between text-xs font-black text-amber-900 dark:text-amber-300">
+                                    <span>Seçilen Tüm Bakım İşlemleri ({selectedOperations.length}):</span>
+                                    <button
+                                        type="button"
+                                        onClick={handleClearAllOperations}
+                                        className="text-[11px] text-red-500 hover:underline font-bold cursor-pointer"
+                                    >
+                                        Tümünü Temizle
+                                    </button>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {selectedOperations.map((op, opIdx) => (
+                                        <span
+                                            key={opIdx}
+                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-[#161824] border border-amber-500/30 text-xs font-black text-slate-900 dark:text-white shadow-sm"
+                                        >
+                                            <Check className="w-3.5 h-3.5 text-amber-500" />
+                                            <span>{op}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveOperation(op)}
+                                                className="hover:text-red-500 transition-colors ml-1 cursor-pointer"
+                                                title="İşlemi kaldır"
+                                            >
+                                                <X className="w-3.5 h-3.5" />
+                                            </button>
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Category Selector Tabs with Selected Badges */}
                         <div className="space-y-3">
                             <div className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                                Bakım Kategorisi Seçin:
+                                Kategori Seçerek Çoklu İşlem Ekleyin:
                             </div>
                             
                             {/* Horizontal scrollable category pills */}
                             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
                                 {ENHANCED_OPERATION_CATEGORIES.map((cat) => {
                                     const isCatActive = activeCategoryTab === cat.id;
+                                    const countInThisCat = cat.items.filter(it => selectedOperations.includes(it)).length;
+
                                     return (
                                         <button
                                             key={cat.id}
@@ -714,53 +849,98 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
                                         >
                                             <span className="text-base leading-none">{cat.icon}</span>
                                             <span>{cat.name}</span>
+                                            {countInThisCat > 0 && (
+                                                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
+                                                    isCatActive ? 'bg-slate-950 text-amber-400' : 'bg-amber-500 text-slate-950'
+                                                }`}>
+                                                    {countInThisCat}
+                                                </span>
+                                            )}
                                         </button>
                                     );
                                 })}
                             </div>
 
-                            {/* Operations belonging to active category */}
-                            <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 space-y-3">
+                            {/* Operations Grid for Active Category */}
+                            <div className="p-4 sm:p-5 rounded-2xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 space-y-4">
                                 <div className="flex items-center justify-between text-xs">
                                     <span className="font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
                                         <span>{currentCategoryConfig.icon}</span>
                                         <span>{currentCategoryConfig.name}</span>
                                         <span className="text-slate-400 font-normal">({currentCategoryConfig.desc})</span>
                                     </span>
+                                    <span className="text-[11px] text-amber-600 dark:text-amber-400 font-bold hidden sm:inline-block">
+                                        Birden çok işlem seçebilirsiniz
+                                    </span>
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
                                     {currentCategoryConfig.items.map((op, idx) => {
-                                        const isSelected = data.islem_turu === op;
+                                        const isSelected = selectedOperations.includes(op);
                                         return (
                                             <button
                                                 key={idx}
                                                 type="button"
-                                                onClick={() => handleSelectOperation(op, currentCategoryConfig)}
+                                                onClick={() => handleToggleOperation(op, currentCategoryConfig)}
                                                 className={`p-3 rounded-xl text-xs font-bold text-left transition-all flex items-center justify-between cursor-pointer border ${
                                                     isSelected
-                                                        ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-sm font-black'
+                                                        ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-sm font-black ring-2 ring-amber-500/30'
                                                         : 'bg-white dark:bg-[#161824] border-slate-200 dark:border-white/[0.06] hover:border-amber-500/40 text-slate-800 dark:text-slate-200'
                                                 }`}
                                             >
                                                 <span className="truncate pr-1">{op}</span>
-                                                {isSelected && <Check className="w-4 h-4 shrink-0 text-slate-950" />}
+                                                {isSelected ? (
+                                                    <div className="w-5 h-5 rounded-full bg-slate-950 text-amber-400 flex items-center justify-center shrink-0 ml-1">
+                                                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                                    </div>
+                                                ) : (
+                                                    <div className="w-5 h-5 rounded-full border border-slate-300 dark:border-white/20 flex items-center justify-center shrink-0 ml-1 opacity-50">
+                                                        <Plus className="w-3 h-3 text-slate-400" />
+                                                    </div>
+                                                )}
                                             </button>
                                         );
                                     })}
                                 </div>
+
+                                {/* Custom / Other Option Inside EVERY Category */}
+                                <div className="pt-2 border-t border-slate-200/60 dark:border-white/[0.06] flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                    <div className="relative flex-1">
+                                        <input
+                                            type="text"
+                                            value={categoryCustomInputs[activeCategoryTab] || ''}
+                                            onChange={(e) => setCategoryCustomInputs({ ...categoryCustomInputs, [activeCategoryTab]: e.target.value })}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    handleAddCustomCategoryOp(activeCategoryTab);
+                                                }
+                                            }}
+                                            placeholder={`+ "${currentCategoryConfig.name}" için listede olmayan özel bir işlem yazın...`}
+                                            className="w-full h-10 px-3.5 rounded-xl bg-white dark:bg-[#1a1d29] border border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-amber-500 outline-none"
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleAddCustomCategoryOp(activeCategoryTab)}
+                                        className="px-4 h-10 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-extrabold flex items-center justify-center space-x-1.5 hover:opacity-90 transition-opacity cursor-pointer shrink-0"
+                                    >
+                                        <Plus className="w-3.5 h-3.5" />
+                                        <span>Diğer / Özel İşlem Ekle</span>
+                                    </button>
+                                </div>
                             </div>
 
-                            {/* Selected / Custom Title Input */}
+                            {/* Combined Operation Title Bar */}
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                                    Seçilen / Özel İşlem Başlığı:
+                                    Seçilen Bakım Kaydı Başlığı (Otomatik Oluşturulan / Serbest Metin):
                                 </label>
                                 <input
                                     type="text"
                                     value={data.islem_turu}
                                     onChange={(e) => setData('islem_turu', e.target.value)}
-                                    placeholder="Örn: 120.000 KM Ağır Bakımı + Ön Balata"
+                                    placeholder="Örn: Yağ Bakımı + Ön Fren Balatası + Klima Gazı"
                                     className="w-full h-11 bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 rounded-2xl px-4 text-xs font-extrabold text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 outline-none"
                                     required
                                 />
@@ -890,7 +1070,7 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
                         </div>
                     )}
 
-                    {/* Section 4: Collapsible Spare Parts & OEM Brands Catalog */}
+                    {/* Section 4: Collapsible Spare Parts & OEM Brands Catalog with Smart Suggestions */}
                     <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200/80 dark:border-white/[0.08] shadow-sm space-y-5">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-white/[0.06]">
                             <div className="flex items-center space-x-2.5">
@@ -921,6 +1101,23 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
                             </button>
                         </div>
 
+                        {/* Cross Category Helpful Suggestion Toast */}
+                        {categoryHint && (
+                            <div className="p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-800 dark:text-blue-300 text-xs font-bold flex items-center justify-between gap-3 animate-fadeIn">
+                                <div className="flex items-center space-x-2">
+                                    <Lightbulb className="w-4 h-4 text-amber-500 shrink-0" />
+                                    <span>{categoryHint.text}</span>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setCategoryHint(null)}
+                                    className="text-slate-400 hover:text-slate-600"
+                                >
+                                    <X className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+                        )}
+
                         {/* Selected Parts Chips - ALWAYS VISIBLE AT THE TOP */}
                         {selectedParts.length > 0 && (
                             <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 space-y-2">
@@ -929,7 +1126,7 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
                                     <button 
                                         type="button" 
                                         onClick={() => setSelectedParts([])}
-                                        className="text-[11px] text-red-500 hover:underline font-bold"
+                                        className="text-[11px] text-red-500 hover:underline font-bold cursor-pointer"
                                     >
                                         Tümünü Temizle
                                     </button>
@@ -975,7 +1172,7 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
                                 onClick={() => handleAddPartTag(customPartInput)}
                                 className="px-5 h-11 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-extrabold flex items-center gap-1.5 hover:opacity-90 transition-opacity cursor-pointer shrink-0"
                             >
-                                <Plus className="w-4 h-4" />
+                                <Plus className="w-3.5 h-3.5" />
                                 <span>Parça Ekle</span>
                             </button>
                         </div>
@@ -983,6 +1180,29 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
                         {/* COLLAPSIBLE BRAND CATALOG ACCORDION */}
                         {isPartsCatalogOpen && (
                             <div className="space-y-4 pt-3 border-t border-slate-100 dark:border-white/[0.06] animate-fadeIn">
+                                
+                                {/* Smart Recommendation Banner based on selected operations */}
+                                {suggestedPartCategories.length > 0 && (
+                                    <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-blue-500/10 to-purple-500/10 border border-emerald-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                        <div className="flex items-center space-x-2 text-xs font-bold text-slate-900 dark:text-white">
+                                            <Sparkles className="w-4 h-4 text-emerald-500 animate-pulse" />
+                                            <span>Seçtiğiniz Bakımlarla Uyumlu Önerilen Marka Grupları:</span>
+                                        </div>
+                                        <div className="flex flex-wrap gap-1">
+                                            {suggestedPartCategories.map(catIdx => (
+                                                <button
+                                                    key={catIdx}
+                                                    type="button"
+                                                    onClick={() => setActivePartCatalogCat(String(catIdx))}
+                                                    className="px-2.5 py-1 rounded-lg bg-emerald-500 text-white text-[11px] font-black cursor-pointer hover:bg-emerald-600 transition-colors"
+                                                >
+                                                    {SPARE_PARTS_CATEGORIES[catIdx]?.name.split('(')[0]}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Search & Category Filters */}
                                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                                     {/* Catalog Category Filter */}
@@ -998,20 +1218,26 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
                                         >
                                             Tüm Kategoriler
                                         </button>
-                                        {SPARE_PARTS_CATEGORIES.map((c, i) => (
-                                            <button
-                                                key={i}
-                                                type="button"
-                                                onClick={() => setActivePartCatalogCat(String(i))}
-                                                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors shrink-0 ${
-                                                    activePartCatalogCat === String(i)
-                                                        ? 'bg-emerald-500 text-white border-emerald-500'
-                                                        : 'bg-slate-50 dark:bg-white/[0.03] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10'
-                                                }`}
-                                            >
-                                                {c.name.split('(')[0]}
-                                            </button>
-                                        ))}
+                                        {SPARE_PARTS_CATEGORIES.map((c, i) => {
+                                            const isSuggested = suggestedPartCategories.includes(i);
+                                            return (
+                                                <button
+                                                    key={i}
+                                                    type="button"
+                                                    onClick={() => setActivePartCatalogCat(String(i))}
+                                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors shrink-0 flex items-center space-x-1 ${
+                                                        activePartCatalogCat === String(i)
+                                                            ? 'bg-emerald-500 text-white border-emerald-500 font-extrabold'
+                                                            : isSuggested
+                                                                ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                                                                : 'bg-slate-50 dark:bg-white/[0.03] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10'
+                                                    }`}
+                                                >
+                                                    {isSuggested && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>}
+                                                    <span>{c.name.split('(')[0]}</span>
+                                                </button>
+                                            );
+                                        })}
                                     </div>
 
                                     {/* Search Inside Catalog */}
@@ -1029,44 +1255,52 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
 
                                 {/* Category Brands Grid */}
                                 <div className="space-y-4 max-h-96 overflow-y-auto p-1">
-                                    {filteredPartCategories.map((cat, catIdx) => (
-                                        <div key={catIdx} className="space-y-2">
-                                            <div className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                                {cat.name}
-                                            </div>
-                                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                                                {cat.brands.map((b, bIdx) => {
-                                                    const isAdded = selectedParts.some(p => p.includes(b.name));
-                                                    return (
-                                                        <button
-                                                            key={bIdx}
-                                                            type="button"
-                                                            onClick={() => handleAddPartTag(b.name)}
-                                                            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                                                                isAdded 
-                                                                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 ring-1 ring-emerald-500'
-                                                                    : 'bg-slate-50/60 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/5 hover:border-emerald-500/40'
-                                                            }`}
-                                                        >
-                                                            <div className="flex items-center justify-between mb-1">
-                                                                <span className="font-extrabold text-xs text-slate-900 dark:text-white truncate">
-                                                                    {b.name}
+                                    {filteredPartCategories.map((cat, catIdx) => {
+                                        const actualCatIndex = SPARE_PARTS_CATEGORIES.findIndex(c => c.name === cat.name);
+                                        return (
+                                            <div key={catIdx} className="space-y-2">
+                                                <div className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                                                    <span>{cat.name}</span>
+                                                    {suggestedPartCategories.includes(actualCatIndex) && (
+                                                        <span className="text-[10px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                                                            Önerilen Kategori
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                                                    {cat.brands.map((b, bIdx) => {
+                                                        const isAdded = selectedParts.some(p => p.includes(b.name));
+                                                        return (
+                                                            <button
+                                                                key={bIdx}
+                                                                type="button"
+                                                                onClick={() => handleAddPartTag(b.name, actualCatIndex)}
+                                                                className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                                                                    isAdded 
+                                                                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 ring-1 ring-emerald-500'
+                                                                        : 'bg-slate-50/60 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/5 hover:border-emerald-500/40'
+                                                                }`}
+                                                            >
+                                                                <div className="flex items-center justify-between mb-1">
+                                                                    <span className="font-extrabold text-xs text-slate-900 dark:text-white truncate">
+                                                                        {b.name}
+                                                                    </span>
+                                                                    {isAdded ? (
+                                                                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0 ml-1" />
+                                                                    ) : (
+                                                                        <Plus className="w-3 h-3 text-slate-400 opacity-60 shrink-0 ml-1" />
+                                                                    )}
+                                                                </div>
+                                                                <span className="text-[10px] text-slate-400 line-clamp-2 leading-tight">
+                                                                    {b.desc}
                                                                 </span>
-                                                                {isAdded ? (
-                                                                    <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0 ml-1" />
-                                                                ) : (
-                                                                    <Plus className="w-3 h-3 text-slate-400 opacity-60 shrink-0 ml-1" />
-                                                                )}
-                                                            </div>
-                                                            <span className="text-[10px] text-slate-400 line-clamp-2 leading-tight">
-                                                                {b.desc}
-                                                            </span>
-                                                        </button>
-                                                    );
-                                                })}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}
@@ -1244,7 +1478,7 @@ export default function MaintenanceCreate({ vehicles = [], selected_vehicle_id =
                                 {aiSuccessMessage && (
                                     <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center gap-1.5 animate-fadeIn">
                                         <CheckCheck className="w-4 h-4 text-emerald-500" />
-                                        <span>Servis açıklaması seçilen parça, kaporta ve motor detaylarıyla profesyonelce tamamlandı!</span>
+                                        <span>Seçtiğiniz tüm bakımlar, parçalar ve servis detayları AI tarafından profesyonelce birleştirildi!</span>
                                     </div>
                                 )}
 

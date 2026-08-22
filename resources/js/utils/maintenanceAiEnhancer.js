@@ -5,6 +5,7 @@
 export function generateSmartMaintenanceDescription({
     vehicle = null,
     operationType = '',
+    operationsList = [],
     km = '',
     parts = [],
     bodyworkParts = [],
@@ -18,13 +19,18 @@ export function generateSmartMaintenanceDescription({
     let sentences = [];
 
     // 1. Giriş ve Operasyon Cümlesi
-    const opClean = operationType || 'Periyodik Bakım & Kontrol';
-    const hasOil = opClean.toLowerCase().includes('yağ') || opClean.toLowerCase().includes('periyodik') || (oilInfo.brand && oilInfo.viscosity);
-    const hasBrake = opClean.toLowerCase().includes('fren') || opClean.toLowerCase().includes('balata') || opClean.toLowerCase().includes('disk');
-    const hasEngine = opClean.toLowerCase().includes('triger') || opClean.toLowerCase().includes('devirdaim') || opClean.toLowerCase().includes('debriyaj') || opClean.toLowerCase().includes('buji');
-    const hasBodywork = opClean.toLowerCase().includes('kaporta') || opClean.toLowerCase().includes('boya') || opClean.toLowerCase().includes('göçük') || bodyworkParts.length > 0;
+    const allOps = operationsList.length > 0 ? operationsList : (operationType ? [operationType] : ['Periyodik Bakım & Kontrol']);
+    const opClean = allOps.join(' + ');
 
-    sentences.push(`${carName} ${kmText} servis periyodunda "${opClean}" işlemi için servise alınmıştır.`);
+    const opLower = opClean.toLowerCase();
+    const hasOil = opLower.includes('yağ') || opLower.includes('periyodik') || opLower.includes('filtre') || (oilInfo.brand && oilInfo.viscosity);
+    const hasBrake = opLower.includes('fren') || opLower.includes('balata') || opLower.includes('disk') || opLower.includes('hidroli');
+    const hasEngine = opLower.includes('triger') || opLower.includes('devirdaim') || opLower.includes('debriyaj') || opLower.includes('buji') || opLower.includes('kayış');
+    const hasSuspension = opLower.includes('amortisör') || opLower.includes('salıncak') || opLower.includes('rot') || opLower.includes('lastik') || opLower.includes('balans');
+    const hasClimate = opLower.includes('klima') || opLower.includes('gaz') || opLower.includes('polen');
+    const hasBodywork = opLower.includes('kaporta') || opLower.includes('boya') || opLower.includes('göçük') || opLower.includes('rötüş') || bodyworkParts.length > 0;
+
+    sentences.push(`${carName} ${kmText} servis periyodunda "${opClean}" işlemleri için servise alınmıştır.`);
 
     // 2. Yağ & Sıvı Detayları
     if (hasOil && oilInfo.brand) {
@@ -51,18 +57,30 @@ export function generateSmartMaintenanceDescription({
         sentences.push(`Kaporta ve gövde onarımı detayları: ${bodyDetails}.`);
     }
 
-    // 5. Fren & Mekanik Özel Testler
+    // 5. Sistem Özel Testleri
+    let systemNotes = [];
     if (hasBrake) {
-        sentences.push('Fren kaliperleri temizlenmiş, fren hidroliği seviyesi ve disk aşınma payları mikrometre ile ölçülerek optimum güvenlik seviyesi sağlanmıştır.');
-    } else if (hasEngine) {
-        sentences.push('Tüm mekanik bağlantılar tork değerlerine uygun sıkılmış, kayış gergi boşlukları ve sızdırmazlık testleri eksiksiz tamamlanmıştır.');
+        systemNotes.push('fren balata ve disk kalınlıkları ölçülerek fren hidrolik basıncı test edilmiş');
+    }
+    if (hasEngine) {
+        systemNotes.push('triger/kayış gergi torkları ve motor sızdırmazlıkları denetlenmiş');
+    }
+    if (hasSuspension) {
+        systemNotes.push('alt takım burçları, rot başları ve süspansiyon geometrisi kontrol edilmiş');
+    }
+    if (hasClimate) {
+        systemNotes.push('klima gaz basıncı ve evaporatör performansı ölçülmüş');
+    }
+
+    if (systemNotes.length > 0) {
+        sentences.push(`İşlem sırasında ${systemNotes.join(', ')}tir.`);
     }
 
     // 6. Kullanıcının Orijinal Notu
     if (userNotes && userNotes.trim()) {
         const cleanUserNote = userNotes.trim();
         if (!sentences.some(s => s.toLowerCase().includes(cleanUserNote.toLowerCase()))) {
-            sentences.push(`Özel İşlem Notu: ${cleanUserNote}`);
+            sentences.push(`Özel Not: ${cleanUserNote}`);
         }
     }
 
@@ -74,7 +92,7 @@ export function generateSmartMaintenanceDescription({
         serviceCredit = `İşlemler ${sName}${mName} bünyesinde gerçekleştirilmiştir. `;
     }
 
-    sentences.push(`${serviceCredit}Yapılan yol testi ve bilgisayarlı arıza teşhis kontrolü sonrası araç sorunsuz ve kusursuz şekilde teslim edilmiştir.`);
+    sentences.push(`${serviceCredit}Yapılan yol testi ve OBD-II arıza teşhis taraması sonrasında araç sorunsuz ve kusursuz durumda teslim edilmiştir.`);
 
     return sentences.join(' ');
 }
