@@ -51,10 +51,10 @@ export default function CustomDropdown({
     return (
         <div className={`relative ${className}`} ref={dropdownRef}>
             {label && (
-                <div className="flex items-center justify-between mb-1.5">
+                <div className="h-5 flex items-center justify-between mb-1.5">
                     <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center space-x-1.5">
-                        {Icon && <Icon className="w-3.5 h-3.5 text-blue-500" />}
-                        <span>{label}</span>
+                        {Icon && <Icon className="w-3.5 h-3.5 text-blue-500 shrink-0" />}
+                        <span className="truncate">{label}</span>
                     </label>
                     {allowCustom && (
                         <button
@@ -65,7 +65,7 @@ export default function CustomDropdown({
                                     setCustomValue(value || '');
                                 }
                             }}
-                            className="text-[10px] text-blue-500 hover:text-blue-600 dark:hover:text-blue-400 font-bold underline cursor-pointer"
+                            className="text-[10px] text-blue-500 hover:text-blue-600 dark:hover:text-blue-400 font-bold underline cursor-pointer shrink-0 ml-2"
                         >
                             {isCustomMode ? 'Listeden Seç' : 'Özel Yaz'}
                         </button>
@@ -80,7 +80,7 @@ export default function CustomDropdown({
                         value={customValue || value || ''}
                         onChange={handleCustomChange}
                         placeholder={customPlaceholder}
-                        className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-[#1a1d29] border border-blue-500 text-slate-900 dark:text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full h-11 px-3.5 rounded-2xl bg-slate-50 dark:bg-[#1a1d29] border border-blue-500 text-slate-900 dark:text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
                         autoFocus
                     />
                 </div>
@@ -89,40 +89,33 @@ export default function CustomDropdown({
                     <button
                         type="button"
                         onClick={() => setIsOpen(!isOpen)}
-                        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-[#1a1d29] border ${
+                        className={`w-full h-11 flex items-center justify-between px-3.5 rounded-2xl bg-slate-50 dark:bg-[#1a1d29] border ${
                             isOpen 
                                 ? 'border-blue-500 ring-2 ring-blue-500/20' 
                                 : 'border-slate-200 dark:border-white/[0.08]'
                         } hover:border-slate-300 dark:hover:border-white/20 transition-all text-left cursor-pointer shadow-sm`}
                     >
-                        <div className="flex items-center space-x-2.5 truncate">
+                        <div className="flex items-center space-x-2 truncate">
                             {selectedOption ? (
                                 <>
                                     {selectedOption.dotColor && (
                                         <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${selectedOption.dotColor} shadow-sm`} />
                                     )}
                                     {selectedOption.icon && (
-                                        <span className="text-base leading-none shrink-0">{selectedOption.icon}</span>
+                                        <span className="text-sm leading-none shrink-0">{selectedOption.icon}</span>
                                     )}
-                                    <div className="truncate">
-                                        <span className="text-xs font-bold text-slate-900 dark:text-white">
-                                            {selectedOption.label}
-                                        </span>
-                                        {selectedOption.desc && (
-                                            <span className="block text-[10px] font-medium text-slate-400 truncate">
-                                                {selectedOption.desc}
-                                            </span>
-                                        )}
-                                    </div>
+                                    <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                                        {selectedOption.label}
+                                    </span>
                                 </>
                             ) : (
-                                <span className="text-xs font-medium text-slate-400">
+                                <span className="text-xs font-medium text-slate-400 truncate">
                                     {value || placeholder}
                                 </span>
                             )}
                         </div>
 
-                        <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180 text-blue-500' : ''}`} />
+                        <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ml-2 ${isOpen ? 'rotate-180 text-blue-500' : ''}`} />
                     </button>
 
                     {/* Dropdown Menu */}

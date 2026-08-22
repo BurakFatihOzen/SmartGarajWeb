@@ -345,16 +345,18 @@ export default function FleetOperationsModal({
                                 />
 
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center space-x-1">
-                                        <Gauge className="w-3.5 h-3.5 text-blue-500" />
-                                        <span>Güncel Kilometre (KM)</span>
-                                    </label>
+                                    <div className="h-5 flex items-center mb-1.5">
+                                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center space-x-1.5">
+                                            <Gauge className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                                            <span>Güncel Kilometre (KM)</span>
+                                        </label>
+                                    </div>
                                     <input
                                         type="number"
                                         value={km}
                                         onChange={(e) => setKm(e.target.value)}
                                         placeholder="120000"
-                                        className="w-full text-xs font-bold font-mono px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full h-11 text-xs font-bold font-mono px-3.5 rounded-2xl bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
                             </div>

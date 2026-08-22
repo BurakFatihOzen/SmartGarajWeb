@@ -1021,16 +1021,18 @@ export default function VehicleCreate() {
 
                                         {/* Zimmetli Sürücü */}
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center space-x-1">
-                                                <UserCheck className="w-3.5 h-3.5 text-blue-500" />
-                                                <span>Zimmetli Sürücü / Personel</span>
-                                            </label>
+                                            <div className="h-5 flex items-center mb-1.5">
+                                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center space-x-1">
+                                                    <UserCheck className="w-3.5 h-3.5 text-blue-500" />
+                                                    <span>Zimmetli Sürücü / Personel</span>
+                                                </label>
+                                            </div>
                                             <input
                                                 type="text"
                                                 value={data.zimmet_surucu_adi}
                                                 onChange={(e) => setData('zimmet_surucu_adi', e.target.value)}
                                                 placeholder="Örn: Ahmet Yılmaz"
-                                                className="w-full bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 py-2.5 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className="w-full h-11 bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             />
                                         </div>
 
