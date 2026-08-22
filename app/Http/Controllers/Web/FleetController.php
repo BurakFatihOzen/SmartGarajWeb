@@ -247,6 +247,46 @@ class FleetController extends Controller
 
         $vehicle->update($validated);
 
+        if (!empty($vehicle->zimmet_surucu_adi)) {
+            $driver = Driver::firstOrCreate(
+                [
+                    'kullanici_id' => $user->id,
+                    'ad_soyad' => trim($vehicle->zimmet_surucu_adi)
+                ],
+                [
+                    'ehliyet_sinifi' => 'B',
+                    'departman' => $vehicle->departman ?? 'Genel Filo',
+                    'durum' => 'aktif',
+                ]
+            );
+
+            if ($vehicle->durum === 'gorevde') {
+                VehicleAssignment::where('arac_id', $vehicle->id)
+                    ->where('durum', 'aktif')
+                    ->where('surucu_id', '!=', $driver->id)
+                    ->update(['durum' => 'tamamlandi', 'iade_tarihi' => now()]);
+
+                VehicleAssignment::firstOrCreate(
+                    [
+                        'arac_id' => $vehicle->id,
+                        'surucu_id' => $driver->id,
+                        'durum' => 'aktif',
+                    ],
+                    [
+                        'kullanici_id' => $user->id,
+                        'teslim_tarihi' => now(),
+                        'baslangic_km' => (int) ($vehicle->guncel_km ?? 0),
+                        'yakit_seviyesi' => 'Dolu Depo',
+                        'teslim_notu' => 'Filo operasyonu ile zimmetlendi.',
+                    ]
+                );
+            }
+        } elseif ($vehicle->durum === 'aktif') {
+            VehicleAssignment::where('arac_id', $vehicle->id)
+                ->where('durum', 'aktif')
+                ->update(['durum' => 'tamamlandi', 'iade_tarihi' => now()]);
+        }
+
         return redirect()->back()->with('success', 'Araç durumu ve operasyonel bilgileri başarıyla güncellendi.');
     }
 }

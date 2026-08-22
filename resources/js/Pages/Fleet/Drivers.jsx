@@ -262,7 +262,7 @@ export default function FleetDrivers({ drivers = [], vehicles = [], kpis = {} })
                             <tbody className="divide-y divide-slate-100 dark:divide-white/[0.04]">
                                 {filteredDrivers.length > 0 ? (
                                     filteredDrivers.map((driver) => {
-                                        const active = driver.active_assignment;
+                                        const active = driver.active_assignment || driver.activeAssignment;
                                         const licBadge = getLicenseBadge(driver.ehliyet_gecerlilik_tarihi);
 
                                         return (

@@ -39,7 +39,8 @@ import {
     ChevronDown,
     Shield,
     History,
-    Check
+    Check,
+    X
 } from 'lucide-react';
 import AccidentModal from '../../Components/AccidentModal';
 import EditVehicleModal from '../../Components/EditVehicleModal';
@@ -62,6 +63,7 @@ export default function FleetDashboard({
 }) {
     const safeVehicles = Array.isArray(vehicles) ? vehicles : [];
 
+    // Sadece URL'de veya props'ta açıkça araç istenmişse seçili aç, yoksa ana sayfada kapalı dursun
     const getInitialVehicleId = () => {
         if (selected_vehicle_id && safeVehicles.some(v => String(v.id) === String(selected_vehicle_id))) {
             return Number(selected_vehicle_id);
@@ -73,7 +75,7 @@ export default function FleetDashboard({
                 return Number(qId);
             }
         }
-        return safeVehicles[0]?.id || null;
+        return null;
     };
 
     const [selectedVehicleId, setSelectedVehicleId] = useState(getInitialVehicleId);
@@ -90,6 +92,8 @@ export default function FleetDashboard({
         }
     }, [selected_vehicle_id, vehicles]);
 
+    const showcaseRef = useRef(null);
+
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('all');
     const [selectedDept, setSelectedDept] = useState('all');
@@ -104,12 +108,10 @@ export default function FleetDashboard({
     const [isAccidentModalOpen, setIsAccidentModalOpen] = useState(false);
     const [selectedVehicleForAccident, setSelectedVehicleForAccident] = useState(null);
 
-    const showcaseRef = useRef(null);
-
-    // Active vehicle computation
+    // Active vehicle computation: sadece bir araç tıklandığında seçili olsun!
     const activeVehicle = useMemo(() => {
-        if (!safeVehicles.length) return null;
-        return safeVehicles.find(v => String(v.id) === String(selectedVehicleId)) || safeVehicles[0] || null;
+        if (!selectedVehicleId || !safeVehicles.length) return null;
+        return safeVehicles.find(v => String(v.id) === String(selectedVehicleId)) || null;
     }, [safeVehicles, selectedVehicleId]);
 
     // All Fleet Maintenances Flattened
@@ -220,11 +222,12 @@ export default function FleetDashboard({
         return isNaN(d.getTime()) ? dateString : d.toLocaleDateString('tr-TR');
     };
 
-    const handleSelectVehicle = (vehicle) => {
-        setSelectedVehicleId(vehicle.id);
-        if (showcaseRef.current) {
-            showcaseRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
+    const handleSelectVehicle = (vehicleOrId) => {
+        const vId = typeof vehicleOrId === 'object' && vehicleOrId !== null ? vehicleOrId.id : vehicleOrId;
+        setSelectedVehicleId(Number(vId));
+        setTimeout(() => {
+            showcaseRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 60);
     };
 
     const openOperationsModal = (tab = 'status', vehicleTarget = null) => {
@@ -308,9 +311,9 @@ export default function FleetDashboard({
                     </div>
                 </div>
 
-                {/* ACTIVE VEHICLE HERO SHOWCASE (Bireysel Paneldeki Aktif Aracım Gibi) */}
-                {activeVehicle && (
-                    <div ref={showcaseRef} className="rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200/80 dark:border-white/[0.08] p-6 sm:p-8 shadow-sm dark:shadow-2xl relative overflow-hidden transition-all space-y-6">
+                {/* ACTIVE VEHICLE HERO SHOWCASE (Bireysel Paneldeki Aktif Aracım Gibi - Sadece Seçildiğinde Açılır) */}
+                {activeVehicle ? (
+                    <div ref={showcaseRef} className="rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200/80 dark:border-white/[0.08] p-6 sm:p-8 shadow-sm dark:shadow-2xl relative overflow-hidden transition-all space-y-6 animate-fadeIn">
                         {/* Background glow effects */}
                         <div className="absolute top-0 right-1/4 w-80 h-80 bg-blue-500/10 dark:bg-blue-500/5 rounded-full blur-3xl pointer-events-none -translate-y-1/2" />
                         <div className="absolute bottom-0 right-0 w-80 h-80 bg-amber-500/10 dark:bg-amber-500/5 rounded-full blur-3xl pointer-events-none translate-y-1/2" />
@@ -331,23 +334,35 @@ export default function FleetDashboard({
                                 </div>
                             </div>
 
-                            {/* Switch Vehicle Dropdown */}
-                            {vehicles.length > 1 && (
-                                <div className="flex items-center space-x-2">
-                                    <span className="text-xs font-bold text-slate-400">Aracı Değiştir:</span>
-                                    <select
-                                        value={activeVehicle.id}
-                                        onChange={(e) => setSelectedVehicleId(Number(e.target.value))}
-                                        className="text-xs font-black px-3.5 py-2 rounded-2xl bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.1] text-slate-900 dark:text-white cursor-pointer focus:ring-2 focus:ring-blue-500 outline-none"
-                                    >
-                                        {vehicles.map((v) => (
-                                            <option key={v.id} value={v.id}>
-                                                {v.plaka} &bull; {v.marka} {v.model} ({v.durum})
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            )}
+                            {/* Switch Vehicle Dropdown & Close Button */}
+                            <div className="flex items-center space-x-2.5">
+                                {vehicles.length > 1 && (
+                                    <div className="flex items-center space-x-2">
+                                        <span className="text-xs font-bold text-slate-400 hidden sm:inline">Aracı Değiştir:</span>
+                                        <select
+                                            value={activeVehicle.id}
+                                            onChange={(e) => setSelectedVehicleId(Number(e.target.value))}
+                                            className="text-xs font-black px-3.5 py-2 rounded-2xl bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.1] text-slate-900 dark:text-white cursor-pointer focus:ring-2 focus:ring-blue-500 outline-none"
+                                        >
+                                            {vehicles.map((v) => (
+                                                <option key={v.id} value={v.id}>
+                                                    {v.plaka} &bull; {v.marka} {v.model} ({v.durum})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedVehicleId(null)}
+                                    title="Detay Kartını Kapat"
+                                    className="p-2 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.06] dark:hover:bg-white/[0.12] text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer flex items-center gap-1 text-xs font-bold"
+                                >
+                                    <X className="w-4 h-4" />
+                                    <span className="hidden sm:inline">Kapat</span>
+                                </button>
+                            </div>
                         </div>
 
                         {/* Main Grid */}
@@ -674,6 +689,44 @@ export default function FleetDashboard({
                                 </div>
                             )}
                         </div>
+                    </div>
+                ) : (
+                    /* Araç Seçili Değilken Görünen Şık ve Sade Çağrı Kartı */
+                    <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200/80 dark:border-white/[0.06] shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="flex items-center space-x-3.5">
+                            <div className="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-black shrink-0 border border-blue-500/20">
+                                <Car className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
+                                    Filo Aracı Detayı İnceleme
+                                </h3>
+                                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                    Aşağıdaki filo tablosundan herhangi bir araca tıklayarak canlı bakım, muayene, sigorta ve zimmet detaylarını anında açabilirsiniz.
+                                </p>
+                            </div>
+                        </div>
+
+                        {safeVehicles.length > 0 && (
+                            <div className="flex items-center space-x-2 w-full sm:w-auto shrink-0">
+                                <select
+                                    value=""
+                                    onChange={(e) => {
+                                        if (e.target.value) {
+                                            handleSelectVehicle(Number(e.target.value));
+                                        }
+                                    }}
+                                    className="w-full sm:w-auto text-xs font-black px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.1] text-blue-600 dark:text-blue-400 cursor-pointer focus:ring-2 focus:ring-blue-500 outline-none"
+                                >
+                                    <option value="">🎯 Hızlı Araç Seçimi...</option>
+                                    {safeVehicles.map((v) => (
+                                        <option key={v.id} value={v.id}>
+                                            {v.plaka} &bull; {v.marka} {v.model}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
                     </div>
                 )}
 

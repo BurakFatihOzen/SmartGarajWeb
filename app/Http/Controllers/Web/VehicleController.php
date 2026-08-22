@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Vehicle;
+use App\Models\Driver;
+use App\Models\VehicleAssignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -62,6 +64,38 @@ class VehicleController extends Controller
         unset($validated['fotograf']);
 
         $vehicle = Vehicle::create($validated);
+
+        // Filo kullanıcıları için sürücü ve zimmet senkronizasyonu
+        if ($user->isFleet() && !empty($vehicle->zimmet_surucu_adi)) {
+            $driver = Driver::firstOrCreate(
+                [
+                    'kullanici_id' => $user->id,
+                    'ad_soyad' => trim($vehicle->zimmet_surucu_adi)
+                ],
+                [
+                    'ehliyet_sinifi' => 'B',
+                    'departman' => $vehicle->departman ?? 'Genel Filo',
+                    'durum' => 'aktif',
+                ]
+            );
+
+            if ($vehicle->durum === 'gorevde') {
+                VehicleAssignment::firstOrCreate(
+                    [
+                        'arac_id' => $vehicle->id,
+                        'surucu_id' => $driver->id,
+                        'durum' => 'aktif',
+                    ],
+                    [
+                        'kullanici_id' => $user->id,
+                        'teslim_tarihi' => now(),
+                        'baslangic_km' => (int) ($vehicle->guncel_km ?? 0),
+                        'yakit_seviyesi' => 'Dolu Depo',
+                        'teslim_notu' => 'Araç kaydı ile birlikte zimmetlendi.',
+                    ]
+                );
+            }
+        }
 
         if ($user->isFleet()) {
             return redirect()->route('fleet.index')
@@ -126,6 +160,51 @@ class VehicleController extends Controller
         unset($validated['fotograf']);
 
         $vehicle->update($validated);
+
+        // Filo kullanıcıları için sürücü ve zimmet senkronizasyonu
+        $user = Auth::user();
+        if ($user->isFleet()) {
+            if (!empty($vehicle->zimmet_surucu_adi)) {
+                $driver = Driver::firstOrCreate(
+                    [
+                        'kullanici_id' => $user->id,
+                        'ad_soyad' => trim($vehicle->zimmet_surucu_adi)
+                    ],
+                    [
+                        'ehliyet_sinifi' => 'B',
+                        'departman' => $vehicle->departman ?? 'Genel Filo',
+                        'durum' => 'aktif',
+                    ]
+                );
+
+                if ($vehicle->durum === 'gorevde') {
+                    VehicleAssignment::where('arac_id', $vehicle->id)
+                        ->where('durum', 'aktif')
+                        ->where('surucu_id', '!=', $driver->id)
+                        ->update(['durum' => 'tamamlandi', 'iade_tarihi' => now()]);
+
+                    VehicleAssignment::firstOrCreate(
+                        [
+                            'arac_id' => $vehicle->id,
+                            'surucu_id' => $driver->id,
+                            'durum' => 'aktif',
+                        ],
+                        [
+                            'kullanici_id' => $user->id,
+                            'teslim_tarihi' => now(),
+                            'baslangic_km' => (int) ($vehicle->guncel_km ?? 0),
+                            'yakit_seviyesi' => 'Dolu Depo',
+                            'teslim_notu' => 'Araç güncellemesi ile birlikte zimmetlendi.',
+                        ]
+                    );
+                }
+            } elseif ($vehicle->durum === 'aktif') {
+                // Araç boşa/havuza çıkarıldıysa aktif zimmeti sonlandır
+                VehicleAssignment::where('arac_id', $vehicle->id)
+                    ->where('durum', 'aktif')
+                    ->update(['durum' => 'tamamlandi', 'iade_tarihi' => now()]);
+            }
+        }
 
         return back()->with('success', "{$vehicle->plaka} plakalı araç bilgileri başarıyla güncellendi!");
     }

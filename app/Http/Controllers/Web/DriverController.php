@@ -22,17 +22,57 @@ class DriverController extends Controller
             return redirect()->route('dashboard')->with('info', 'Sürücü ve zimmet yönetimi kurumsal filo hesapları içindir.');
         }
 
+        // Otomatik Senkronizasyon: Filonuzdaki araçlarda zimmetli personel varsa ve sürücü listesinde henüz yoksa otomatik oluştur & zimmetle
+        $vehicles = Vehicle::where('kullanici_id', $user->id)->get();
+        foreach ($vehicles as $v) {
+            $driverName = trim((string) $v->zimmet_surucu_adi);
+            if (!empty($driverName)) {
+                $driver = Driver::firstOrCreate(
+                    [
+                        'kullanici_id' => $user->id, 
+                        'ad_soyad' => $driverName
+                    ],
+                    [
+                        'ehliyet_sinifi' => 'B',
+                        'departman' => $v->departman ?? 'Genel Filo',
+                        'durum' => 'aktif',
+                    ]
+                );
+
+                // Eğer araçta durum 'gorevde' ise aktif zimmet oluştur
+                if ($v->durum === 'gorevde') {
+                    VehicleAssignment::where('arac_id', $v->id)
+                        ->where('durum', 'aktif')
+                        ->where('surucu_id', '!=', $driver->id)
+                        ->update(['durum' => 'tamamlandi', 'iade_tarihi' => now()]);
+
+                    VehicleAssignment::firstOrCreate(
+                        [
+                            'arac_id' => $v->id,
+                            'surucu_id' => $driver->id,
+                            'durum' => 'aktif',
+                        ],
+                        [
+                            'kullanici_id' => $user->id,
+                            'teslim_tarihi' => now(),
+                            'baslangic_km' => (int) ($v->guncel_km ?? 0),
+                            'yakit_seviyesi' => 'Dolu Depo',
+                            'teslim_notu' => 'Araç kaydı ile birlikte otomatik zimmetlendi.',
+                        ]
+                    );
+                }
+            }
+        }
+
         $drivers = Driver::where('kullanici_id', $user->id)
             ->with(['activeAssignment.vehicle', 'assignments.vehicle', 'fines', 'fuelLogs'])
             ->orderBy('ad_soyad', 'asc')
             ->get();
 
-        $vehicles = Vehicle::where('kullanici_id', $user->id)->get();
-
         // KPI Metrikleri
         $totalDrivers = $drivers->count();
         $assignedDrivers = $drivers->filter(fn($d) => $d->activeAssignment !== null)->count();
-        $idleDrivers = $totalDrivers - $assignedDrivers;
+        $idleDrivers = max(0, $totalDrivers - $assignedDrivers);
         
         $today = Carbon::today();
         $licenseExpiringSoon = $drivers->filter(function($d) use ($today) {
