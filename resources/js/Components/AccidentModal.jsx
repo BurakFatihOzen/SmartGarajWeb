@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import { 
     X, 
@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import DamageBodyMap from './DamageBodyMap';
 
-export default function AccidentModal({ isOpen, onClose, vehicles = [], activeVehicle = null }) {
+export default function AccidentModal({ isOpen, onClose, vehicles = [], activeVehicle = null, accidentToEdit = null }) {
     if (!isOpen) return null;
 
     const defaultVehicleId = activeVehicle ? activeVehicle.id : (vehicles.length > 0 ? vehicles[0].id : '');
@@ -40,11 +40,35 @@ export default function AccidentModal({ isOpen, onClose, vehicles = [], activeVe
         fotograflar: [],
     });
 
+    useEffect(() => {
+        if (accidentToEdit) {
+            setData({
+                arac_id: accidentToEdit.arac_id || defaultVehicleId,
+                kaza_tarihi: accidentToEdit.kaza_tarihi ? (accidentToEdit.kaza_tarihi.includes('T') ? accidentToEdit.kaza_tarihi.split('T')[0] : accidentToEdit.kaza_tarihi) : '',
+                kaza_km: accidentToEdit.kaza_km ?? '',
+                kaza_turu: accidentToEdit.kaza_turu || 'Çarpışma',
+                hasar_tutari: accidentToEdit.hasar_tutari ?? '',
+                tramer_kaydi: Boolean(accidentToEdit.tramer_kaydi),
+                tramer_tutari: accidentToEdit.tramer_tutari ?? '',
+                kusur_orani: accidentToEdit.kusur_orani ?? 0,
+                sigorta_sirketi: accidentToEdit.sigorta_sirketi || '',
+                dosya_no: accidentToEdit.dosya_no || '',
+                karsi_taraf_plaka: accidentToEdit.karsi_taraf_plaka || '',
+                surucu_adi: accidentToEdit.surucu_adi || '',
+                aciklama: accidentToEdit.aciklama || '',
+                hasarli_parcalar: Array.isArray(accidentToEdit.hasarli_parcalar) ? accidentToEdit.hasarli_parcalar : [],
+                tutanak: null,
+                fotograflar: [],
+            });
+        }
+    }, [accidentToEdit, isOpen]);
+
     const [activeTab, setActiveTab] = useState('genel'); // 'genel' | 'kaporta' | 'evraklar'
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post('/accidents', {
+        const url = accidentToEdit ? `/accidents/${accidentToEdit.id}` : '/accidents';
+        post(url, {
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {
@@ -66,7 +90,7 @@ export default function AccidentModal({ isOpen, onClose, vehicles = [], activeVe
                         </div>
                         <div>
                             <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
-                                Yeni Hasar & Kaza Kaydı
+                                {accidentToEdit ? 'Hasar & Kaza Kaydını Düzenle' : 'Yeni Hasar & Kaza Kaydı'}
                             </h3>
                             <p className="text-xs text-slate-500 dark:text-slate-400">
                                 Kaza tutanağı, hasar fotoğrafları, kaporta durumu ve tramer kaydı
@@ -456,7 +480,7 @@ export default function AccidentModal({ isOpen, onClose, vehicles = [], activeVe
                             className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-orange-600 text-white font-extrabold text-xs shadow-lg shadow-red-600/25 hover:shadow-red-600/40 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
                         >
                             <CheckCircle2 className="w-4 h-4" />
-                            <span>{processing ? 'Kaydediliyor...' : 'Hasar Kaydını Tamamla'}</span>
+                            <span>{processing ? 'Kaydediliyor...' : (accidentToEdit ? 'Hasar Kaydını Güncelle' : 'Hasar Kaydını Tamamla')}</span>
                         </button>
                     </div>
                 </form>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '../../Layouts/AppLayout';
 import { 
@@ -25,47 +25,59 @@ import {
     Edit3,
     Truck,
     Layers,
-    User
+    User,
+    ArrowRightLeft,
+    Pencil,
+    ChevronRight,
+    Eye
 } from 'lucide-react';
 import AccidentModal from '../../Components/AccidentModal';
+import EditVehicleModal from '../../Components/EditVehicleModal';
+import FleetVehicleManageModal from '../../Components/FleetVehicleManageModal';
+import FleetActiveVehicleHero from '../../Components/FleetActiveVehicleHero';
+import { getStatusBadgeObj } from '@/constants/fleet';
 
-export default function FleetDashboard({ vehicles = [], kpis = {}, departmentDistribution = {}, brandDistribution = {} }) {
+export default function FleetDashboard({ 
+    vehicles = [], 
+    drivers = [], 
+    kpis = {}, 
+    departmentDistribution = {}, 
+    brandDistribution = {} 
+}) {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('all');
     const [selectedDept, setSelectedDept] = useState('all');
+    
+    // Active Showcase Vehicle
+    const [activeVehicleId, setActiveVehicleId] = useState(vehicles[0]?.id || null);
+    
+    // Modals
     const [isAccidentModalOpen, setIsAccidentModalOpen] = useState(false);
     const [selectedVehicleForAccident, setSelectedVehicleForAccident] = useState(null);
+    
+    const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+    const [manageTargetVehicle, setManageTargetVehicle] = useState(null);
 
-    // Quick Status Edit Modal State
-    const [editingVehicle, setEditingVehicle] = useState(null);
-    const [editStatus, setEditStatus] = useState('aktif');
-    const [editDriver, setEditDriver] = useState('');
-    const [editDept, setEditDept] = useState('');
-    const [editKm, setEditKm] = useState('');
+    const [isEditVehicleOpen, setIsEditVehicleOpen] = useState(false);
+    const [editTargetVehicle, setEditTargetVehicle] = useState(null);
 
-    const openEditModal = (v) => {
-        setEditingVehicle(v);
-        setEditStatus(v.durum || 'aktif');
-        setEditDriver(v.zimmet_surucu_adi || '');
-        setEditDept(v.departman || 'Genel / Havuz');
-        setEditKm(v.guncel_km || '');
+    // Keep active vehicle object synchronized with latest vehicles prop
+    const activeVehicle = vehicles.find(v => v.id === activeVehicleId) || vehicles[0] || null;
+
+    useEffect(() => {
+        if (!activeVehicleId && vehicles.length > 0) {
+            setActiveVehicleId(vehicles[0].id);
+        }
+    }, [vehicles, activeVehicleId]);
+
+    const openManageModal = (v) => {
+        setManageTargetVehicle(v);
+        setIsManageModalOpen(true);
     };
 
-    const handleSaveStatus = (e) => {
-        e.preventDefault();
-        if (!editingVehicle) return;
-
-        router.post(`/fleet/vehicles/${editingVehicle.id}/status`, {
-            durum: editStatus,
-            zimmet_surucu_adi: editDriver,
-            departman: editDept,
-            guncel_km: editKm,
-        }, {
-            preserveScroll: true,
-            onSuccess: () => {
-                setEditingVehicle(null);
-            }
-        });
+    const openEditVehicleModal = (v) => {
+        setEditTargetVehicle(v);
+        setIsEditVehicleOpen(true);
     };
 
     // Filtered Vehicles
@@ -73,7 +85,8 @@ export default function FleetDashboard({ vehicles = [], kpis = {}, departmentDis
         const matchesSearch = 
             v.plaka.toLowerCase().includes(searchTerm.toLowerCase()) ||
             `${v.marka} ${v.model}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (v.zimmet_surucu_adi && v.zimmet_surucu_adi.toLowerCase().includes(searchTerm.toLowerCase()));
+            (v.zimmet_surucu_adi && v.zimmet_surucu_adi.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (v.departman && v.departman.toLowerCase().includes(searchTerm.toLowerCase()));
         
         const matchesStatus = selectedStatus === 'all' || v.durum === selectedStatus;
         const matchesDept = selectedDept === 'all' || v.departman === selectedDept;
@@ -81,26 +94,12 @@ export default function FleetDashboard({ vehicles = [], kpis = {}, departmentDis
         return matchesSearch && matchesStatus && matchesDept;
     });
 
-    const getStatusBadge = (durum) => {
-        switch (durum) {
-            case 'aktif':
-                return { label: 'Aktif / Boşta', bg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' };
-            case 'gorevde':
-                return { label: 'Görevde / Zimmetli', bg: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' };
-            case 'serviste':
-                return { label: 'Serviste / Bakımda', bg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' };
-            case 'atil':
-                return { label: 'Atıl / Kullanılmıyor', bg: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20' };
-            default:
-                return { label: 'Aktif', bg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' };
-        }
-    };
-
     return (
         <AppLayout activeMode="fleet">
             <Head title="SmartFilo — Kurumsal Filo Yönetim Portalı" />
 
             <div className="space-y-6 sm:space-y-8">
+                
                 {/* Fleet Hero Banner */}
                 <div className="relative overflow-hidden rounded-3xl bg-white dark:bg-[#11131c] text-slate-900 dark:text-white p-6 sm:p-8 md:p-10 border border-slate-200/80 dark:border-white/[0.08] shadow-sm dark:shadow-2xl">
                     <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 dark:bg-amber-500/10 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/3" />
@@ -111,7 +110,7 @@ export default function FleetDashboard({ vehicles = [], kpis = {}, departmentDis
                             <div className="flex flex-wrap items-center gap-2">
                                 <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-blue-500/10 dark:bg-amber-500/20 border border-blue-500/20 dark:border-amber-500/30 text-blue-600 dark:text-amber-400 text-xs font-extrabold tracking-wide uppercase">
                                     <Building2 className="w-3.5 h-3.5" />
-                                    <span>SmartFilo Pro</span>
+                                    <span>SmartFilo Operasyon Portalı</span>
                                 </span>
                                 <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold">
                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -140,7 +139,7 @@ export default function FleetDashboard({ vehicles = [], kpis = {}, departmentDis
 
                             <button
                                 onClick={() => {
-                                    setSelectedVehicleForAccident(null);
+                                    setSelectedVehicleForAccident(activeVehicle || null);
                                     setIsAccidentModalOpen(true);
                                 }}
                                 className="px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 font-extrabold text-xs transition-all flex items-center space-x-1.5 cursor-pointer"
@@ -243,6 +242,21 @@ export default function FleetDashboard({ vehicles = [], kpis = {}, departmentDis
                     </div>
                 </div>
 
+                {/* ACTIVE FLEET VEHICLE SHOWCASE HERO (Requested Feature) */}
+                {activeVehicle && (
+                    <FleetActiveVehicleHero
+                        vehicle={activeVehicle}
+                        allVehicles={vehicles}
+                        onSelectVehicle={(v) => setActiveVehicleId(v.id)}
+                        onOpenManageModal={() => openManageModal(activeVehicle)}
+                        onOpenEditModal={() => openEditVehicleModal(activeVehicle)}
+                        onOpenAccidentModal={() => {
+                            setSelectedVehicleForAccident(activeVehicle);
+                            setIsAccidentModalOpen(true);
+                        }}
+                    />
+                )}
+
                 {/* Filter and Search Toolbar */}
                 <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200/80 dark:border-white/[0.08] shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
                     {/* Search Input */}
@@ -250,10 +264,10 @@ export default function FleetDashboard({ vehicles = [], kpis = {}, departmentDis
                         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <input
                             type="text"
-                            placeholder="Plaka, marka, model veya sürücü ara..."
+                            placeholder="Plaka, marka, model, sürücü veya departman ara..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-medium focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                            className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                         />
                     </div>
 
@@ -265,10 +279,14 @@ export default function FleetDashboard({ vehicles = [], kpis = {}, departmentDis
                             className="px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-bold"
                         >
                             <option value="all">Tüm Durumlar</option>
-                            <option value="aktif">Aktif / Boşta</option>
+                            <option value="aktif">Aktif / Havuzda</option>
                             <option value="gorevde">Görevde / Zimmetli</option>
                             <option value="serviste">Serviste / Bakımda</option>
-                            <option value="atil">Atıl / Kullanılmıyor</option>
+                            <option value="hasarli">Hasarlı / Eksperde</option>
+                            <option value="muayenede">Muayenede</option>
+                            <option value="atil">Atıl / Yatıyor</option>
+                            <option value="satildi">Satıldı</option>
+                            <option value="kiralik_iade">Kiralık İade</option>
                         </select>
 
                         <select
@@ -287,10 +305,13 @@ export default function FleetDashboard({ vehicles = [], kpis = {}, departmentDis
                 {/* Fleet Vehicles Table */}
                 <div className="rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200/80 dark:border-white/[0.08] shadow-sm overflow-hidden">
                     <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-white/[0.06] flex items-center justify-between">
-                        <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center space-x-2">
-                            <Car className="w-5 h-5 text-amber-500" />
-                            <span>Filo Araç Listesi ({filteredVehicles.length} Araç)</span>
-                        </h3>
+                        <div>
+                            <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center space-x-2">
+                                <Car className="w-5 h-5 text-blue-500" />
+                                <span>Filo Araç Listesi ({filteredVehicles.length} Araç)</span>
+                            </h3>
+                            <p className="text-[11px] text-slate-400 mt-0.5">Detayları incelemek ve aktif araç olarak seçmek için listeye tıklayın.</p>
+                        </div>
                     </div>
 
                     <div className="overflow-x-auto">
@@ -309,10 +330,19 @@ export default function FleetDashboard({ vehicles = [], kpis = {}, departmentDis
                             <tbody className="divide-y divide-slate-100 dark:divide-white/[0.04] text-xs">
                                 {filteredVehicles.length > 0 ? (
                                     filteredVehicles.map((v) => {
-                                        const statusBadge = getStatusBadge(v.durum);
+                                        const statusBadge = getStatusBadgeObj(v.durum);
+                                        const isSelected = activeVehicle?.id === v.id;
 
                                         return (
-                                            <tr key={v.id} className="hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors">
+                                            <tr 
+                                                key={v.id} 
+                                                onClick={() => setActiveVehicleId(v.id)}
+                                                className={`transition-all cursor-pointer ${
+                                                    isSelected
+                                                        ? 'bg-blue-500/10 dark:bg-blue-500/15 border-l-4 border-l-blue-600 dark:border-l-blue-400'
+                                                        : 'hover:bg-slate-50/80 dark:hover:bg-white/[0.02]'
+                                                }`}
+                                            >
                                                 {/* Vehicle & Plate */}
                                                 <td className="py-4 px-4 sm:px-6">
                                                     <div className="flex items-center space-x-3">
@@ -341,11 +371,14 @@ export default function FleetDashboard({ vehicles = [], kpis = {}, departmentDis
                                                 <td className="py-4 px-4">
                                                     <button
                                                         type="button"
-                                                        onClick={() => openEditModal(v)}
-                                                        className={`px-2.5 py-1 rounded-xl text-[11px] font-extrabold border flex items-center gap-1.5 cursor-pointer hover:scale-105 transition-transform ${statusBadge.bg}`}
-                                                        title="Durumu güncellemek için tıklayın"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            openManageModal(v);
+                                                        }}
+                                                        className={`px-2.5 py-1 rounded-xl text-[11px] font-extrabold border flex items-center gap-1.5 cursor-pointer hover:scale-105 transition-transform ${statusBadge.colorClass}`}
+                                                        title="Zimmet ve durumu yönetmek için tıklayın"
                                                     >
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
+                                                        <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dotColor}`}></span>
                                                         <span>{statusBadge.label}</span>
                                                         <Edit3 className="w-3 h-3 opacity-60 ml-0.5" />
                                                     </button>
@@ -397,15 +430,33 @@ export default function FleetDashboard({ vehicles = [], kpis = {}, departmentDis
 
                                                 {/* Actions */}
                                                 <td className="py-4 px-4 sm:px-6 text-right">
-                                                    <div className="flex items-center justify-end gap-1.5">
+                                                    <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => openManageModal(v)}
+                                                            className="p-2 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 transition-colors cursor-pointer"
+                                                            title="Zimmet & Durum Yönet"
+                                                        >
+                                                            <ArrowRightLeft className="w-4 h-4" />
+                                                        </button>
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => openEditVehicleModal(v)}
+                                                            className="p-2 rounded-xl bg-slate-100 dark:bg-white/[0.04] hover:bg-amber-500/10 text-slate-700 dark:text-slate-300 hover:text-amber-500 transition-colors cursor-pointer"
+                                                            title="Araç Bilgilerini Düzenle"
+                                                        >
+                                                            <Pencil className="w-4 h-4" />
+                                                        </button>
+
                                                         <a
                                                             href={`/vehicles/${v.id}/passport`}
                                                             target="_blank"
                                                             rel="noreferrer"
-                                                            className="p-2 rounded-xl bg-slate-100 dark:bg-white/[0.04] hover:bg-amber-500/10 text-slate-700 dark:text-slate-300 hover:text-amber-500 transition-colors"
+                                                            className="p-2 rounded-xl bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/[0.08] text-slate-700 dark:text-slate-300 transition-colors"
                                                             title="Dijital Pasaport"
                                                         >
-                                                            <QrCode className="w-4 h-4" />
+                                                            <QrCode className="w-4 h-4 text-blue-500" />
                                                         </a>
 
                                                         <Link
@@ -445,100 +496,34 @@ export default function FleetDashboard({ vehicles = [], kpis = {}, departmentDis
                     </div>
                 </div>
 
-                {/* Edit Status Modal */}
-                {editingVehicle && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn">
-                        <div className="relative w-full max-w-md rounded-3xl bg-white dark:bg-[#11131c] border border-slate-200 dark:border-white/[0.08] shadow-2xl p-6 space-y-4">
-                            <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-                                <Edit3 className="w-4 h-4 text-amber-500" />
-                                <span>Araç Durumu & Zimmet Güncelle</span>
-                            </h3>
+                {/* Fleet Vehicle Status & Driver Assignment Modal */}
+                <FleetVehicleManageModal
+                    isOpen={isManageModalOpen}
+                    onClose={() => {
+                        setIsManageModalOpen(false);
+                        setManageTargetVehicle(null);
+                    }}
+                    vehicle={manageTargetVehicle}
+                    drivers={drivers}
+                />
 
-                            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 flex items-center space-x-3">
-                                <span className="badge-plate text-xs font-black px-2 py-0.5">{editingVehicle.plaka}</span>
-                                <span className="font-bold text-xs text-slate-800 dark:text-slate-200">{editingVehicle.marka} {editingVehicle.model}</span>
-                            </div>
+                {/* Full Vehicle Edit Modal */}
+                <EditVehicleModal
+                    isOpen={isEditVehicleOpen}
+                    onClose={() => {
+                        setIsEditVehicleOpen(false);
+                        setEditTargetVehicle(null);
+                    }}
+                    vehicle={editTargetVehicle}
+                />
 
-                            <form onSubmit={handleSaveStatus} className="space-y-3.5">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                        Operasyonel Durum *
-                                    </label>
-                                    <select
-                                        value={editStatus}
-                                        onChange={(e) => setEditStatus(e.target.value)}
-                                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-bold"
-                                    >
-                                        <option value="aktif">Aktif / Boşta (Kullanıma Hazır)</option>
-                                        <option value="gorevde">Görevde (Sürücüde / Yolda)</option>
-                                        <option value="serviste">Serviste / Bakımda</option>
-                                        <option value="atil">Atıl / Kullanım Dışı</option>
-                                        <option value="satildi">Satıldı / Filodan Ayrıldı</option>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                        Zimmetli Sürücü Adı
-                                    </label>
-                                    <input
-                                        type="text"
-                                        placeholder="Örn: Mehmet Demir"
-                                        value={editDriver}
-                                        onChange={(e) => setEditDriver(e.target.value)}
-                                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-bold"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                        Departman / Şube
-                                    </label>
-                                    <input
-                                        type="text"
-                                        placeholder="Örn: Saha Satış, Lojistik, Teknik"
-                                        value={editDept}
-                                        onChange={(e) => setEditDept(e.target.value)}
-                                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-bold"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                        Güncel Kilometre (KM)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        value={editKm}
-                                        onChange={(e) => setEditKm(e.target.value)}
-                                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-bold"
-                                    />
-                                </div>
-
-                                <div className="flex items-center justify-end gap-2.5 pt-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => setEditingVehicle(null)}
-                                        className="px-4 py-2 rounded-xl border border-slate-200 dark:border-white/10 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100"
-                                    >
-                                        İptal
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 text-xs font-extrabold shadow-md shadow-amber-500/20 hover:bg-amber-400"
-                                    >
-                                        Güncelle
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
-
-                {/* Accident Modal */}
+                {/* Accident & Damage Modal */}
                 <AccidentModal
                     isOpen={isAccidentModalOpen}
-                    onClose={() => setIsAccidentModalOpen(false)}
+                    onClose={() => {
+                        setIsAccidentModalOpen(false);
+                        setSelectedVehicleForAccident(null);
+                    }}
                     vehicles={vehicles}
                     activeVehicle={selectedVehicleForAccident}
                 />

@@ -28,6 +28,14 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Tanıtım / Landing Sayfası (Giriş yapılmış olsa bile doğrudan erişim için)
+Route::get('/landing', function () {
+    return view('welcome');
+})->name('landing');
+Route::get('/tanitim', function () {
+    return view('welcome');
+})->name('tanitim');
+
 // Herkese Açık Doğrulanabilir Dijital Araç Pasaportu (QR Tarama)
 Route::get('/verify/{token}', [ReportController::class, 'verifyPassport'])->name('passport.verify');
 
@@ -56,17 +64,23 @@ Route::middleware('auth')->group(function () {
     Route::get('/vehicles', [VehicleController::class, 'index'])->name('vehicles.index');
     Route::get('/vehicles/create', [VehicleController::class, 'create'])->name('vehicles.create');
     Route::post('/vehicles', [VehicleController::class, 'store'])->name('vehicles.store');
+    Route::post('/vehicles/{id}', [VehicleController::class, 'update'])->name('vehicles.update');
+    Route::put('/vehicles/{id}', [VehicleController::class, 'update']);
     Route::post('/vehicles/{id}/upload-photo', [VehicleController::class, 'uploadPhoto'])->name('vehicles.upload-photo');
     Route::delete('/vehicles/{id}', [VehicleController::class, 'destroy'])->name('vehicles.destroy');
 
     // Bakımlar
     Route::get('/maintenances/create', [MaintenanceController::class, 'create'])->name('maintenances.create');
     Route::post('/maintenances', [MaintenanceController::class, 'store'])->name('maintenances.store');
+    Route::post('/maintenances/{id}', [MaintenanceController::class, 'update'])->name('maintenances.update');
+    Route::put('/maintenances/{id}', [MaintenanceController::class, 'update']);
     Route::delete('/maintenances/{id}', [MaintenanceController::class, 'destroy'])->name('maintenances.destroy');
 
     // Kaza & Hasar Yönetimi
     Route::get('/accidents', [AccidentController::class, 'index'])->name('accidents.index');
     Route::post('/accidents', [AccidentController::class, 'store'])->name('accidents.store');
+    Route::post('/accidents/{id}', [AccidentController::class, 'update'])->name('accidents.update');
+    Route::put('/accidents/{id}', [AccidentController::class, 'update']);
     Route::post('/accidents/{id}/status', [AccidentController::class, 'updateStatus'])->name('accidents.status');
     Route::delete('/accidents/{id}', [AccidentController::class, 'destroy'])->name('accidents.destroy');
 

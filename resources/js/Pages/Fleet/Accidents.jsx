@@ -22,7 +22,8 @@ import {
     Layers,
     Phone,
     ChevronRight,
-    Eye
+    Eye,
+    Pencil
 } from 'lucide-react';
 import AccidentModal from '../../Components/AccidentModal';
 
@@ -39,6 +40,7 @@ export default function FleetAccidents({ accidents = [], vehicles = [], drivers 
     const [selectedStage, setSelectedStage] = useState('all');
     const [selectedTramer, setSelectedTramer] = useState('all');
     const [isAccidentModalOpen, setIsAccidentModalOpen] = useState(false);
+    const [editingAccident, setEditingAccident] = useState(null);
     const [selectedVehicleForAccident, setSelectedVehicleForAccident] = useState(null);
 
     // Filter Logic
@@ -250,6 +252,18 @@ export default function FleetAccidents({ accidents = [], vehicles = [], drivers 
                                             </select>
 
                                             <button
+                                                onClick={() => {
+                                                    setEditingAccident(acc);
+                                                    setSelectedVehicleForAccident(acc.vehicle);
+                                                    setIsAccidentModalOpen(true);
+                                                }}
+                                                className="p-2 rounded-xl text-slate-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors cursor-pointer"
+                                                title="Dosyayı Düzenle"
+                                            >
+                                                <Pencil className="w-4 h-4" />
+                                            </button>
+
+                                            <button
                                                 onClick={() => handleDeleteAccident(acc.id)}
                                                 className="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
                                                 title="Dosyayı Sil"
@@ -382,9 +396,13 @@ export default function FleetAccidents({ accidents = [], vehicles = [], drivers 
             {/* Accident Modal */}
             <AccidentModal
                 isOpen={isAccidentModalOpen}
-                onClose={() => setIsAccidentModalOpen(false)}
+                onClose={() => {
+                    setIsAccidentModalOpen(false);
+                    setEditingAccident(null);
+                }}
                 vehicles={vehicles}
                 activeVehicle={selectedVehicleForAccident}
+                accidentToEdit={editingAccident}
             />
         </AppLayout>
     );

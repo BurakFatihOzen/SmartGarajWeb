@@ -3,6 +3,8 @@ import { useForm, Link, Head, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { BRANDS_LIST, CAR_CATALOG } from '@/data/carData';
 import OcrModal from '@/Components/OcrModal';
+import CustomSelect from '@/Components/CustomSelect';
+import { FLEET_STATUS_OPTIONS, OWNERSHIP_OPTIONS, CORPORATE_DEPARTMENTS } from '@/constants/fleet';
 import { 
     Car, 
     ArrowLeft, 
@@ -32,7 +34,8 @@ import {
     UserCheck,
     Truck,
     Layers,
-    Hash
+    Hash,
+    Briefcase
 } from 'lucide-react';
 
 export const RUHSAT_TIPLERI = [
@@ -997,41 +1000,33 @@ export default function VehicleCreate() {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         {/* Filo Durumu */}
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                            <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">
                                                 Filo Durumu
                                             </label>
-                                            <select
+                                            <CustomSelect
+                                                options={FLEET_STATUS_OPTIONS}
                                                 value={data.durum}
-                                                onChange={(e) => setData('durum', e.target.value)}
-                                                className="w-full bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            >
-                                                <option value="aktif">🟢 Aktif / Havuzda (Boşta)</option>
-                                                <option value="gorevde">🔵 Görevde / Zimmetli</option>
-                                                <option value="serviste">🟠 Serviste / Bakımda</option>
-                                                <option value="atil">🔴 Atıl / Kullanılmıyor</option>
-                                            </select>
+                                                onChange={(val) => setData('durum', val)}
+                                                placeholder="Filo Durumu Seçiniz..."
+                                            />
                                         </div>
 
                                         {/* Sözleşme / Mülkiyet Türü */}
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                            <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">
                                                 Mülkiyet / Sözleşme Türü
                                             </label>
-                                            <select
+                                            <CustomSelect
+                                                options={OWNERSHIP_OPTIONS}
                                                 value={data.sozlesme_turu}
-                                                onChange={(e) => setData('sozlesme_turu', e.target.value)}
-                                                className="w-full bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            >
-                                                <option value="Özmal">🏢 Özmal (Şirket Malı)</option>
-                                                <option value="Uzun Dönem Kiralık">📄 Uzun Dönem Filo Kiralama</option>
-                                                <option value="Finansal Kiralama (Leasing)">💳 Finansal Kiralama / Leasing</option>
-                                                <option value="Kısa Dönem Kiralık">⏱️ Kısa Dönem Kiralık</option>
-                                            </select>
+                                                onChange={(val) => setData('sozlesme_turu', val)}
+                                                placeholder="Mülkiyet Türü Seçiniz..."
+                                            />
                                         </div>
 
                                         {/* Zimmetli Sürücü */}
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center space-x-1">
+                                            <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5 flex items-center space-x-1">
                                                 <UserCheck className="w-3.5 h-3.5 text-blue-500" />
                                                 <span>Zimmetli Sürücü / Personel</span>
                                             </label>
@@ -1040,13 +1035,13 @@ export default function VehicleCreate() {
                                                 value={data.zimmet_surucu_adi}
                                                 onChange={(e) => setData('zimmet_surucu_adi', e.target.value)}
                                                 placeholder="Örn: Ahmet Yılmaz"
-                                                className="w-full bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className="w-full bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 py-2.5 sm:py-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             />
                                         </div>
 
                                         {/* Departman / Birim */}
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center space-x-1">
+                                            <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5 flex items-center space-x-1">
                                                 <Layers className="w-3.5 h-3.5 text-indigo-500" />
                                                 <span>Departman / Saha Birimi</span>
                                             </label>
@@ -1054,9 +1049,33 @@ export default function VehicleCreate() {
                                                 type="text"
                                                 value={data.departman}
                                                 onChange={(e) => setData('departman', e.target.value)}
-                                                placeholder="Örn: Lojistik, Saha Satış, Yönetim"
-                                                className="w-full bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 py-3 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                placeholder="Örn: Saha Satış & Pazarlama"
+                                                className="w-full bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] rounded-2xl px-4 py-2.5 sm:py-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             />
+                                        </div>
+                                    </div>
+
+                                    {/* Quick Corporate Department Tags */}
+                                    <div className="pt-2">
+                                        <span className="block text-[11px] font-bold text-slate-400 mb-1.5">
+                                            Hızlı Departman Seçimi:
+                                        </span>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {CORPORATE_DEPARTMENTS.slice(0, 8).map(d => (
+                                                <button
+                                                    key={d.name}
+                                                    type="button"
+                                                    onClick={() => setData('departman', d.name)}
+                                                    className={`px-2.5 py-1 rounded-xl text-[11px] font-bold border transition-all cursor-pointer ${
+                                                        data.departman === d.name
+                                                            ? 'bg-blue-500/10 border-blue-500 text-blue-600 dark:text-blue-400'
+                                                            : 'bg-slate-100 dark:bg-white/[0.03] border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10'
+                                                    }`}
+                                                >
+                                                    <span className="mr-1">{d.icon}</span>
+                                                    <span>{d.name}</span>
+                                                </button>
+                                            ))}
                                         </div>
                                     </div>
                                 </div>

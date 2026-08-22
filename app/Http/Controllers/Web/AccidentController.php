@@ -136,6 +136,77 @@ class AccidentController extends Controller
     }
 
     /**
+     * Kaza ve Hasar Kaydı Güncelle
+     */
+    public function update(Request $request, $id)
+    {
+        $user = Auth::user();
+        $accident = Accident::where('kullanici_id', $user->id)->findOrFail($id);
+
+        $validated = $request->validate([
+            'kaza_tarihi' => 'required|date',
+            'kaza_km' => 'nullable|numeric|min:0',
+            'kaza_turu' => 'required|string',
+            'hasar_tutari' => 'nullable|numeric|min:0',
+            'tramer_kaydi' => 'nullable|boolean',
+            'tramer_tutari' => 'nullable|numeric|min:0',
+            'kusur_orani' => 'nullable|integer|min:0|max:100',
+            'sigorta_sirketi' => 'nullable|string|max:255',
+            'dosya_no' => 'nullable|string|max:255',
+            'dosya_durumu' => 'nullable|string|in:dosya_acildi,eksper_incelemesinde,onarimda,tramer_onaylandi,kapandi',
+            'eksper_adi' => 'nullable|string|max:150',
+            'eksper_tel' => 'nullable|string|max:30',
+            'rucu_durumu' => 'nullable|string|max:100',
+            'tazminat_tutari' => 'nullable|numeric|min:0',
+            'karsi_taraf_plaka' => 'nullable|string|max:255',
+            'surucu_adi' => 'nullable|string|max:255',
+            'aciklama' => 'nullable|string',
+            'hasarli_parcalar' => 'nullable|array',
+            'tutanak' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
+            'fotograflar.*' => 'nullable|image|max:10240',
+        ]);
+
+        $tutanakUrl = $accident->tutanak_url;
+        if ($request->hasFile('tutanak')) {
+            $path = $request->file('tutanak')->store('tutanaklar', 'public');
+            $tutanakUrl = Storage::url($path);
+        }
+
+        $fotoUrls = is_array($accident->fotograflar) ? $accident->fotograflar : [];
+        if ($request->hasFile('fotograflar')) {
+            foreach ($request->file('fotograflar') as $file) {
+                $p = $file->store('hasar_fotograflari', 'public');
+                $fotoUrls[] = Storage::url($p);
+            }
+        }
+
+        $accident->update([
+            'kaza_tarihi' => $validated['kaza_tarihi'],
+            'kaza_km' => $validated['kaza_km'] ?? null,
+            'kaza_turu' => $validated['kaza_turu'],
+            'hasar_tutari' => $validated['hasar_tutari'] ?? 0,
+            'tramer_kaydi' => $request->boolean('tramer_kaydi'),
+            'tramer_tutari' => $request->boolean('tramer_kaydi') ? ($validated['tramer_tutari'] ?? $validated['hasar_tutari'] ?? 0) : null,
+            'kusur_orani' => $validated['kusur_orani'] ?? 0,
+            'sigorta_sirketi' => $validated['sigorta_sirketi'] ?? null,
+            'dosya_no' => $validated['dosya_no'] ?? null,
+            'dosya_durumu' => $validated['dosya_durumu'] ?? $accident->dosya_durumu ?? 'dosya_acildi',
+            'eksper_adi' => $validated['eksper_adi'] ?? null,
+            'eksper_tel' => $validated['eksper_tel'] ?? null,
+            'rucu_durumu' => $validated['rucu_durumu'] ?? null,
+            'tazminat_tutari' => $validated['tazminat_tutari'] ?? null,
+            'karsi_taraf_plaka' => $validated['karsi_taraf_plaka'] ?? null,
+            'surucu_adi' => $validated['surucu_adi'] ?? null,
+            'aciklama' => $validated['aciklama'] ?? null,
+            'hasarli_parcalar' => $validated['hasarli_parcalar'] ?? [],
+            'fotograflar' => $fotoUrls,
+            'tutanak_url' => $tutanakUrl,
+        ]);
+
+        return redirect()->back()->with('success', 'Hasar ve kaza kaydı başarıyla güncellendi.');
+    }
+
+    /**
      * Sigorta Dosya Aşaması Güncelleme
      */
     public function updateStatus(Request $request, $id)

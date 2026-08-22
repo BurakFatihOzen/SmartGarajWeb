@@ -3,6 +3,10 @@ import { Link, router, Head } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import AiDiagnosisModal from '@/Components/AiDiagnosisModal';
 import Chart from 'react-apexcharts';
+import DamageBodyMap from '@/Components/DamageBodyMap';
+import AccidentModal from '@/Components/AccidentModal';
+import EditVehicleModal from '@/Components/EditVehicleModal';
+import EditMaintenanceModal from '@/Components/EditMaintenanceModal';
 import { 
     Car, 
     Wrench, 
@@ -33,10 +37,9 @@ import {
     SlidersHorizontal,
     QrCode,
     Share2,
-    Fuel
+    Fuel,
+    Pencil
 } from 'lucide-react';
-import DamageBodyMap from '@/Components/DamageBodyMap';
-import AccidentModal from '@/Components/AccidentModal';
 
 export default function Dashboard({ 
     vehicles = [], 
@@ -55,6 +58,9 @@ export default function Dashboard({
 }) {
     const [isAiModalOpen, setIsAiModalOpen] = useState(false);
     const [isAccidentModalOpen, setIsAccidentModalOpen] = useState(false);
+    const [isEditVehicleOpen, setIsEditVehicleOpen] = useState(false);
+    const [editingMaintenance, setEditingMaintenance] = useState(null);
+    const [editingAccident, setEditingAccident] = useState(null);
     const [selectedOperationFilter, setSelectedOperationFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [isVehicleDropdownOpen, setIsVehicleDropdownOpen] = useState(false);
@@ -678,6 +684,15 @@ export default function Dashboard({
 
                                 {/* Quick Action Button Toolbar */}
                                 <div className="flex flex-wrap items-center gap-2.5 pt-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsEditVehicleOpen(true)}
+                                        className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-white/[0.05] hover:bg-slate-200 dark:hover:bg-white/[0.1] border border-slate-200 dark:border-white/[0.08] text-slate-800 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-center space-x-1.5 cursor-pointer"
+                                    >
+                                        <Pencil className="w-4 h-4 text-amber-500" />
+                                        <span>Aracı Düzenle</span>
+                                    </button>
+
                                     <Link
                                         href={`/maintenances/create?arac_id=${activeVehicle.id}`}
                                         className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-extrabold text-xs shadow-md shadow-amber-500/20 hover:shadow-amber-500/35 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center space-x-1.5"
@@ -688,7 +703,10 @@ export default function Dashboard({
 
                                     <button
                                         type="button"
-                                        onClick={() => setIsAccidentModalOpen(true)}
+                                        onClick={() => {
+                                            setEditingAccident(null);
+                                            setIsAccidentModalOpen(true);
+                                        }}
                                         className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 font-extrabold text-xs transition-all flex items-center justify-center space-x-1.5 cursor-pointer"
                                     >
                                         <ShieldAlert className="w-4 h-4" />
@@ -904,7 +922,14 @@ export default function Dashboard({
                                                 <td className="px-5 sm:px-6 py-4 text-slate-500 dark:text-slate-400 max-w-xs truncate font-medium">
                                                     {item.aciklama || '-'}
                                                 </td>
-                                                <td className="px-5 sm:px-6 py-4 text-right">
+                                                <td className="px-5 sm:px-6 py-4 text-right whitespace-nowrap space-x-1">
+                                                    <button
+                                                        onClick={() => setEditingMaintenance(item)}
+                                                        className="p-2 rounded-xl text-slate-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors cursor-pointer"
+                                                        title="Kaydı Düzenle"
+                                                    >
+                                                        <Pencil className="w-4 h-4" />
+                                                    </button>
                                                     <button
                                                         onClick={() => handleDeleteMaintenance(item.id)}
                                                         className="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
@@ -1075,7 +1100,17 @@ export default function Dashboard({
                                                     <td className="px-4 py-3 text-slate-500 dark:text-slate-400 max-w-xs truncate font-medium text-[11px]">
                                                         {acc.aciklama || '-'}
                                                     </td>
-                                                    <td className="px-4 py-3 text-right">
+                                                    <td className="px-4 py-3 text-right whitespace-nowrap space-x-1">
+                                                        <button
+                                                            onClick={() => {
+                                                                setEditingAccident(acc);
+                                                                setIsAccidentModalOpen(true);
+                                                            }}
+                                                            className="p-1.5 rounded-xl text-slate-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors cursor-pointer"
+                                                            title="Hasar Kaydını Düzenle"
+                                                        >
+                                                            <Pencil className="w-4 h-4" />
+                                                        </button>
                                                         <button
                                                             onClick={() => handleDeleteAccident(acc.id)}
                                                             className="p-1.5 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
@@ -1116,12 +1151,32 @@ export default function Dashboard({
                 />
             )}
 
-            {/* Accident & Damage Modal */}
+            {/* Edit Vehicle Modal */}
+            {activeVehicle && (
+                <EditVehicleModal
+                    isOpen={isEditVehicleOpen}
+                    onClose={() => setIsEditVehicleOpen(false)}
+                    vehicle={activeVehicle}
+                />
+            )}
+
+            {/* Edit Maintenance Modal */}
+            <EditMaintenanceModal
+                isOpen={!!editingMaintenance}
+                onClose={() => setEditingMaintenance(null)}
+                maintenance={editingMaintenance}
+            />
+
+            {/* Accident & Damage Modal (Create & Edit) */}
             <AccidentModal
                 isOpen={isAccidentModalOpen}
-                onClose={() => setIsAccidentModalOpen(false)}
+                onClose={() => {
+                    setIsAccidentModalOpen(false);
+                    setEditingAccident(null);
+                }}
                 vehicles={vehicles}
                 activeVehicle={activeVehicle}
+                accidentToEdit={editingAccident}
             />
         </AppLayout>
     );

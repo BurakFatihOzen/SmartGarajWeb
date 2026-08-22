@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('kazalar', function (Blueprint $table) {
             $table->id();
             $table->foreignId('arac_id')->constrained('araclar')->onDelete('cascade');
-            $table->foreignId('kullanici_id')->nullable()->constrained('users')->onDelete('cascade');
+            $table->foreignId('kullanici_id')->nullable()->constrained('kullanicilar')->onDelete('cascade');
             $table->date('kaza_tarihi');
             $table->integer('kaza_km')->nullable();
             $table->string('kaza_turu')->default('Çarpışma'); // Çarpışma, Park Halinde Hasar, Arkadan Çarpma, Dolu / Doğal Afet, Cam Kırılması, Tek Taraflı Kaza, Diğer

@@ -88,6 +88,48 @@ class VehicleController extends Controller
         return back()->with('success', "{$vehicle->plaka} aracınızın fotoğrafı başarıyla güncellendi!");
     }
 
+    public function update(Request $request, $id)
+    {
+        $vehicle = Auth::user()->vehicles()->findOrFail($id);
+
+        $validated = $request->validate([
+            'plaka' => 'required|string|max:30',
+            'marka' => 'required|string|max:100',
+            'model' => 'required|string|max:100',
+            'motor' => 'nullable|string|max:120',
+            'yil' => 'nullable|integer|min:1900|max:2100',
+            'guncel_km' => 'nullable|integer|min:0',
+            'ruhsat_tipi' => 'nullable|string|max:50',
+            'vites_turu' => 'nullable|string|max:50',
+            'yakit_turu' => 'nullable|string|max:50',
+            'muayene_bitis' => 'nullable|date',
+            'sigorta_bitis' => 'nullable|date',
+            'kasko_bitis' => 'nullable|date',
+            'sasi_no' => 'nullable|string|max:50',
+            'notlar' => 'nullable|string',
+            'fotograf' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240',
+            'durum' => 'nullable|string|in:aktif,gorevde,serviste,atil',
+            'zimmet_surucu_adi' => 'nullable|string|max:150',
+            'departman' => 'nullable|string|max:100',
+            'sozlesme_turu' => 'nullable|string|max:50',
+        ]);
+
+        $validated['plaka'] = trim(strtoupper($validated['plaka']));
+        if (isset($validated['guncel_km'])) {
+            $validated['guncel_km'] = max(0, (int) $validated['guncel_km']);
+        }
+
+        if ($request->hasFile('fotograf')) {
+            $path = $request->file('fotograf')->store('vehicles', 'public');
+            $validated['fotograf_url'] = '/storage/' . $path;
+        }
+        unset($validated['fotograf']);
+
+        $vehicle->update($validated);
+
+        return back()->with('success', "{$vehicle->plaka} plakalı araç bilgileri başarıyla güncellendi!");
+    }
+
     public function destroy($id)
     {
         $vehicle = Auth::user()->vehicles()->findOrFail($id);

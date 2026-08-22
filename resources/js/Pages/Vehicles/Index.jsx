@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Link, router, Head } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
+import EditVehicleModal from '@/Components/EditVehicleModal';
 import { 
     Car, 
     PlusCircle, 
@@ -18,11 +19,13 @@ import {
     LayoutGrid,
     List,
     AlertTriangle,
-    CheckCircle2
+    CheckCircle2,
+    Pencil
 } from 'lucide-react';
 
 export default function VehiclesIndex({ vehicles = [] }) {
     const [uploadingId, setUploadingId] = useState(null);
+    const [editingVehicle, setEditingVehicle] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'muayene', 'sigorta'
     const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
@@ -149,6 +152,16 @@ export default function VehiclesIndex({ vehicles = [] }) {
                                 >
                                     Muayenesi Yaklaşan
                                 </button>
+                                <button
+                                    onClick={() => setFilterStatus('sigorta')}
+                                    className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+                                        filterStatus === 'sigorta' 
+                                            ? 'bg-blue-500 text-white shadow-xs' 
+                                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5'
+                                    }`}
+                                >
+                                    Sigortası Yaklaşan
+                                </button>
                             </div>
 
                             <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10">
@@ -214,7 +227,7 @@ export default function VehiclesIndex({ vehicles = [] }) {
                                             )}
 
                                             {/* Upload Overlay Button */}
-                                            <label className="absolute inset-0 bg-black/60 opacity-0 group-hover/photo:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity text-white text-xs font-bold space-y-1">
+                                            <label className="absolute inset-0 z-15 bg-black/60 opacity-0 group-hover/photo:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity text-white text-xs font-bold space-y-1">
                                                 <input
                                                     type="file"
                                                     accept="image/*"
@@ -226,13 +239,13 @@ export default function VehiclesIndex({ vehicles = [] }) {
                                             </label>
 
                                             {/* Quick Badge in Photo */}
-                                            <div className="absolute top-2.5 left-2.5">
+                                            <div className="absolute top-2.5 left-2.5 z-20 pointer-events-none">
                                                 <span className="badge-plate text-xs shadow-md">
                                                     {v.plaka}
                                                 </span>
                                             </div>
 
-                                            <div className="absolute top-2.5 right-2.5">
+                                            <div className="absolute top-2.5 right-2.5 z-20 pointer-events-none">
                                                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/90 dark:bg-black/70 backdrop-blur-xs text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10 shadow-xs">
                                                     {v.yil || 'Model Yılı Yok'}
                                                 </span>
@@ -324,6 +337,14 @@ export default function VehiclesIndex({ vehicles = [] }) {
                                             <ExternalLink className="w-3.5 h-3.5" />
                                         </Link>
 
+                                        <button
+                                            onClick={() => setEditingVehicle(v)}
+                                            title="Aracı Düzenle"
+                                            className="p-2 rounded-xl bg-slate-100 hover:bg-amber-500 hover:text-black dark:bg-white/[0.05] dark:hover:bg-amber-500 dark:hover:text-black text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10 transition-all cursor-pointer"
+                                        >
+                                            <Pencil className="w-4 h-4" />
+                                        </button>
+
                                         <Link
                                             href={`/maintenances/create?arac_id=${v.id}`}
                                             title="Bakım Ekle"
@@ -398,7 +419,7 @@ export default function VehiclesIndex({ vehicles = [] }) {
                                                         <span className="text-slate-400">-</span>
                                                     )}
                                                 </td>
-                                                <td className="px-4 py-3.5 text-right whitespace-nowrap space-x-2">
+                                                <td className="px-4 py-3.5 text-right whitespace-nowrap space-x-1.5">
                                                     <Link
                                                         href={`/dashboard?arac_id=${v.id}`}
                                                         className="px-3 py-1.5 rounded-lg bg-amber-500 text-black font-bold text-xs hover:brightness-110 transition-all inline-flex items-center space-x-1"
@@ -406,8 +427,16 @@ export default function VehiclesIndex({ vehicles = [] }) {
                                                         <span>Yönet</span>
                                                     </Link>
                                                     <button
+                                                        onClick={() => setEditingVehicle(v)}
+                                                        title="Aracı Düzenle"
+                                                        className="p-1.5 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-amber-500/10 transition-colors cursor-pointer"
+                                                    >
+                                                        <Pencil className="w-4 h-4" />
+                                                    </button>
+                                                    <button
                                                         onClick={() => handleDelete(v.id, v.plaka)}
-                                                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                                                        title="Aracı Sil"
+                                                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
@@ -432,6 +461,13 @@ export default function VehiclesIndex({ vehicles = [] }) {
                     </div>
                 )}
             </div>
+
+            {/* Edit Vehicle Modal */}
+            <EditVehicleModal
+                isOpen={!!editingVehicle}
+                onClose={() => setEditingVehicle(null)}
+                vehicle={editingVehicle}
+            />
         </AppLayout>
     );
 }
