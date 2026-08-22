@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useForm, usePage } from '@inertiajs/react';
-import CustomSelect from './CustomSelect';
-import { FLEET_STATUS_OPTIONS, OWNERSHIP_OPTIONS, CORPORATE_DEPARTMENTS } from '@/constants/fleet';
+import CustomDropdown from '@/Components/CustomDropdown';
+import { 
+    FLEET_STATUS_OPTIONS, 
+    FLEET_OWNERSHIP_OPTIONS, 
+    FLEET_DEPARTMENT_OPTIONS 
+} from '@/Utils/fleetConstants';
 import { 
     X, 
     Car, 
@@ -19,14 +23,14 @@ import {
     Sparkles,
     Building2,
     UserCheck,
-    Briefcase
+    FileCheck
 } from 'lucide-react';
 
 export default function EditVehicleModal({ isOpen, onClose, vehicle }) {
     if (!isOpen || !vehicle) return null;
 
-    const { auth } = usePage().props || {};
-    const isFleet = auth?.user?.rol === 'filo' || vehicle.durum !== undefined;
+    const { auth } = usePage().props;
+    const isFleet = auth?.user?.hesap_turu === 'kurumsal_filo';
 
     const { data, setData, post, processing, errors, reset } = useForm({
         plaka: vehicle.plaka || '',
@@ -401,41 +405,33 @@ export default function EditVehicleModal({ isOpen, onClose, vehicle }) {
                         </div>
                     </div>
 
-                    {/* Section 5: Kurumsal Filo & Zimmet (Sadece Filo Araçlarında) */}
-                    {isFleet && (
+                    {/* Section 5: Filo & Zimmet Bilgileri (Kurumsal Filo) */}
+                    {(isFleet || vehicle.departman || vehicle.zimmet_surucu_adi) && (
                         <div className="space-y-4 pt-2 border-t border-slate-100 dark:border-white/[0.06]">
-                            <h4 className="text-xs font-black uppercase tracking-wider text-blue-500 flex items-center space-x-1.5">
-                                <Building2 className="w-3.5 h-3.5" />
-                                <span>5. Filo, Zimmet & Departman</span>
+                            <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center space-x-1.5">
+                                <Building2 className="w-3.5 h-3.5 text-blue-500" />
+                                <span>5. Filo & Zimmet Yönetim Bilgileri</span>
                             </h4>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                        Filo Durumu
-                                    </label>
-                                    <CustomSelect
-                                        options={FLEET_STATUS_OPTIONS}
-                                        value={data.durum}
-                                        onChange={(val) => setData('durum', val)}
-                                        placeholder="Filo Durumu Seçiniz..."
-                                    />
-                                </div>
+                                <CustomDropdown
+                                    label="Filo Durumu"
+                                    icon={Building2}
+                                    value={data.durum || 'aktif'}
+                                    options={FLEET_STATUS_OPTIONS}
+                                    onChange={(val) => setData('durum', val)}
+                                />
+
+                                <CustomDropdown
+                                    label="Mülkiyet / Sözleşme Türü"
+                                    icon={FileCheck}
+                                    value={data.sozlesme_turu || 'Özmal'}
+                                    options={FLEET_OWNERSHIP_OPTIONS}
+                                    onChange={(val) => setData('sozlesme_turu', val)}
+                                />
 
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                        Mülkiyet / Sözleşme Türü
-                                    </label>
-                                    <CustomSelect
-                                        options={OWNERSHIP_OPTIONS}
-                                        value={data.sozlesme_turu}
-                                        onChange={(val) => setData('sozlesme_turu', val)}
-                                        placeholder="Mülkiyet Türü Seçiniz..."
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center space-x-1">
                                         <UserCheck className="w-3.5 h-3.5 text-blue-500" />
                                         <span>Zimmetli Sürücü / Personel</span>
                                     </label>
@@ -444,47 +440,19 @@ export default function EditVehicleModal({ isOpen, onClose, vehicle }) {
                                         value={data.zimmet_surucu_adi}
                                         onChange={(e) => setData('zimmet_surucu_adi', e.target.value)}
                                         placeholder="Örn: Ahmet Yılmaz"
-                                        className="w-full text-xs font-bold px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 outline-none"
+                                        className="w-full text-xs font-semibold px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 outline-none"
                                     />
                                 </div>
 
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
-                                        <Briefcase className="w-3.5 h-3.5 text-indigo-500" />
-                                        <span>Departman / Saha Birimi</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={data.departman}
-                                        onChange={(e) => setData('departman', e.target.value)}
-                                        placeholder="Örn: Saha Satış & Pazarlama"
-                                        className="w-full text-xs font-bold px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-[#1a1d29] border border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 outline-none"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Quick Corporate Department Tags */}
-                            <div className="pt-1">
-                                <span className="block text-[11px] font-bold text-slate-400 mb-1.5">
-                                    Hızlı Departman Seçimi:
-                                </span>
-                                <div className="flex flex-wrap gap-1.5">
-                                    {CORPORATE_DEPARTMENTS.slice(0, 8).map(d => (
-                                        <button
-                                            key={d.name}
-                                            type="button"
-                                            onClick={() => setData('departman', d.name)}
-                                            className={`px-2.5 py-1 rounded-xl text-[11px] font-bold border transition-all cursor-pointer ${
-                                                data.departman === d.name
-                                                    ? 'bg-blue-500/10 border-blue-500 text-blue-600 dark:text-blue-400'
-                                                    : 'bg-slate-100 dark:bg-white/[0.03] border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10'
-                                            }`}
-                                        >
-                                            <span className="mr-1">{d.icon}</span>
-                                            <span>{d.name}</span>
-                                        </button>
-                                    ))}
-                                </div>
+                                <CustomDropdown
+                                    label="Departman / Saha Birimi"
+                                    icon={Layers}
+                                    value={data.departman || 'Saha Satış & Pazarlama'}
+                                    options={FLEET_DEPARTMENT_OPTIONS}
+                                    onChange={(val) => setData('departman', val)}
+                                    allowCustom={true}
+                                    customPlaceholder="Örn: AR-GE, Özel Proje, Kalite Kontrol"
+                                />
                             </div>
                         </div>
                     )}
